@@ -1,0 +1,65 @@
+# ---------------------------
+# Python
+# ---------------------------
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+*.egg
+*.egg-info/
+*.dist-info/
+*.log
+*.tmp
+
+# ---------------------------
+# Virtual Environments
+# ---------------------------
+venv/
+ENV/
+env/
+.venv/
+.virtualenv/
+
+# ---------------------------
+# Django
+# ---------------------------
+# Database
+*.sqlite3
+
+# Local migrations cache (ignore compiled files but keep __init__.py)
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/*.py~ 
+
+# Ignore local development logs
+*.log
+
+# Ignore staticfiles and media
+/staticfiles/
+/media/
+
+# ---------------------------
+# Editors / IDEs
+# ---------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*.bak
+
+# ---------------------------
+# OS / System
+# ---------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------------------
+# Optional: Secrets
+# ---------------------------
+*.env
+.env.*
