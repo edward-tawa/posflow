@@ -60,7 +60,8 @@ class CompanyRegisterView(APIView):
             {
                 'Company': request.data.get('name'),
                 'Email': request.data.get('email'),
-                'Phone': request.data.get('phone_number')
+                'Phone': request.data.get('phone_number'),
+                'Message': 'Company with the above information already exists'
             },
             status.HTTP_406_NOT_ACCEPTABLE
         )
