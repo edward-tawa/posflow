@@ -4,32 +4,32 @@
 # from loguru import logger
 
 
-# class CustomerAccount(CreateUpdateBaseModel):
-#     customer = models.ForeignKey(
-#         'customers.Customer',
-#         on_delete=models.CASCADE,
-#         related_name='customer_accounts'
-#     )
-#     account = models.ForeignKey(
-#         'accounts.Account',
-#         on_delete=models.CASCADE,
-#         related_name='customer_accounts'
-#     )
-#     is_primary = models.BooleanField(default=False)
+class SupplierAccount(CreateUpdateBaseModel):
+    supplier = models.ForeignKey(
+        'suppliers.Supplier',
+        on_delete=models.CASCADE,
+        related_name='customer_accounts'
+    )
+    account = models.ForeignKey(
+        'accounts.Account',
+        on_delete=models.CASCADE,
+        related_name='supplier_accounts'
+    )
+    is_primary = models.BooleanField(default=False)
 
-#     class Meta:
-#         unique_together = ('customer', 'account')
-#         ordering = ['-created_at']
+    class Meta:
+        unique_together = ('supplier', 'account')
+        ordering = ['-created_at']
 
-#     def clean(self):
-#         """
-#         Ensures only ONE primary account exists per customer.
-#         """
-#         if self.is_primary:
-#             exists = CustomerAccount.objects.filter(
-#                 customer=self.customer,
-#                 is_primary=True
-#             )
+    def clean(self):
+        """
+        Ensures only ONE primary account exists per supplier.
+        """
+        if self.is_primary:
+            exists = SupplierAccount.objects.filter(
+                supplier=self.supplier,
+                is_primary=True
+            )
 
 #             # Exclude current record if editing
 #             if self.pk:
@@ -45,23 +45,23 @@
 #         # Run validation
 #         self.clean()
 
-#         # Ensure no other accounts remain primary
-#         if self.is_primary:
-#             updated = CustomerAccount.objects.filter(
-#                 customer=self.customer,
-#                 is_primary=True
-#             ).exclude(pk=self.pk).update(is_primary=False)
+        # Ensure no other accounts remain primary
+        if self.is_primary:
+            updated = SupplierAccount.objects.filter(
+                supplier=self.supplier,
+                is_primary=True
+            ).exclude(pk=self.pk).update(is_primary=False)
             
-#             if updated:
-#                 logger.info(
-#                     f"Customer {self.customer.name}: Previous primary account(s) unset due to new primary account."
-#                 )
+            if updated:
+                logger.info(
+                    f"Supplier {self.supplier.name}: Previous primary account(s) unset due to new primary account."
+                )
 
-#         super().save(*args, **kwargs)
-#         logger.info(
-#             f"CustomerAccount saved: Customer {self.customer.name}, "
-#             f"Account {self.account.name}, Primary: {self.is_primary}"
-#         )
+        super().save(*args, **kwargs)
+        logger.info(
+            f"SupplierAccount saved: Supplier {self.supplier.name}, "
+            f"Account {self.account.name}, Primary: {self.is_primary}"
+        )
 
-#     def __str__(self):
-#         return f"CustomerAccount for {self.customer.name} linked to Account {self.account.name}"
+    def __str__(self):
+        return f"SupplierAccount for {self.supplier.name} linked to Account {self.account.name}"

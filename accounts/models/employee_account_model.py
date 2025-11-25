@@ -6,7 +6,7 @@ from loguru import logger
 
 class EmployeeAccount(CreateUpdateBaseModel):
     employee = models.ForeignKey(
-        'employees.Employee',
+        'users.User',
         on_delete=models.CASCADE,
         related_name='employee_accounts'
     ) #?
