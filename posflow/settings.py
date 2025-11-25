@@ -211,4 +211,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 
-logger = setup_loguru()
+# logger = setup_loguru()
