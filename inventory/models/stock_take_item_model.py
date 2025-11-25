@@ -12,9 +12,8 @@ class StockTakeItem(CreateUpdateBaseModel):
     expected_quantity = models.PositiveIntegerField()
     counted_quantity = models.PositiveIntegerField()
     
-
     class Meta:
-        unique_together = ('stock_take', 'product', 'company')
+        unique_together = ('stock_take', 'product')
         ordering = ['product__name']
     
     @property

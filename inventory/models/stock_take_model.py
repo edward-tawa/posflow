@@ -8,7 +8,7 @@ import uuid
 
 class StockTake(CreateUpdateBaseModel):
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='stock_takes')
-    branch = models.ForeignKey('company.Branch', on_delete=models.CASCADE, related_name='stock_takes')
+    branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='stock_takes')
     quantity_counted = models.PositiveIntegerField()
     perfomed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='stock_takes')
     counted_at = models.DateTimeField(auto_now_add=True)

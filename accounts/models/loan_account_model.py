@@ -9,7 +9,7 @@ class LoanAccount(CreateUpdateBaseModel):
         'loans.Loan',
         on_delete=models.CASCADE,
         related_name='loan_accounts'
-    )
+    ) #?
     account = models.ForeignKey(
         'accounts.Account',
         on_delete=models.CASCADE,

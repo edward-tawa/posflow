@@ -9,7 +9,7 @@ class Customer(CreateUpdateBaseModel):
     email = models.EmailField(unique=True, blank=False, null=False)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='customers')
-    branch = models.ForeignKey('company.Branch', on_delete=models.CASCADE, related_name='customers', blank=True, null=True)
+    branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='customers', blank=True, null=True)
     # branch to be added if needed later
     address = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)

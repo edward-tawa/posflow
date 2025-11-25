@@ -5,7 +5,7 @@ from config.models.create_update_base_model import CreateUpdateBaseModel
 
 class BranchAccount(CreateUpdateBaseModel):
     branch = models.ForeignKey(
-        'branches.Branch',
+        'branch.Branch',
         on_delete=models.CASCADE,
         related_name='branch_accounts'
     )
