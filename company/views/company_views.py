@@ -1,6 +1,7 @@
 from rest_framework import status
 from django.conf import settings
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -14,6 +15,7 @@ from company.serializers.company_serializer import CompanySerializer
 from company.serializers.company_auth_serializer import CompanyLoginSerializer
 from company.permissions.company_create_or_is_admin import CompanyCreateOrAdminPermission
 from config.utilities.pagination import StandardResultsSetPagination
+from loguru import logger
 
 
 # Only list and retrieve companies via this ViewSet
@@ -41,10 +43,16 @@ class CompanyViewSet(ReadOnlyModelViewSet):
 
 # Register a new company
 class CompanyRegisterView(APIView):
+    authentication_classes = []          # <- IMPORTANT
+    permission_classes = [AllowAny]
+    
     def post(self, request):
+       
         serializer = CompanySerializer(data=request.data)
+        company_name = request.data.get('name')
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        logger.info(f"{company_name} successfully registered")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 

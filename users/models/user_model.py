@@ -51,7 +51,7 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
     )
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name', 'company', 'role']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'company', 'role']
 
     objects = UserManager()
 
