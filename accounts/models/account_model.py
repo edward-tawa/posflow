@@ -1,0 +1,47 @@
+from django.db import models
+from config.models.create_update_base_model import CreateUpdateBaseModel
+from loguru import logger
+import uuid
+
+
+
+class Account(CreateUpdateBaseModel):
+    ACCOUNT_TYPES = [
+    ('BRANCH', 'Branch Account'),
+    ('CUSTOMER', 'Customer Account'),
+    ('SUPPLIER', 'Supplier Account'),
+    ('EMPLOYEE', 'Employee Account'),
+    ('LOAN', 'Loan Account'),
+    ('CASH', 'Cash Account'),
+    ('BANK', 'Bank Account'),
+    ('ECOCASH', 'Ecocash Account'),
+    ('MOBILE_MONEY', 'Mobile Money Account'),
+    ('PAYPAL', 'Paypal Account'),
+    ('EQUITY', 'Equity Account'),
+    ('INCOME', 'Income Account'),
+    ('EXPENSE', 'Expense Account'),
+    ]
+
+    
+
+    name = models.CharField(max_length=255)
+    company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='accounts')
+    account_number = models.CharField(max_length=100, unique=True)
+    account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPES, null=True, blank=True)
+    balance = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
+    is_active = models.BooleanField(default=True)
+
+
+    def generate_account_number(self):
+        """Generates a unique account number."""
+        account_number = str(uuid.uuid4()).replace('-', '')[:12].upper()
+        logger.info(f"Generated account number: {account_number} successfully.")
+        return account_number
+    
+    def save(self, *args, **kwargs):
+        if not self.account_number:
+            self.account_number = self.generate_account_number()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Account {self.name} ({self.account_number})"

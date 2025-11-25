@@ -2,4 +2,10 @@ asgiref==3.10.0
 Django==5.2.8
 django-cors-headers==4.9.0
 djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
+loguru==0.7.3
+psycopg==3.2.12
+psycopg-binary==3.2.12
+PyJWT==2.10.1
 sqlparse==0.5.3
+typing_extensions==4.15.0

@@ -1,0 +1,17 @@
+from django.db import models
+from company.models.company_model import Company
+from config.models.create_update_base_model import CreateUpdateBaseModel
+from inventory.models.product_model import Product
+
+
+
+class ProductStock(CreateUpdateBaseModel):
+    product = models.ForeignKey('company.Product', on_delete=models.CASCADE, related_name='stocks')
+    branch = models.ForeignKey('company.Branch', on_delete=models.CASCADE, related_name='product_stocks')
+    quantity = models.PositiveIntegerField()
+    reorder_level = models.PositiveIntegerField(default=0)
+    reorder_quantity = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('product', 'branch')
+        ordering = ['product__name', 'branch__name']

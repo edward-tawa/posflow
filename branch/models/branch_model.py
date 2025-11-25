@@ -1,0 +1,25 @@
+from django.db import models
+from config.models.create_update_base_model import CreateUpdateBaseModel
+from company.models.company_model import Company
+
+class Branch(CreateUpdateBaseModel):
+    name = models.CharField(max_length=100)
+    company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='branches')
+    code = models.CharField(max_length=20, unique=True, help_text="Unique branch code")
+    address = models.TextField(blank=True, null=True)
+    city = models.CharField(max_length=50, blank=True, null=True)
+    country = models.CharField(max_length=50, blank=True, null=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    manager = models.ForeignKey('users.User', on_delete=models.SET_NULL, related_name='managed_branches', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    opening_date = models.DateField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.company.name}"
+
+
+    @property
+    def full_address(self):
+        parts = [self.address, self.city, self.country]
+        return ', '.join(part for part in parts if part)
