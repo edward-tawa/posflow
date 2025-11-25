@@ -16,6 +16,7 @@ from company.serializers.company_auth_serializer import CompanyLoginSerializer
 from company.permissions.company_create_or_is_admin import CompanyCreateOrAdminPermission
 from config.utilities.pagination import StandardResultsSetPagination
 from loguru import logger
+from config.utilities.check_company_existance import check_existance
 
 
 # Only list and retrieve companies via this ViewSet
@@ -43,17 +44,27 @@ class CompanyViewSet(ReadOnlyModelViewSet):
 
 # Register a new company
 class CompanyRegisterView(APIView):
-    authentication_classes = []          # <- IMPORTANT
+    authentication_classes = []
     permission_classes = [AllowAny]
     
     def post(self, request):
-       
-        serializer = CompanySerializer(data=request.data)
-        company_name = request.data.get('name')
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        logger.info(f"{company_name} successfully registered")
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        exist = check_existance(company_data=request.data)
+        if not exist:
+            serializer = CompanySerializer(data=request.data)
+            company_name = request.data.get('name')
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            logger.info(f"{company_name} successfully registered")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                'Company': request.data.get('name'),
+                'Email': request.data.get('email'),
+                'Phone': request.data.get('phone_number')
+            },
+            status.HTTP_406_NOT_ACCEPTABLE
+        )
+        
 
 
 # Update an existing company
