@@ -48,24 +48,13 @@ class CompanyRegisterView(APIView):
     permission_classes = [AllowAny]
     
     def post(self, request):
-        exist = check_existance(company_data=request.data)
-        if not exist:
-            serializer = CompanySerializer(data=request.data)
-            company_name = request.data.get('name')
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            logger.info(f"{company_name} successfully registered")
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(
-            {
-                'Company': request.data.get('name'),
-                'Email': request.data.get('email'),
-                'Phone': request.data.get('phone_number'),
-                'Message': 'Company with the above information already exists'
-            },
-            status.HTTP_406_NOT_ACCEPTABLE
-        )
-        
+       
+        serializer = CompanySerializer(data=request.data)
+        company_name = request.data.get('name')
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        logger.info(f"{company_name} company successfully registered")
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 # Update an existing company
