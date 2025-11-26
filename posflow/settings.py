@@ -115,9 +115,9 @@ WSGI_APPLICATION = 'posflow.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "posflow",      # The database name
-        "USER": "postgres",           # The db user you created
-        "PASSWORD": "5052",       # The user's password
+        "NAME": "posflow_db",      # The database name
+        "USER": "tawah",           # The db user you created
+        "PASSWORD": "tawah",       # The user's password
         "HOST": "localhost",       # Use "127.0.0.1" if needed
         "PORT": "5432",            # Default PostgreSQL port
     }
