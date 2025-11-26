@@ -161,3 +161,6 @@ suppliers/migrations/*
 
 users/migrations/*
 !users/migrations/__init__.py
+
+company/migrations/*
+!company/migrations/__init__.py
