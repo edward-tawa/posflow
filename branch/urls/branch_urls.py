@@ -4,7 +4,7 @@ from django.urls import path, include
 
 router = DefaultRouter()
 
-router.register(r'brnaches', BranchViewSet, basename='branch')
+router.register(r'branches', BranchViewSet, basename='branch')
 
 urlpatterns = [
     path('', include(router.urls))

@@ -14,7 +14,7 @@ from users.serializers.user_auth_serializer import UserLoginSerializer
 from users.permissions.user_management_permission import CompanyAdminOrSuperuserCanManageUsers
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from config.utilities.pagination import StandardResultsSetPagination
-
+from rest_framework.permissions import AllowAny
 
 # Read-only ViewSet for listing/retrieving users
 class UserViewSet(ReadOnlyModelViewSet):
@@ -22,9 +22,9 @@ class UserViewSet(ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = (SearchFilter, OrderingFilter)
-    search_fields = ('name', 'email', 'role')
+    search_fields = ('first_name', 'email', 'role')
     ordering_fields = '__all__'
-    ordering = ['name']
+    ordering = ['first_name']
 
     permission_classes = [CompanyAdminOrSuperuserCanManageUsers]
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication]
@@ -82,7 +82,6 @@ class UserUpdateView(APIView):
 class UserDeleteView(APIView):
     permission_classes = [CompanyAdminOrSuperuserCanManageUsers]
 
-
     def delete(self, request, pk):
         try:
             user = User.objects.get(pk=pk)
@@ -95,8 +94,7 @@ class UserDeleteView(APIView):
 
 # Optional: User login
 class UserLoginView(APIView):
-    authentication_classes = []  # Disable JWT auth here
-    permission_classes = [] 
+    permission_classes = [AllowAny] 
     serializer_class = UserLoginSerializer
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
@@ -118,7 +116,15 @@ class UserLoginView(APIView):
         refresh_token = str(refresh)
 
         # Create response
-        response = Response({"message": "Login successful"}, status=200)
+        response = Response(
+            {
+                "message": "Login successful",
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'user_data': serializer.data
+            }, 
+            status=200
+        )
 
         # Development vs production cookie flags
         secure_flag = not settings.DEBUG  # True if production, False if development
@@ -154,7 +160,7 @@ class UserLogoutView(APIView):
         # Clear cookies by setting empty value and max_age=0
         response.delete_cookie("user_access_token")
         response.delete_cookie("user_refresh_token")
-
+        
         return response
     
 
@@ -180,7 +186,13 @@ class UserTokenRefreshView(APIView):
             # new_refresh_token = str(refresh)
 
             secure_flag = not settings.DEBUG
-            response = Response({"message": "Token refreshed", "access": new_access_token}, status=200)
+            response = Response(
+                {
+                    "message": "Token refreshed", 
+                    "access": new_access_token
+                }, 
+                status=200
+            )
 
             # Update cookie with new access token
             response.set_cookie(
