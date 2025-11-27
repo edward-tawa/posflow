@@ -36,13 +36,13 @@ urlpatterns = [
     path('posflow/', include('accounts.urls')),
 
     # Customers app endpoints
-    path('posflow/', include('customers.urls')),
+    # path('posflow/', include('customers.urls')),
 
     # Inventory app endpoints
-    path('posflow/', include('inventory.urls')),
+    # path('posflow/', include('inventory.urls')),
 
     # Loans app endpoints
-    path('posflow/', include('loans.urls')),
+    # path('posflow/', include('loans.urls')),
 
     # Payments app endpoints
     # path('posflow/', include('payments.urls')), 'MISSING URL PARTTERNS'
@@ -54,19 +54,19 @@ urlpatterns = [
     # path('posflow/', include('reports.urls')), 'REPORTS DOES NOT HAVE ANYTHING'
 
     # Sales app endpoints
-    path('posflow/', include('sales.urls')),
+    # path('posflow/', include('sales.urls')),
 
     # Suppliers app endpoints
-    path('posflow/', include('suppliers.urls')),
+    # path('posflow/', include('suppliers.urls')),
 
     # Taxes app endpoints
     # path('posflow/', include('taxes.urls')), 'TAXES DOES NOT HAVE ANYTHING'
 
     # Transactions app endpoints
-    path('posflow/', include('transactions.urls')),
+    # path('posflow/', include('transactions.urls')),
 
     # Transfers app endpoints
-    path('posflow/', include('transfers.urls')),
+    # path('posflow/', include('transfers.urls')),
 ]
 
 if settings.DEBUG:

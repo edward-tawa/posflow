@@ -8,19 +8,20 @@ from config.utilities.get_company_or_user_company import get_expected_company
 
 
 class BranchAccountSerializer(serializers.ModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    # company = serializers.PrimaryKeyRelatedField(
+    #     queryset=Company.objects.all(),
+    #     required=True
+    # )
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-
+    company_name = serializers.CharField(source="branch.company.name", read_only=True)
     class Meta:
         model = BranchAccount
         fields = [
             'id',
-            'company',
-            'branch_name',
-            'account_type',
+            # 'company',
+            'company_name',
+            'branch',
+            'account',
             'balance',
             'created_at',
             'updated_at',
@@ -63,7 +64,7 @@ class BranchAccountSerializer(serializers.ModelSerializer):
         user = getattr(request, 'user', None)
         company = get_expected_company(request)
         actor = getattr(user, 'username', None) or getattr(company, 'name', None)
-
+        logger.info(company)
         # Ensure company-awareness
         if validated_data['company'] != company:
             logger.error(
@@ -75,9 +76,14 @@ class BranchAccountSerializer(serializers.ModelSerializer):
             )
 
         try:
-            branch_account = BranchAccount.objects.create(**validated_data)
+            logger.info(validated_data)
+            branch_account = BranchAccount.objects.create(
+                # **validated_data
+                branch = validated_data['branch'],
+                account = validated_data['account']
+            )
             logger.info(
-                f"{actor} created BranchAccount '{branch_account.branch_name}' "
+                f"{actor} created BranchAccount '{branch_account.branch.name}' "
                 f"(ID: {branch_account.id}) for company '{company.name}'."
             )
             return branch_account

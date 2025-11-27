@@ -15,6 +15,7 @@ from users.permissions.user_management_permission import CompanyAdminOrSuperuser
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from config.utilities.pagination import StandardResultsSetPagination
 from rest_framework.permissions import AllowAny
+from loguru import logger
 
 # Read-only ViewSet for listing/retrieving users
 class UserViewSet(ReadOnlyModelViewSet):
@@ -36,11 +37,14 @@ class UserViewSet(ReadOnlyModelViewSet):
         if isinstance(current, User):
             if current.is_staff:
                 # Company admin can see all users in their company
+                logger.info(User.objects.filter(company=current.company).values('role'))
                 return User.objects.filter(company=current.company)
+            logger.info(User.objects.filter(company=current.id).values('role'))
             return User.objects.filter(id=current.id)  # Regular user can only see themselves
 
         # If a Company instance (superuser), can see all users of that company
         elif hasattr(current, "id"):  # crude check for Company
+            logger.info(User.objects.filter(company=current.company).values('role'))
             return User.objects.filter(company=current)
 
         return User.objects.none()

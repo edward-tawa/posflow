@@ -67,11 +67,11 @@ LOCAL_APPS = [
     "branch",
     "inventory",
     "promotions",
-    "sales",
+    # "sales",
     "loans",
-    "taxes",
-    'transactions',
-    'transfers',
+    # "taxes",
+    # 'transactions',
+    # 'transfers',
     "posflow",    # core project app (if you have one)
     "config",     # if your project config is treated as an app
 ]

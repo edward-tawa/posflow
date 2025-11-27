@@ -1,4 +1,4 @@
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from branch.models.branch_model import Branch
 from branch.serializers.branch_serializer import BranchSerializer
 from branch.permissions.branch_permissions import BranchPermissions
@@ -12,8 +12,10 @@ from loguru import logger
 from company.models.company_model import Company
 from users.models.user_model import User
 from django.db import transaction
+from rest_framework.exceptions import ValidationError
 
-class BranchViewSet(ReadOnlyModelViewSet):
+
+class BranchViewSet(ModelViewSet):
     """
     ViewSet for viewing Branches.
     - ReadOnlyModelViewSet: allows only GET requests.
@@ -39,42 +41,27 @@ class BranchViewSet(ReadOnlyModelViewSet):
                 .select_related('company', 'manager')  # avoids extra queries
             )
         return self.queryset.none()
-    
-    def post(self, request):
-        logger.info(request.data)
-        try:
-            logger.info(request.user.id)
-            company_id = request.data.get("company")
-            try:
-                company = Company.objects.get(id=company_id)
-                user_company = User.objects.get(id = request.user.id, company = company)
-                with transaction.atomic():
-                    branch = Branch.objects.create(
-                        name=request.data.get("name"),
-                        company=company,
-                        code=request.data.get("code"),
-                        address=request.data.get("address"),
-                        city=request.data.get("city"),
-                        country=request.data.get("country"),
-                        phone_number=request.data.get("phone_number"),
-                        manager_id=request.data.get("manager"),
-                        is_active=request.data.get("is_active", True),
-                        opening_date=request.data.get("opening_date"),
-                        notes=request.data.get("notes"),
-                    )
 
-                return Response(
-                    {"id": branch.id, "message": "Branch created successfully"},
-                    status=status.HTTP_201_CREATED
-                )
-            except Exception as e:
-                return Response(
-                    {'message': f'{e}'}
-                )
-        except Company.DoesNotExist:
-            return Response({"error": "Company not found"}, status=404)
+    def perform_create(self, serializer):
+        user_company = getattr(self.request.user, 'company', None)
+        if not user_company:
+            raise ValidationError({"error": "User has no associated company"})
 
-        except Exception as e:
-            logger.error(str(e))
-            return Response({"error": str(e)}, status=500)
+        serializer.save(company=user_company)
 
+    def perform_update(self, serializer):
+        branch = self.get_object()
+        user_company = getattr(self.request.user, 'company', None)
+
+        if branch.company != user_company:
+            raise ValidationError({"error": "You cannot update branches of another company"})
+        
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        user_company = getattr(self.request.user, 'company', None)
+
+        if instance.company != user_company:
+            raise ValidationError({"error": "You cannot delete branches of another company"})
+
+        instance.delete()

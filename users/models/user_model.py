@@ -50,10 +50,10 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
         related_query_name='company_permission'
     )
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'company', 'role']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'company', 'role', 'email']
 
     objects = UserManager()
 
     def __str__(self):
-        return f"{self.name} ({self.role})"
+        return f"{self.username} ({self.role})"
