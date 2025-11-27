@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from inventory.models import Product
-from sales.models import SalesOrder, SalesReturn
+from sales.models.sales_order_model import SalesOrder 
+from sales.models.sales_return_model import SalesReturn
 from suppliers.models.purchase_order_model import PurchaseOrder
 from suppliers.models.purchase_return_model import PurchaseReturn
 from company.serializers.company_summary_serializer import CompanySummarySerializer

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from inventory.models.product_category_model import Category
+from inventory.models.product_category_model import ProductCategory
 
 
 
@@ -14,16 +14,16 @@ class CategoryField(serializers.Field):
             return None
         if isinstance(data, int):
             try:
-                return Category.objects.get(id=data)
-            except Category.DoesNotExist:
-                raise serializers.ValidationError(f'Category with id {data} does not exist.')
+                return ProductCategory.objects.get(id=data)
+            except ProductCategory.DoesNotExist:
+                raise serializers.ValidationError(f'ProductCategory with id {data} does not exist.')
         elif isinstance(data, str):
             try:
-                return Category.objects.get(name__iexact=data.strip())
-            except Category.DoesNotExist:
-                raise serializers.ValidationError(f"Category with name '{data}' does not exist.")
+                return ProductCategory.objects.get(name__iexact=data.strip())
+            except ProductCategory.DoesNotExist:
+                raise serializers.ValidationError(f"ProductCategory with name '{data}' does not exist.")
         else:
-            raise serializers.ValidationError('Category must be an integer (ID) or string (name).')
+            raise serializers.ValidationError('ProductCategory must be an integer (ID) or string (name).')
         
     def to_representation(self, value):
         if not value:

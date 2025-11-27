@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from inventory.models import Product
-from sales.models.sales_return_item_model import SalesReturnItem
+# from sales.models.sales_return_item_model import SalesReturnItem 'SALES RETURN ITEM CLASS DOES NOT EXIST IN sales_return_item_model.py'
 from loguru import logger
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -10,7 +10,7 @@ class SalesReturnItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
     class Meta:
-        model = SalesReturnItem
+        # model = SalesReturnItem
         fields = [
             'id',
             'sales_return',

@@ -7,7 +7,8 @@ class ProductTransferFilter(StandardFilterSet):
 
     class Meta:
         model = ProductTransfer
-        fields = {
-            'source_branch': ['exact'],
-            'destination_branch': ['exact'],
-        }
+        fields = '__all__'
+        # {
+        #     'source_branch': ['exact'],
+        #     'destination_branch': ['exact'],
+        # } 'FIELDS NOT EXISTING TEMPORARILY'

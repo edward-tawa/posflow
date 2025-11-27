@@ -70,6 +70,8 @@ LOCAL_APPS = [
     "sales",
     "loans",
     "taxes",
+    'transactions',
+    'transfers',
     "posflow",    # core project app (if you have one)
     "config",     # if your project config is treated as an app
 ]
@@ -116,13 +118,12 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "posflow_db",      # The database name
-        "USER": "tawah",           # The db user you created
-        "PASSWORD": "tawah",       # The user's password
+        "USER": "postgres",           # The db user you created
+        "PASSWORD": "5052",       # The user's password
         "HOST": "localhost",       # Use "127.0.0.1" if needed
         "PORT": "5432",            # Default PostgreSQL port
     }
 }
-
 
 AUTHENTICATION_BACKENDS = [
     'company.auth.backends.company_backend.CompanyBackend',

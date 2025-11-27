@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, CompanyCookieJWTAuthentication
 from config.utilities.pagination import StandardResultsSetPagination
-from config.utilities.get_logged_in_company import get_company_queryset
+# from config.utilities.get_logged_in_company import get_company_queryset 'CHECK THIS IMPORT MAYBE TYPO OR MISSING FUNCTION NEEDED'
 from transfers.models.cash_transfer_model import CashTransfer
 from transfers.serializers.cash_transfer_serializer import CashTransferSerializer
 from config.permissions.company_role_base_permission import CompanyRolePermission
@@ -28,13 +28,14 @@ class CashTransferViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        return get_company_queryset(self.request, CashTransfer).select_related(
-                    'transfer',
-                    'source_branch',
-                    'destination_branch',
-                    'source_branch_account',
-                    'destination_branch_account'
-                    ).all()
+        # return get_company_queryset(self.request, CashTransfer).select_related(
+        #             'transfer',
+        #             'source_branch',
+        #             'destination_branch',
+        #             'source_branch_account',
+        #             'destination_branch_account'
+        #             ).all()
+        pass
 
     def perform_create(self, serializer):
         user = self.request.user
