@@ -76,10 +76,9 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
 
         try:
             logger.info(validated_data['customer'])
+            validated_data.pop('company', None)
             customer_account = CustomerAccount.objects.create(
-                # **validated_data
-                customer = validated_data['customer'],
-                account = validated_data['account']
+                **validated_data
             )
             logger.info(
                 f"{actor} created CustomerAccount '{customer_account.customer.first_name}' (ID: {customer_account.id})."

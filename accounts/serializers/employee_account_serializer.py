@@ -77,11 +77,9 @@ class EmployeeAccountSerializer(serializers.ModelSerializer):
 
         try:
             logger.info(validated_data)
+            validated_data.pop('company', None)
             employee_account = EmployeeAccount.objects.create(
-                # **validated_data
-                employee = validated_data['employee'],
-                account = validated_data['account'],
-                is_primary = validated_data['is_primary']
+                **validated_data
             )
             logger.info(
                 f"{actor} created EmployeeAccount '{employee_account.employee.first_name}' "
