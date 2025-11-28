@@ -28,7 +28,12 @@ def get_company_queryset(request, model):
         return model.objects.none()
 
     # 4️⃣ Filter queryset by company
-    queryset = model.objects.filter(account__company=company_or_user)
+    try:
+        queryset = model.objects.filter(account__company=company_or_user)
+    except Exception as e:
+        # Temp fix
+        queryset = model.objects.filter(borrower__company=company_or_user)
+
 
     # 5️⃣ Log existence check (lightweight)
     exists = queryset.exists()

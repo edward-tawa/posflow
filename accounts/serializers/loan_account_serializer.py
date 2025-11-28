@@ -7,22 +7,24 @@ from config.utilities.get_company_or_user_company import get_expected_company
 
 
 class LoanAccountSerializer(serializers.ModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    # company = serializers.PrimaryKeyRelatedField(
+    #     queryset=Company.objects.all(),
+    #     required=True
+    # )
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-
+    company = serializers.CharField(source='account.company', read_only=True)
     class Meta:
         model = LoanAccount
         fields = [
             'id',
             'company',
-            'borrower_name',
-            'account_type',
+            # 'borrower_name',
+            'loan',
+            'account',
             'balance',
             'created_at',
             'updated_at',
+            'is_primary'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'balance']
 
@@ -77,9 +79,10 @@ class LoanAccountSerializer(serializers.ModelSerializer):
             )
 
         try:
+            validated_data.pop('company', None)
             loan_account = LoanAccount.objects.create(**validated_data)
             logger.info(
-                f"{actor} created LoanAccount '{loan_account.borrower_name}' "
+                f"{actor} created LoanAccount '{loan_account.loan.borrower.first_name}' "
                 f"(ID: {loan_account.id}) for company '{company.name}'."
             )
             return loan_account

@@ -42,7 +42,7 @@ urlpatterns = [
     # path('posflow/', include('inventory.urls')),
 
     # Loans app endpoints
-    # path('posflow/', include('loans.urls')),
+    path('posflow/', include('loans.urls')),
 
     # Payments app endpoints
     # path('posflow/', include('payments.urls')), 'MISSING URL PARTTERNS'

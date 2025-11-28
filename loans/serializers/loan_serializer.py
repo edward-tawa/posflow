@@ -51,7 +51,7 @@ class LoanSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     def get_borrower_summary(self, obj):
         return {
             'id': obj.borrower.id,
-            'name': obj.borrower.name,
+            'name': obj.borrower.first_name,
         }
 
     def get_issued_by_summary(self, obj):
@@ -59,7 +59,7 @@ class LoanSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         if issued_by:
             return {
                 'id': issued_by.id,
-                'name': issued_by.name
+                'name': issued_by.first_name
             }
         return None
 
@@ -96,14 +96,15 @@ class LoanSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     # -------------------------
 
     def create(self, validated_data):
+       
         request = self.context.get('request')
         expected_company = get_expected_company(request)
         user = request.user
-
+        
+        actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')
         try:
             loan = Loan.objects.create(**validated_data)
-            actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')
-            logger.success(f"Loan '{loan.id}' created for borrower '{loan.borrower.name}' by {actor}.")
+            logger.success(f"Loan '{loan.id}' created for borrower '{loan.borrower.first_name}' by {actor}.")
             return loan
         except Exception as e:
             logger.error(f"Error creating loan by {actor}: {str(e)}")
