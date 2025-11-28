@@ -22,8 +22,8 @@ class EmployeeAccountViewSet(ModelViewSet):
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
     permission_classes = [AccountPermission]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['employee__name', 'account__name', 'account__number']
-    ordering_fields = ['created_at', 'updated_at', 'employee__name']
+    search_fields = ['employee__first_name', 'account__name', 'account__account_number']
+    ordering_fields = ['created_at', 'updated_at', 'employee__first_name']
     ordering = ['-created_at']
     pagination_class = StandardResultsSetPagination
 
@@ -36,8 +36,8 @@ class EmployeeAccountViewSet(ModelViewSet):
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         employee_account = serializer.save(company=company)
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(employee=employee_account.employee.name, account_number=employee_account.account.number).success(
-            f"EmployeeAccount for employee '{employee_account.employee.name}' and account '{employee_account.account.name}' (Number: {employee_account.account.number}) created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
+        logger.bind(employee=employee_account.employee.first_name, account_number=employee_account.account.account_number).success(
+            f"EmployeeAccount for employee '{employee_account.employee.first_name}' and account '{employee_account.account.name}' (Number: {employee_account.account.account_number}) created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
         )
     
     def perform_update(self, serializer):
@@ -45,15 +45,15 @@ class EmployeeAccountViewSet(ModelViewSet):
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         employee_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(employee=employee_account.employee.name, account_number=employee_account.account.number).info(
-            f"EmployeeAccount for employee '{employee_account.employee.name}' and account '{employee_account.account.name}' (Number: {employee_account.account.number}) updated by {actor}."
+        logger.bind(employee=employee_account.employee.first_name, account_number=employee_account.account.account_number).info(
+            f"EmployeeAccount for employee '{employee_account.employee.first_name}' and account '{employee_account.account.name}' (Number: {employee_account.account.account_number}) updated by {actor}."
         )
 
     def perform_destroy(self, instance):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(employee=instance.employee.name, account_number=instance.account.number).warning(
-            f"EmployeeAccount for employee '{instance.employee.name}' and account '{instance.account.name}' (Number: {instance.account.number}) deleted by {actor}."
+        logger.bind(employee=instance.employee.first_name, account_number=instance.account.account_number).warning(
+            f"EmployeeAccount for employee '{instance.employee.first_name}' and account '{instance.account.name}' (Number: {instance.account.account_number}) deleted by {actor}."
         )
         instance.delete()

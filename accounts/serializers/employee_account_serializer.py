@@ -9,20 +9,21 @@ from accounts.models.account_model import Account
 
 
 class EmployeeAccountSerializer(serializers.ModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    # company = serializers.PrimaryKeyRelatedField(
+    #     queryset=Company.objects.all(),
+    #     required=True
+    # )
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-
+    company = serializers.CharField(source='employee.company', read_only = True)
     class Meta:
         model = EmployeeAccount
         fields = [
             'id',
             'company',
-            'employee_name',
-            'account_type',
+            'employee',
+            'account',
             'balance',
+            'is_primary',
             'created_at',
             'updated_at',
         ]
@@ -75,9 +76,15 @@ class EmployeeAccountSerializer(serializers.ModelSerializer):
             )
 
         try:
-            employee_account = EmployeeAccount.objects.create(**validated_data)
+            logger.info(validated_data)
+            employee_account = EmployeeAccount.objects.create(
+                # **validated_data
+                employee = validated_data['employee'],
+                account = validated_data['account'],
+                is_primary = validated_data['is_primary']
+            )
             logger.info(
-                f"{actor} created EmployeeAccount '{employee_account.employee_name}' "
+                f"{actor} created EmployeeAccount '{employee_account.employee.first_name}' "
                 f"(ID: {employee_account.id}) for company '{company.name}'."
             )
             return employee_account

@@ -37,7 +37,7 @@ class EmployeeAccount(CreateUpdateBaseModel):
 
             if exists.exists():
                 logger.warning(
-                    f"Attempted to set multiple primary accounts for Employee {self.employee.name}."
+                    f"Attempted to set multiple primary accounts for Employee {self.employee.first_name}."
                 )
                 raise ValidationError("This employee already has a primary account.")
 
@@ -53,10 +53,10 @@ class EmployeeAccount(CreateUpdateBaseModel):
             ).exclude(pk=self.pk).update(is_primary=False)
             if updated:
                 logger.info(
-                    f"Employee {self.employee.name}: Previous primary account(s) unset due to new primary."
+                    f"Employee {self.employee.first_name}: Previous primary account(s) unset due to new primary."
                 )
 
         super().save(*args, **kwargs)
         logger.info(
-            f"EmployeeAccount for {self.employee.name} linked to Account {self.account.name} saved successfully."
+            f"EmployeeAccount for {self.employee.first_name} linked to Account {self.account.name} saved successfully."
         )
