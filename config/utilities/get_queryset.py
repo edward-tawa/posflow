@@ -28,10 +28,10 @@ def get_company_queryset(request, model):
         return model.objects.none()
 
     # 4️⃣ Filter queryset by company
-    queryset = model.objects.filter(branch__company=company_or_user)
+    queryset = model.objects.filter(account__company=company_or_user)
 
     # 5️⃣ Log existence check (lightweight)
     exists = queryset.exists()
     logger.bind(user=identifier).info(f"{model.__name__} records exist: {exists} for '{identifier}'")
-    logger.info(queryset)
+    # logger.info(queryset)
     return queryset

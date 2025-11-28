@@ -22,8 +22,8 @@ class CustomerAccountViewSet(ModelViewSet):
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
     permission_classes = [AccountPermission]
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['customer__name', 'account__name', 'account__number']
-    ordering_fields = ['created_at', 'updated_at', 'customer__name']
+    search_fields = ['customer__first_name', 'account__name', 'account__number']
+    ordering_fields = ['created_at', 'updated_at', 'customer__first_name']
     ordering = ['-created_at']
     pagination_class = StandardResultsSetPagination
 
@@ -36,8 +36,8 @@ class CustomerAccountViewSet(ModelViewSet):
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         customer_account = serializer.save(company=company)
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(customer=customer_account.customer.name, account_number=customer_account.account.number).success(
-            f"CustomerAccount for customer '{customer_account.customer.name}' and account '{customer_account.account.name}' (Number: {customer_account.account.number}) created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
+        logger.bind(customer=customer_account.customer.first_name, account_number=customer_account.account.account_number).success(
+            f"CustomerAccount for customer '{customer_account.customer.first_name}' and account '{customer_account.account.name}' (Number: {customer_account.account.account_number}) created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
         )
     
     def perform_update(self, serializer):

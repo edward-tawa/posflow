@@ -37,7 +37,7 @@ class CustomerAccount(CreateUpdateBaseModel):
 
             if exists.exists():
                 logger.warning(
-                    f"Attempted to set multiple primary accounts for Customer {self.customer.name}."
+                    f"Attempted to set multiple primary accounts for Customer {self.customer.first_name}."
                 )
                 raise ValidationError("This customer already has a primary account.")
 
@@ -53,14 +53,14 @@ class CustomerAccount(CreateUpdateBaseModel):
             ).exclude(pk=self.pk).update(is_primary=False)
             if updated:
                 logger.info(
-                    f"Customer {self.customer.name}: Previous primary account(s) unset due to new primary."
+                    f"Customer {self.customer.first_name}: Previous primary account(s) unset due to new primary."
                 )
 
         super().save(*args, **kwargs)
         logger.info(
-            f"CustomerAccount saved: Customer {self.customer.name}, "
+            f"CustomerAccount saved: Customer {self.customer.first_name}, "
             f"Account {self.account.name}, Primary: {self.is_primary}"
         )
 
     def __str__(self):
-        return f"CustomerAccount for {self.customer.name} linked to Account {self.account.name}"
+        return f"CustomerAccount for {self.customer.first_name} linked to Account {self.account.name}"

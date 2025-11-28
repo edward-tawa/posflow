@@ -36,7 +36,7 @@ urlpatterns = [
     path('posflow/', include('accounts.urls')),
 
     # Customers app endpoints
-    # path('posflow/', include('customers.urls')),
+    path('posflow/', include('customers.urls')),
 
     # Inventory app endpoints
     # path('posflow/', include('inventory.urls')),

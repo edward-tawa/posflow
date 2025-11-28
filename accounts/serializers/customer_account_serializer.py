@@ -6,20 +6,22 @@ from config.utilities.get_company_or_user_company import get_expected_company
 from accounts.models.account_model import Account
 
 class CustomerAccountSerializer(serializers.ModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    # company = serializers.PrimaryKeyRelatedField(
+    #     queryset=Company.objects.all(),
+    #     required=True
+    # )
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-
+    company = serializers.CharField(source="account.company.id", read_only=True)
     class Meta:
         model = CustomerAccount
         fields = [
             'id',
             'company',
-            'name',
-            'account_number',
-            'account_type',
+            # 'name',
+            'customer',
+            'account',
+            # 'account_number',
+            # 'account_type',
             'balance',
             'created_at',
             'updated_at',
@@ -73,9 +75,14 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
             )
 
         try:
-            customer_account = CustomerAccount.objects.create(**validated_data)
+            logger.info(validated_data['customer'])
+            customer_account = CustomerAccount.objects.create(
+                # **validated_data
+                customer = validated_data['customer'],
+                account = validated_data['account']
+            )
             logger.info(
-                f"{actor} created CustomerAccount '{customer_account.name}' (ID: {customer_account.id})."
+                f"{actor} created CustomerAccount '{customer_account.customer.first_name}' (ID: {customer_account.id})."
             )
             return customer_account
         except Exception as e:
