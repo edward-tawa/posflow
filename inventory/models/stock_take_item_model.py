@@ -7,6 +7,7 @@ from inventory.models.stock_take_model import StockTake
 
 
 class StockTakeItem(CreateUpdateBaseModel):
+    # Model representing individual items counted during a stock take
     stock_take = models.ForeignKey(StockTake, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_take_items')
     expected_quantity = models.PositiveIntegerField()

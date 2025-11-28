@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from loguru import logger
 import uuid
 
+# will not be used to track allocations. its being done in the purchase payment model directly. unless we need detailed allocation records.
 
 class PurchasePaymentAllocation(CreateUpdateBaseModel):
     PREFIX = 'PPA'

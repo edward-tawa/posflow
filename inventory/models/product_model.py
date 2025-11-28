@@ -5,6 +5,7 @@ from config.models.create_update_base_model import CreateUpdateBaseModel
 
 
 class Product(CreateUpdateBaseModel):
+    # Product model representing items in inventory
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)

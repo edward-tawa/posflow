@@ -5,6 +5,7 @@ import uuid
 
 
 class StockMovement(CreateUpdateBaseModel):
+    # Model to track stock movements of products in inventory
     PREFIX = 'SM'
     MOVEMENT_TYPE_CHOICE = [
         ('purchase', 'Purchase'),

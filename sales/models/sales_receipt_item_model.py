@@ -4,7 +4,6 @@ from loguru import logger
 import uuid
 
 
-
 class SalesReceiptItem(CreateUpdateBaseModel):
     sales_receipt = models.ForeignKey('sales.SalesReceipt', on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='sales_receipt_items')
