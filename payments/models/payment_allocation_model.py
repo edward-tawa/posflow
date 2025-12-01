@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from config.models.create_update_base_model import CreateUpdateBaseModel
 from decimal import Decimal, ROUND_HALF_UP
 from loguru import logger
@@ -26,7 +27,7 @@ class PaymentAllocation(CreateUpdateBaseModel):
     )
     allocated_to_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     allocated_to_object_id = models.PositiveIntegerField()
-    allocated_to = models.GenericForeignKey('allocated_to_content_type', 'allocated_to_object_id')
+    allocated_to = GenericForeignKey('allocated_to_content_type', 'allocated_to_object_id')
     allocation_number = models.CharField(max_length=20, unique=True, editable=False)
     allocation_date = models.DateTimeField(auto_now_add=True)
     amount_allocated = models.DecimalField(max_digits=12, decimal_places=2)
