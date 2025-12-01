@@ -32,10 +32,10 @@ class PurchaseInvoiceItem(CreateUpdateBaseModel):
     
 
     def save(self, *args, **kwargs):
-        self.total_price = self.subtotal
+        # self.total_price = self.subtotal
         super().save(*args, **kwargs)
         # Update the total amount of the related purchase invoice
-        self.purchase_invoice.update_total_amount()
+        # self.purchase_invoice.update_total_amount()
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity} @ {self.unit_price}"

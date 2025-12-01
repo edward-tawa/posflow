@@ -7,6 +7,8 @@ from .supplier_debit_note import urlpatterns as supplier_debit_notes_urls
 from .supplier_debit_note_item import urlpatterns as supplier_debit_notes_item_urls
 from .supplier_credit_note_urls import urlpatterns as supplier_credit_note_urls
 from .supplier_credit_note_item_urls import urlpatterns as supplier_credit_note_item_urls
+from .purchase_invoice_urls import urlpatterns as purchase_invoice_urls
+from .purchase_invoice_item_urls import urlpatterns as purchase_invoice_item_urls
 
 urlpatterns = (supplier_urls +
     purchase_order_urls +
@@ -16,5 +18,7 @@ urlpatterns = (supplier_urls +
     supplier_debit_notes_urls+
     supplier_debit_notes_item_urls+ 
     supplier_credit_note_urls+
-    supplier_credit_note_item_urls
+    supplier_credit_note_item_urls+
+    purchase_invoice_urls+
+    purchase_invoice_item_urls
 )

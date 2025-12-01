@@ -60,10 +60,11 @@ class PurchaseInvoiceViewSet(ModelViewSet):
         invoice = serializer.save(company=company)
 
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-
+        logger.info(company)
+        #Request should contain user id
         logger.success(
             f"PurchaseInvoice '{invoice.invoice_number}' created for supplier '{invoice.supplier}' "
-            f"in company '{company.name}' by {actor}."
+            f"in company '{company.name if company else None}' by {actor}."
         )
 
     def perform_update(self, serializer):

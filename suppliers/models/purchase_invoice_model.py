@@ -52,13 +52,13 @@ class PurchaseInvoice(CreateUpdateBaseModel):
             self.invoice_number = self.generate_invoice_number()
         super().save(*args, **kwargs)
         # Update total amount based on items
-        self.update_total_amount()
+        # self.update_total_amount()
 
-    def update_total_amount(self):
-        total = sum(item.total_price for item in self.items.all())
-        if self.total_amount != total:
-            self.total_amount = total
-            super().save(update_fields=['total_amount'])
+    # def update_total_amount(self):
+    #     total = sum(item.total_price for item in self.items.all())
+    #     if self.total_amount != total:
+    #         self.total_amount = total
+    #         super().save(update_fields=['total_amount'])
 
     def __str__(self):
         return f"{self.invoice_number} - {self.total_amount}"
