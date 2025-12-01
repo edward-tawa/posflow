@@ -17,7 +17,7 @@ class SalesQuotation(CreateUpdateBaseModel):
     ]
 
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='sales_quotations')
-    branch = models.ForeignKey('company.Branch', on_delete=models.CASCADE, related_name='sales_quotations') 
+    branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='sales_quotations') 
     quotation_number = models.CharField(max_length=50, unique=True)
     customer = models.ForeignKey('customers.Customer', on_delete=models.CASCADE, related_name='sales_quotations')
     quotation_date = models.DateTimeField(auto_now_add=True)

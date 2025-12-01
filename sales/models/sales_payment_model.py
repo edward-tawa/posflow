@@ -36,5 +36,5 @@ class SalesPayment(CreateUpdateBaseModel):
         indexes = [
             models.Index(fields=['sales_order']),
             models.Index(fields=['sales_receipt']),
-            models.Index(fields=['sales_payment']),
+            models.Index(fields=['payment']),
         ]
