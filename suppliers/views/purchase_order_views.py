@@ -41,12 +41,13 @@ class PurchaseOrderViewSet(ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         company = get_logged_in_company(self.request)
+        logger.info(self.request.data)
         purchase_order = serializer.save(company=company)
 
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
 
         logger.success(
-            f"PurchaseOrder '{purchase_order.order_number}' created by '{actor}'."
+            f"PurchaseOrder '{purchase_order.reference_number}' created by '{actor}'."
         )
 
     def perform_update(self, serializer):

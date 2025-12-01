@@ -40,7 +40,7 @@ class SupplierDebitNoteViewSet(ModelViewSet):
         """Return debit notes belonging to the logged-in user's company."""
         return (
             get_company_queryset(self.request, SupplierDebitNote)
-            .select_related('supplier', 'company', 'branch', 'issued_by')
+            .select_related('supplier', 'company', 'issued_by')
         )
 
     def perform_create(self, serializer):
@@ -57,7 +57,7 @@ class SupplierDebitNoteViewSet(ModelViewSet):
 
         logger.success(
             f"SupplierDebitNote '{debit_note.debit_note_number}' for supplier '{supplier.name}' "
-            f"created in company '{company.name}' by {actor}."
+            f"created in company '{company.name if company else None}' by {actor}."
         )
 
     def perform_update(self, serializer):

@@ -70,6 +70,7 @@ class SupplierDebitNoteSerializer(CompanyValidationMixin, serializers.ModelSeria
         supplier = validated_data.get('supplier')
 
         try:
+            logger.info(validated_data)
             debit_note = SupplierDebitNote.objects.create(**validated_data)
             logger.info(
                 f"SupplierDebitNote '{debit_note.debit_note_number}' for supplier '{supplier.name}' "

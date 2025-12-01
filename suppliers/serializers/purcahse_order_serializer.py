@@ -36,8 +36,9 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'reference_number']
 
-    
+
     def validate(self, attrs):
+        logger.info(attrs)
         request = self.context['request']
         company = get_expected_company(request)
         supplier = attrs.get('supplier')
@@ -68,7 +69,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
 
         return attrs
 
-
+    
     def create(self, validated_data):
         """
         CREATE()
@@ -76,22 +77,30 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         Creates a new PurchaseOrder instance after validating the company context.
         ---------------------
         """
+        logger.info(validated_data)
+
         request = self.context.get('request')
         company = get_expected_company(request)
         user = request.user
         actor = getattr(user, 'username', None) or getattr(company, 'name', 'Unknown')
-        validated_data['reference_number'] = PurchaseOrder.generate_reference_number()
+        validated_data['reference_number'] = PurchaseOrder.generate_reference_number(self)
         
-        if validated_data['company'] != company:
+        if company != company:
             logger.error(
-                f"{actor} attempted to create PurchaseOrder for company {validated_data['company'].id}"
+                f"{actor} attempted to create PurchaseOrder for company {validated_data['company']}"
                 f"which does not match their expected company {company.id}."
             )
             raise serializers.ValidationError(
                 "You cannot create a purchase order for a company other than your own."
             )
         try:
-            purchase_order = PurchaseOrder.objects.create(**validated_data)
+            purchase_order = PurchaseOrder.objects.create(
+                # **validated_data
+                company = company,
+                supplier = validated_data['supplier'],
+                quantity_ordered = validated_data['quantity_ordered'],
+                total_amount = validated_data['total_amount']
+            )
             logger.info(
                 f"{actor} created PurchaseOrder {purchase_order.reference_number} "
                 f"for company {company.name}."
