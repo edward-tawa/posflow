@@ -41,7 +41,7 @@ class ProductViewSet(ModelViewSet):
             return Product.objects.none()
 
         logger.info(f"{identifier} fetching products for company '{getattr(company, 'name', 'Unknown')}'.")
-        return Product.objects.filter(company=company).select_related('category', 'company')
+        return Product.objects.filter(company=company).select_related('product_category', 'company')
 
     def perform_create(self, serializer):
         user = self.request.user

@@ -24,8 +24,8 @@ class StockMovement(CreateUpdateBaseModel):
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='stock_movements')
     sales_order = models.ForeignKey('sales.SalesOrder', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
     sales_return = models.ForeignKey('sales.SalesReturn', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
-    purchase_order = models.ForeignKey('purchases.PurchaseOrder', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
-    purchase_return = models.ForeignKey('purchases.PurchaseReturn', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
+    purchase_order = models.ForeignKey('suppliers.PurchaseOrder', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
+    purchase_return = models.ForeignKey('suppliers.PurchaseReturn', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
     movement_date = models.DateTimeField(auto_now_add=True)
     quantity = models.IntegerField()  # Positive for stock in, negative for stock out
     movement_type = models.CharField(max_length=50, choices=MOVEMENT_TYPE_CHOICE, help_text="Type of stock movement")  # e.g., 'purchase', 'sale', 'adjustment'
