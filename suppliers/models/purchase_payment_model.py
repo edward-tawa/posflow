@@ -26,7 +26,7 @@ class PurchasePayment(CreateUpdateBaseModel):
     )
 
     amount_paid = models.DecimalField(max_digits=12, decimal_places=2)
-    payment_date = models.DateField()
+    payment_date = models.DateField(auto_now_add=True)
 
     def clean(self):
         if self.amount_paid < 0:

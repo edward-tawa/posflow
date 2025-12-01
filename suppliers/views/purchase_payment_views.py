@@ -43,7 +43,7 @@ class PurchasePaymentViewSet(ModelViewSet):
             return PurchasePayment.objects.none()
 
         logger.info(f"{self._get_actor()} fetching PurchasePayments for company '{getattr(company, 'name', 'Unknown')}'.")
-        return PurchasePayment.objects.filter(company=company)
+        return PurchasePayment.objects.filter(supplier__company=company)
 
     # ---------------- Create ----------------
     def perform_create(self, serializer):
@@ -55,7 +55,7 @@ class PurchasePaymentViewSet(ModelViewSet):
             supplier=getattr(payment.supplier, 'name', 'Unknown'),
             actor=self._get_actor()
         ).info(
-            f"PurchasePayment '{payment.purchase_payment_number}' for supplier '{payment.supplier}' created by {self._get_actor()} in company '{company.name}'."
+            f"PurchasePayment '{payment.payment.payment_number}' for supplier '{payment.supplier}' created by {self._get_actor()} in company '{company.name}'."
         )
 
     # ---------------- Update ----------------

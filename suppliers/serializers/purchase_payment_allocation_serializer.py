@@ -55,11 +55,12 @@ class PurchasePaymentAllocationSerializer(CompanyValidationMixin, serializers.Mo
         }
 
     def get_purchase_payment_summary(self, obj):
-        return {
-            'id': obj.purchase_payment.id,
-            'payment_number': obj.purchase_payment.purchase_payment_number,
-            'total_amount': obj.purchase_payment.total_amount
-        }
+        # return {
+        #     'id': obj.purchase_payment.id,
+        #     'payment_number': obj.purchase_payment.purchase_payment_number,
+        #     'total_amount': obj.purchase_payment.total_amount
+        # }
+        pass
 
     def get_purchase_invoice_summary(self, obj):
         return {
@@ -113,7 +114,7 @@ class PurchasePaymentAllocationSerializer(CompanyValidationMixin, serializers.Mo
             allocation = PurchasePaymentAllocation.objects.create(**validated_data)
             logger.info(
                 f"PurchasePaymentAllocation '{allocation.allocation_number}' of amount '{allocation.allocated_amount}' "
-                f"applied to invoice '{invoice.invoice_number}' from payment '{payment.purchase_payment_number}' "
+                f"applied to invoice '{invoice.invoice_number}' from payment '{payment.payment.payment_number}' "
                 f"for supplier '{supplier.name}' by '{actor}'."
             )
             return allocation

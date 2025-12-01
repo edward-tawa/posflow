@@ -11,34 +11,36 @@ from suppliers.models.supplier_model import Supplier
 
 class PurchasePaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    # company = serializers.PrimaryKeyRelatedField(
+    #     queryset=Company.objects.all(),
+    #     required=True
+    # )
 
     class Meta:
         model = PurchasePayment
         fields = [
             'id',
-            'company',
+            # 'company',
             'company_summary',
-            'branch',
+            # 'branch',
             'supplier',
-            'purchase_payment_number',
+            'payment',
             'payment_date',
-            'total_amount',
-            'payment_method',
-            'issued_by',
+            'amount_paid',
+            # 'payment_method',
+            # 'issued_by',
             'created_at',
             'updated_at',
+            'purchase_invoice'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'purchase_payment_number', 'payment_date']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'payment_date']
 
     def get_company_summary(self, obj):
-        return {
-            'id': obj.company.id,
-            'name': obj.company.name
-        }
+        # return {
+        #     'id': obj.company.id,
+        #     'name': obj.company.name
+        # }
+        pass
 
     def validate(self, attrs):
         """Validate total_amount and payment method within company context"""
@@ -62,10 +64,10 @@ class PurchasePaymentSerializer(CompanyValidationMixin, serializers.ModelSeriali
             raise serializers.ValidationError("Payment amount must be greater than zero.")
 
         # Validate payment method
-        payment_method = attrs.get('payment_method')
-        valid_methods = [choice[0] for choice in PurchasePayment.Method.choices]
-        if payment_method is not None and payment_method not in valid_methods:
-            raise serializers.ValidationError(f"Invalid payment method: {payment_method}")
+        # payment_method = attrs.get('payment_method')
+        # valid_methods = [choice[0] for choice in PurchasePayment.Method.choices]
+        # if payment_method is not None and payment_method not in valid_methods:
+        #     raise serializers.ValidationError(f"Invalid payment method: {payment_method}")
 
         return attrs
 
@@ -80,9 +82,11 @@ class PurchasePaymentSerializer(CompanyValidationMixin, serializers.ModelSeriali
         supplier = validated_data.get('supplier')
 
         try:
+            validated_data.pop('company')
+            logger.info(validated_data)
             payment = PurchasePayment.objects.create(**validated_data)
             logger.info(
-                f"PurchasePayment '{payment.purchase_payment_number}' for supplier '{supplier}' "
+                f"PurchasePayment '{payment.payment.payment_number}' for supplier '{supplier}' "
                 f"created for company '{expected_company.name}' by {actor}."
             )
             return payment

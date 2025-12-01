@@ -62,7 +62,7 @@ class PurchasePaymentAllocationViewSet(ModelViewSet):
         ).info(
             f"PurchasePaymentAllocation '{allocation.allocation_number}' of amount '{allocation.allocated_amount}' "
             f"applied to invoice '{allocation.purchase_invoice.invoice_number}' from payment "
-            f"'{allocation.purchase_payment.purchase_payment_number}' for supplier '{allocation.supplier.name}' "
+            f"'{allocation.purchase_payment.payment.payment_number}' for supplier '{allocation.supplier.name}' "
             f"by '{self._get_actor()}'."
         )
 
