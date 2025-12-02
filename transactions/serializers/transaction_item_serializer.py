@@ -28,7 +28,7 @@ class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSeriali
             'tax_rate',
             'subtotal',
             'tax_amount',
-            'total_price',
+            # 'total_price',
             'created_at',
             'updated_at',
         ]
@@ -39,7 +39,7 @@ class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSeriali
             'product_name',
             'subtotal',
             'tax_amount',
-            'total_price',
+            # 'total_price',
             'created_at',
             'updated_at',
         ]
@@ -71,10 +71,10 @@ class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSeriali
         request = self.context.get('request')
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
-
+        logger.info(validated_data)
         transaction = validated_data.get('transaction')
         validated_data['product_name'] = validated_data['product'].name  # store snapshot
-
+        actor = None
         try:
             item = TransactionItem.objects.create(**validated_data)
             # update transaction total

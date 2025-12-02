@@ -38,7 +38,7 @@ class TransactionItemViewSet(ModelViewSet):
         'updated_at',
         'quantity',
         'unit_price',
-        'total_price',
+        # 'total_price',
     ]
     ordering = ['-created_at']
 

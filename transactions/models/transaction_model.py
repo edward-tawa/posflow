@@ -37,10 +37,11 @@ class Transaction(CreateUpdateBaseModel):
         return number
 
     def update_total_amount(self):
-        total = self.items.aggregate(total=Sum('total_price'))['total'] or 0
-        if self.total_amount != total:
-            self.total_amount = total
-            super().save(update_fields=['total_amount'])
+        # total = self.items.aggregate(total=Sum('total_price'))['total'] or 0
+        # if self.total_amount != total:
+        #     self.total_amount = total
+        #     super().save(update_fields=['total_amount'])
+        pass
 
 
     def save(self, *args, **kwargs):

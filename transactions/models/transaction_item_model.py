@@ -44,7 +44,7 @@ class TransactionItem(CreateUpdateBaseModel):
             raise ValidationError("Tax rate must be between 0 and 100.")
 
     def __str__(self):
-        return f"{self.product_name} (x{self.quantity}) - {self.total_price}"
+        return f"{self.product_name} (x{self.quantity}) - {self.unit_price}"
     
     class Meta:
         indexes = [
