@@ -5,7 +5,7 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.utilities.pagination import StandardResultsSetPagination
-from payments.models import Refund
+from payments.models.refund_model import Refund
 from payments.serializers.refund_serializer import RefundSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
 from loguru import logger

@@ -39,7 +39,7 @@ class PaymentAllocationViewSet(ModelViewSet):
 
     def get_queryset(self):
         return get_company_queryset(self.request, PaymentAllocation).select_related(
-            'company', 'branch', 'payment', 'allocated_to'
+            'company', 'branch', 'payment'
         )
 
     def perform_create(self, serializer):

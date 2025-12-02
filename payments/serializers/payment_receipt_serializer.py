@@ -89,7 +89,7 @@ class PaymentReceiptSerializer(CompanyValidationMixin, serializers.ModelSerializ
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
-
+        actor = None
         try:
             receipt = PaymentReceipt.objects.create(**validated_data)
             actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')

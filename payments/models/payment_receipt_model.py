@@ -41,11 +41,12 @@ class PaymentReceipt(CreateUpdateBaseModel):
 
     def update_amount_received(self):
         """Recalculate and update the amount based on related items."""
-        total_received = self.items.aggregate(total=Sum('total_price'))['total'] or 0
+        # total_received = self.items.aggregate(total=Sum('total_price'))['total'] or 0
 
-        if self.amount != total_received:
-            self.amount = total_received
-            super().save(update_fields=['amount'])
+        # if self.amount != total_received:
+        #     self.amount = total_received
+        #     super().save(update_fields=['amount'])
+        pass
 
 
     def save(self, *args, **kwargs):
