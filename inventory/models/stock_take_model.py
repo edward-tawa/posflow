@@ -10,8 +10,8 @@ class StockTake(CreateUpdateBaseModel):
     # Model representing a stock take event in inventory
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='stock_takes')
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='stock_takes')
-    quantity_counted = models.PositiveIntegerField()
-    perfomed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='stock_takes')
+    quantity_counted = models.PositiveIntegerField(default=0)
+    performed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='stock_takes')
     counted_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=[
         ('pending', 'Pending'),

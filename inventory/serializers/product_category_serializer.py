@@ -4,7 +4,7 @@ from inventory.models.product_category_model import ProductCategory
 
 class ProductCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model: ProductCategory
+        model = ProductCategory
         fields = [
             'id',
             'name',

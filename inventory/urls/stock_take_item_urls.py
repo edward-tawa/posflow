@@ -5,3 +5,4 @@ from django.urls import path, include
 router = DefaultRouter()
 router.register(r'product-categories', ProductCategoryViewSet, basename='product-category')
 urlpatterns = router.urls
+#Stocktake item doesnot exist
