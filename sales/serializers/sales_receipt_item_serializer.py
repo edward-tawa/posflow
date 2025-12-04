@@ -17,11 +17,12 @@ class SalesReceiptItemSerializer(serializers.ModelSerializer):
             'product_summary',
             'quantity',
             'unit_price',
-            'total',
+            # 'total',
+            'tax_rate',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'sales_receipt', 'total', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_product_summary(self, obj):
         """Return a summary of the related product"""

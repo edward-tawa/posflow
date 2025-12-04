@@ -28,7 +28,7 @@ class SalesInvoiceItemSerializer(CompanyValidationMixin, serializers.ModelSerial
             'updated_at',
         ]
         read_only_fields = [
-            'id', 'sales_invoice', 'subtotal', 'tax_amount', 'total_price',
+            'id', 'subtotal', 'tax_amount', 'total_price',
             'created_at', 'updated_at'
         ]
 

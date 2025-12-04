@@ -8,6 +8,7 @@ from .sales_payment_urls import urlpatterns as sales_payment_urls
 from .sales_quotation_item_urls import urlpatterns as sales_quotation_item_urls
 from .sales_return_item_urls import urlpatterns as sales_return_item_urls
 from .sales_receipt_urls import urlpatterns as sales_receipt_urls
+from .sales_receipt_item_urls import urlpatterns as sales_receipt_item_urls
 from .sales_quotation_urls import urlpatterns as sales_quotation_urls
 from .sales_return_urls import urlpatterns as sales_return_urls
 from .sales_return_item_urls import urlpatterns as sales_return_item_urls
@@ -27,6 +28,7 @@ urlpatterns = (
     sales_receipt_urls +
     sales_quotation_urls +
     sales_return_urls +
-    sales_return_item_urls
+    sales_return_item_urls+
+    sales_receipt_item_urls
 )
 

@@ -44,7 +44,7 @@ class SalesReturnViewSet(ModelViewSet):
         """
         return (
             get_company_queryset(self.request, SalesReturn)
-            .select_related('company', 'branch', 'customer', 'issued_by', 'sale_order')
+            .select_related('company', 'branch', 'customer', 'sale_order')
         )
 
     def perform_create(self, serializer):

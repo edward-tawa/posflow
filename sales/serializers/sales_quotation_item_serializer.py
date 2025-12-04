@@ -11,16 +11,16 @@ class SalesQuotationItemSerializer(CompanyValidationMixin, serializers.ModelSeri
     product_summary = serializers.SerializerMethodField(read_only=True)
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
     company_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=SalesQuotation._meta.get_field('company').related_model.objects.all(),
-        required=True
-    )
+    # company = serializers.PrimaryKeyRelatedField(
+    #     queryset=SalesQuotation._meta.get_field('company').related_model.objects.all(),
+    #     required=True
+    # )
 
     class Meta:
         model = SalesQuotationItem
         fields = [
             'id',
-            'company',
+            # 'company',
             'company_summary',
             'sales_quotation',
             'product',
@@ -36,7 +36,7 @@ class SalesQuotationItemSerializer(CompanyValidationMixin, serializers.ModelSeri
             'updated_at',
         ]
         read_only_fields = [
-            'id', 'sales_quotation', 'subtotal', 'tax_amount', 'total_price',
+            'id', 'subtotal', 'tax_amount', 'total_price',
             'created_at', 'updated_at'
         ]
 
@@ -93,6 +93,7 @@ class SalesQuotationItemSerializer(CompanyValidationMixin, serializers.ModelSeri
         product = validated_data.get('product')
 
         try:
+            validated_data.pop('company', None)
             item = SalesQuotationItem.objects.create(**validated_data)
             actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')
             logger.info(f"SalesQuotationItem for product '{product.name}' created by '{actor}'.")

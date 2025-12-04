@@ -12,8 +12,8 @@ class CashTransfer(CreateUpdateBaseModel):
         related_name='cash_transfer'
     )
 
-    source_branch = models.ForeignKey('company.Branch', on_delete=models.CASCADE, related_name='outgoing_cash_transfers')
-    destination_branch = models.ForeignKey('company.Branch', on_delete=models.CASCADE, related_name='incoming_cash_transfers')
+    source_branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='outgoing_cash_transfers')
+    destination_branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='incoming_cash_transfers')
 
     source_branch_account = models.ForeignKey('accounts.BranchAccount', on_delete=models.CASCADE, related_name='cash_transfers_out')
     destination_branch_account = models.ForeignKey('accounts.BranchAccount', on_delete=models.CASCADE, related_name='cash_transfers_in')

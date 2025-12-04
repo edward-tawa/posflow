@@ -28,7 +28,7 @@ class DeliveryNoteItemSerializer(CompanyValidationMixin, serializers.ModelSerial
             'updated_at',
         ]
         read_only_fields = [
-            'id', 'delivery_note', 'subtotal', 'tax_amount', 'total_price',
+            'id', 'subtotal', 'tax_amount', 'total_price',
             'created_at', 'updated_at'
         ]
 

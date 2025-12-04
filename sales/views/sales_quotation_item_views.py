@@ -42,7 +42,7 @@ class SalesQuotationItemViewSet(ModelViewSet):
         """
         return (
             get_company_queryset(self.request, SalesQuotationItem)
-            .select_related('sales_quotation', 'product', 'company')
+            .select_related('sales_quotation', 'product', 'sales_quotation__company')
         )
 
     def perform_create(self, serializer):
@@ -61,7 +61,7 @@ class SalesQuotationItemViewSet(ModelViewSet):
 
         logger.success(
             f"SalesQuotationItem for product '{item.product.name}' created by '{actor}' "
-            f"for company '{item.company.name}'."
+            f"for company '{item.sales_quotation.company.name}'."
         )
 
     def perform_update(self, serializer):
