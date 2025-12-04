@@ -6,6 +6,7 @@ from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.utilities.pagination import StandardResultsSetPagination
 from loans.models import Loan
+from loans.permissions.loan_permissions import LoanPermissions
 from loans.serializers.loan_serializer import LoanSerializer
 from loguru import logger
 
@@ -23,7 +24,7 @@ class LoanViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-    permission_classes = []  # Add custom loan permissions later if needed
+    permission_classes = [LoanPermissions]  # Add custom loan permissions
 
     # Filtering, search & ordering
     filter_backends = [SearchFilter, OrderingFilter]

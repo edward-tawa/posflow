@@ -1,10 +1,11 @@
 from rest_framework import serializers
-from loguru import logger
+from loans.permissions.loan_permissions import LoanPermissions
 from accounts.models.account_model import Account
 from accounts.models.loan_account_model import LoanAccount
+from branch.models.branch_model import Branch
 from company.models.company_model import Company
 from config.utilities.get_company_or_user_company import get_expected_company
-
+from loguru import logger
 
 class LoanAccountSerializer(serializers.ModelSerializer):
     # company = serializers.PrimaryKeyRelatedField(
@@ -13,11 +14,17 @@ class LoanAccountSerializer(serializers.ModelSerializer):
     # )
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     company = serializers.CharField(source='account.company', read_only=True)
+    branch = serializers.PrimaryKeyRelatedField(
+        queryset=Branch.objects.all(),
+        required=False,
+        allow_null=True
+    )
     class Meta:
         model = LoanAccount
         fields = [
             'id',
             'company',
+            'branch',
             # 'borrower_name',
             'loan',
             'account',

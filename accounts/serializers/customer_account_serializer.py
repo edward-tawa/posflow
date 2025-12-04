@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from loguru import logger
 from accounts.models.customer_account import CustomerAccount
+from branch.models.branch_model import Branch
 from company.models.company_model import Company
 from config.utilities.get_company_or_user_company import get_expected_company
 from accounts.models.account_model import Account
@@ -12,6 +13,11 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
     # )
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     company = serializers.CharField(source="account.company.id", read_only=True)
+    branch = serializers.PrimaryKeyRelatedField(
+        queryset=Branch.objects.all(),
+        required=False,
+        allow_null=True
+    )
     class Meta:
         model = CustomerAccount
         fields = [
@@ -22,6 +28,7 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
             'account',
             # 'account_number',
             # 'account_type',
+            'branch',
             'balance',
             'created_at',
             'updated_at',

@@ -30,6 +30,7 @@ class Account(CreateUpdateBaseModel):
     account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPES, null=True, blank=True)
     balance = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
     is_active = models.BooleanField(default=True)
+    is_frozen = models.BooleanField(default=False)
 
 
     def generate_account_number(self):

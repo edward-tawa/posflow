@@ -11,7 +11,7 @@ from django.conf import settings
 from users.models.user_model import User
 from users.serializers.user_serializer import UserSerializer
 from users.serializers.user_auth_serializer import UserLoginSerializer
-from users.permissions.user_management_permission import CompanyAdminOrSuperuserCanManageUsers
+from users.permissions.user_permissions import UserPermissions
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from config.utilities.pagination import StandardResultsSetPagination
 from rest_framework.permissions import AllowAny
@@ -27,7 +27,7 @@ class UserViewSet(ReadOnlyModelViewSet):
     ordering_fields = '__all__'
     ordering = ['first_name']
 
-    permission_classes = [CompanyAdminOrSuperuserCanManageUsers]
+    permission_classes = [UserPermissions]
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication]
 
     def get_queryset(self):
@@ -54,7 +54,7 @@ class UserViewSet(ReadOnlyModelViewSet):
 
 # Register a new user (by company admin)
 class UserRegisterView(APIView):
-    permission_classes = [CompanyAdminOrSuperuserCanManageUsers]
+    permission_classes = [UserPermissions]
     authentication_classes = [CompanyCookieJWTAuthentication]
 
     def post(self, request):
@@ -68,7 +68,7 @@ class UserRegisterView(APIView):
 
 # Update an existing user
 class UserUpdateView(APIView):
-    permission_classes = [CompanyAdminOrSuperuserCanManageUsers]
+    permission_classes = [UserPermissions]
 
     def patch(self, request, pk):
         try:
@@ -84,7 +84,7 @@ class UserUpdateView(APIView):
 
 # Delete an existing user
 class UserDeleteView(APIView):
-    permission_classes = [CompanyAdminOrSuperuserCanManageUsers]
+    permission_classes = [UserPermissions]
 
     def delete(self, request, pk):
         try:

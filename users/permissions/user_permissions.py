@@ -1,7 +1,7 @@
 # users/permissions/user_management_permission.py
 from rest_framework.permissions import BasePermission
 
-class CompanyAdminOrSuperuserCanManageUsers(BasePermission):
+class UserPermissions(BasePermission):
     """
     Permission rules for User management (works for both APIView and ViewSet):
     - Superuser can manage all users.

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from config.serializers.company_validation_mixin import CompanyValidationMixin
 from config.utilities.get_company_or_user_company import get_expected_company
 from loguru import logger
+from customers.models.customer_model import Customer
 from transactions.models import Transaction
 from company.models.company_model import Company
 from branch.models.branch_model import Branch
@@ -10,6 +11,7 @@ from branch.models.branch_model import Branch
 class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
     company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
+    customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = Transaction
@@ -18,6 +20,7 @@ class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer)
             'company',
             'company_summary',
             'branch',
+            'customer',
             'transaction_type',
             'transaction_number',
             'transaction_date',

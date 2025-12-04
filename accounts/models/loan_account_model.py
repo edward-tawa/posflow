@@ -15,6 +15,14 @@ class LoanAccount(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='loan_accounts'
     )
+
+    branch = models.ForeignKey(
+        'branch.Branch',
+        on_delete=models.CASCADE,
+        related_name='loan_accounts',
+        null=True,
+        blank=True
+    )
     is_primary = models.BooleanField(default=False)
 
     class Meta:

@@ -15,6 +15,15 @@ class EmployeeAccount(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='employee_accounts'
     )
+
+    branch = models.ForeignKey(
+        'branch.Branch',
+        on_delete=models.CASCADE,
+        related_name='employee_accounts',
+        null=True,
+        blank=True
+    )
+    
     is_primary = models.BooleanField(default=False)
 
     class Meta:
