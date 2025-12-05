@@ -72,8 +72,8 @@ class TransactionService:
     def reverse_transaction(transaction):
         logger.info(f"Reversing transaction {transaction.transaction_number}")
         try:
-            debit_account = transaction.debit_account
-            credit_account = transaction.credit_account
+            debit_account = Account.objects.select_for_update().get(id=transaction.debit_account.id) # row locked for update
+            credit_account = Account.objects.select_for_update().get(id=transaction.credit_account.id) # row locked for update                       
             amount = transaction.total_amount
 
             debit_balance = AccountsService.get_account_balance(debit_account)
@@ -90,21 +90,41 @@ class TransactionService:
             logger.error(f"Transaction reversal {transaction.transaction_number} failed: {e}")
             raise
     
+
     @staticmethod
+    @db_transaction.atomic
     def transfer_funds(from_account, to_account, amount):
         logger.info(f"Transferring {amount} from Account {from_account.id} to Account {to_account.id}")
         try:
-            from_balance = AccountsService.get_account_balance(from_account)
-            if from_balance < amount:
-                raise ValueError("Insufficient funds in the source account.")
-            from_account.balance = from_balance - amount
-            from_account.save(update_fields=['balance'])
-            logger.info(f"Debited {amount} from Account {from_account.id}: {from_balance} → {from_account.balance}")
+            # Lock the accounts in a consistent order to avoid deadlocks
+            if from_account.id < to_account.id:
+                first, second = from_account, to_account
+            else:
+                first, second = to_account, from_account
 
-            to_balance = AccountsService.get_account_balance(to_account)
-            to_account.balance = to_balance + amount
+            first = Account.objects.select_for_update().get(id=first.id)
+            second = Account.objects.select_for_update().get(id=second.id)
+
+            # After locking, determine which is which
+            if first.id == from_account.id:
+                from_account, to_account = first, second
+            else:
+                from_account, to_account = second, first
+
+            # Check balance
+            from_account_balance = AccountsService.get_account_balance(from_account)
+            if from_account_balance < amount:
+                raise ValueError("Insufficient funds in the source account.")
+
+            # Update balances
+            from_account.balance = from_account_balance - amount
+            from_account.save(update_fields=['balance'])
+            logger.info(f"Debited {amount} from Account {from_account.id}: {from_account_balance} → {from_account.balance}")
+
+            to_account_balance = AccountsService.get_account_balance(to_account)
+            to_account.balance = to_account_balance + amount
             to_account.save(update_fields=['balance'])
-            logger.info(f"Credited {amount} to Account {to_account.id}: {to_balance} → {to_account.balance}")
+            logger.info(f"Credited {amount} to Account {to_account.id}: {to_account_balance} → {to_account.balance}")
 
         except Exception as e:
             logger.error(f"Fund transfer failed: {e}")
