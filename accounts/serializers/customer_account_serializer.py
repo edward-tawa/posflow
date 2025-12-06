@@ -5,29 +5,34 @@ from branch.models.branch_model import Branch
 from company.models.company_model import Company
 from config.utilities.get_company_or_user_company import get_expected_company
 from accounts.models.account_model import Account
+from customers.models.customer_model import Customer
 
 class CustomerAccountSerializer(serializers.ModelSerializer):
-    # company = serializers.PrimaryKeyRelatedField(
-    #     queryset=Company.objects.all(),
-    #     required=True
-    # )
-    balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    company = serializers.CharField(source="account.company.id", read_only=True)
+    company = serializers.PrimaryKeyRelatedField(
+        queryset=Company.objects.all(),
+        required=True,
+        allow_null = True
+    )
     branch = serializers.PrimaryKeyRelatedField(
         queryset=Branch.objects.all(),
-        required=False,
-        allow_null=True
+        required=True,
     )
+    customer = serializers.PrimaryKeyRelatedField(
+        queryset=Customer.objects.all(),
+        required=True,
+    )
+    account = serializers.PrimaryKeyRelatedField(
+        queryset=Account.objects.all(),
+        required=True,
+    )
+    balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     class Meta:
         model = CustomerAccount
         fields = [
             'id',
             'company',
-            # 'name',
             'customer',
             'account',
-            # 'account_number',
-            # 'account_type',
             'branch',
             'balance',
             'created_at',
@@ -84,9 +89,7 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
         try:
             logger.info(validated_data['customer'])
             validated_data.pop('company', None)
-            customer_account = CustomerAccount.objects.create(
-                **validated_data
-            )
+            customer_account = CustomerAccount.objects.create(**validated_data)
             logger.info(
                 f"{actor} created CustomerAccount '{customer_account.customer.first_name}' (ID: {customer_account.id})."
             )
@@ -107,7 +110,7 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
         actor = getattr(user, 'username', None) or getattr(company, 'name', None)
 
         # Ensure company-awareness
-        if instance.company != company:
+        if instance.account.company != company:
             logger.error(
                 f"{actor} attempted to update a CustomerAccount for a different company."
             )

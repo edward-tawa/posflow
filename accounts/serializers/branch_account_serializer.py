@@ -4,22 +4,30 @@ from accounts.models.account_model import Account
 from accounts.models.branch_account_model import BranchAccount
 from company.models.company_model import Company
 from config.utilities.get_company_or_user_company import get_expected_company
+from branch.models.branch_model import Branch
 
 
 
 class BranchAccountSerializer(serializers.ModelSerializer):
-    # company = serializers.PrimaryKeyRelatedField(
-    #     queryset=Company.objects.all(),
-    #     required=True
-    # )
+    company = serializers.PrimaryKeyRelatedField(
+        queryset=Company.objects.all(),
+        required=True,
+        allow_null = True
+    )
+    branch = serializers.PrimaryKeyRelatedField(
+        queryset=Branch.objects.all(),
+        required=True,
+    )
+    account = serializers.PrimaryKeyRelatedField(
+        queryset=Account.objects.all(),
+        required=True,
+    )
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    company_name = serializers.CharField(source="branch.company.name", read_only=True)
     class Meta:
         model = BranchAccount
         fields = [
             'id',
-            # 'company',
-            'company_name',
+            'company',
             'branch',
             'account',
             'balance',
@@ -78,9 +86,7 @@ class BranchAccountSerializer(serializers.ModelSerializer):
         try:
             logger.info(validated_data)
             validated_data.pop('company', None)
-            branch_account = BranchAccount.objects.create(
-                **validated_data
-            )
+            branch_account = BranchAccount.objects.create(**validated_data)
             logger.info(
                 f"{actor} created BranchAccount '{branch_account.branch.name}' "
                 f"(ID: {branch_account.id}) for company '{company.name}'."
@@ -104,7 +110,7 @@ class BranchAccountSerializer(serializers.ModelSerializer):
         # Prevent changes to company
         validated_data.pop('company', None)
 
-        if instance.company != company:
+        if instance.account.company != company:
             logger.error(
                 f"{actor} attempted to update BranchAccount '{instance.branch_name}' "
                 f"(ID: {instance.id}) outside their company '{company.name}'."
@@ -118,12 +124,12 @@ class BranchAccountSerializer(serializers.ModelSerializer):
                 setattr(instance, attr, value)
             instance.save()
             logger.info(
-                f"{actor} updated BranchAccount '{instance.branch_name}' (ID: {instance.id})."
+                f"{actor} updated BranchAccount '{instance.branch.name}' (ID: {instance.id})."
             )
             return instance
         except Exception as e:
             logger.error(
-                f"{actor} failed to update BranchAccount '{instance.branch_name}' "
+                f"{actor} failed to update BranchAccount '{instance.branch.name}' "
                 f"(ID: {instance.id}): {str(e)}"
             )
             raise serializers.ValidationError("Failed to update BranchAccount.") from e

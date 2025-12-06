@@ -19,8 +19,6 @@ class CustomerAccount(CreateUpdateBaseModel):
         'branch.Branch',
         on_delete=models.CASCADE,
         related_name='customer_accounts',
-        null=True,
-        blank=True
     )
     
     is_primary = models.BooleanField(default=False)

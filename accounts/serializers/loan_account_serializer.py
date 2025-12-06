@@ -4,28 +4,37 @@ from accounts.models.account_model import Account
 from accounts.models.loan_account_model import LoanAccount
 from branch.models.branch_model import Branch
 from company.models.company_model import Company
+from loans.models.loan_model import Loan
+from accounts.models.account_model import Account
 from config.utilities.get_company_or_user_company import get_expected_company
 from loguru import logger
 
 class LoanAccountSerializer(serializers.ModelSerializer):
-    # company = serializers.PrimaryKeyRelatedField(
-    #     queryset=Company.objects.all(),
-    #     required=True
-    # )
-    balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    company = serializers.CharField(source='account.company', read_only=True)
+    company = serializers.PrimaryKeyRelatedField(
+        queryset=Company.objects.all(),
+        required=True,
+        allow_null = True
+    )
     branch = serializers.PrimaryKeyRelatedField(
         queryset=Branch.objects.all(),
-        required=False,
-        allow_null=True
+        required=True,
     )
+    loan = serializers.PrimaryKeyRelatedField(
+        queryset=Loan.objects.all(),
+        required=True,
+    )
+    account = serializers.PrimaryKeyRelatedField(
+        queryset=Account.objects.all(),
+        required=True,
+    )
+    balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+
     class Meta:
         model = LoanAccount
         fields = [
             'id',
             'company',
             'branch',
-            # 'borrower_name',
             'loan',
             'account',
             'balance',
@@ -109,9 +118,9 @@ class LoanAccountSerializer(serializers.ModelSerializer):
         actor = getattr(user, 'username', None) or getattr(company, 'name', None)
 
         # Ensure company-awareness
-        if instance.company != company:
+        if instance.account.company != company:
             logger.error(
-                f"{actor} attempted to update LoanAccount '{instance.borrower_name}' "
+                f"{actor} attempted to update LoanAccount '{instance.loan.borrower.username}' "
                 f"(ID: {instance.id}) for a different company."
             )
             raise serializers.ValidationError(
@@ -123,12 +132,12 @@ class LoanAccountSerializer(serializers.ModelSerializer):
                 setattr(instance, attr, value)
             instance.save()
             logger.info(
-                f"{actor} updated LoanAccount '{instance.borrower_name}' (ID: {instance.id})."
+                f"{actor} updated LoanAccount '{instance.loan.borrower.username}' (ID: {instance.id})."
             )
             return instance
         except Exception as e:
             logger.error(
-                f"{actor} failed to update LoanAccount '{instance.borrower_name}' "
+                f"{actor} failed to update LoanAccount '{instance.loan.borrower.username}' "
                 f"(ID: {instance.id}): {str(e)}"
             )
             raise serializers.ValidationError("Failed to update LoanAccount.") from e

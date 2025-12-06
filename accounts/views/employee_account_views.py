@@ -14,7 +14,7 @@ from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, Co
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.utilities.pagination import StandardResultsSetPagination
-from config.utilities.get_queryset import get_company_queryset
+from config.utilities.get_queryset import get_account_company_queryset
 from accounts.permissions.account_permissions import AccountPermission
 from users.permissions.user_permissions import UserPermissions
 from accounts.services.accounts_service import AccountsService
@@ -41,7 +41,7 @@ class EmployeeAccountViewSet(ModelViewSet):
 
     def get_queryset(self):
         """Return EmployeeAccount queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, EmployeeAccount).select_related('employee', 'account')
+        return get_account_company_queryset(self.request, EmployeeAccount).select_related('employee', 'account')
     
     def perform_create(self, serializer):
         user = self.request.user

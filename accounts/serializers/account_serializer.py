@@ -25,7 +25,7 @@ class AccountSerializer(serializers.ModelSerializer):
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'balance', 'account_number']
+        read_only_fields = ['id', 'created_at', 'updated_at','account_number']
 
     # ----------------------- VALIDATORS -----------------------
     def validate_company(self, company):
@@ -116,6 +116,7 @@ class AccountSerializer(serializers.ModelSerializer):
             )
 
         try:
+            logger.info(validated_data.items())
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()

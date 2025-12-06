@@ -20,8 +20,6 @@ class LoanAccount(CreateUpdateBaseModel):
         'branch.Branch',
         on_delete=models.CASCADE,
         related_name='loan_accounts',
-        null=True,
-        blank=True
     )
     is_primary = models.BooleanField(default=False)
 

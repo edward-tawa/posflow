@@ -5,18 +5,27 @@ from branch.models.branch_model import Branch
 from company.models.company_model import Company
 from config.utilities.get_company_or_user_company import get_expected_company
 from accounts.models.account_model import Account
+from suppliers.models.supplier_model import Supplier
 
 
 
 class SupplierAccountSerializer(serializers.ModelSerializer):
     company = serializers.PrimaryKeyRelatedField(
         queryset=Company.objects.all(),
-        required=True
+        required=True,
+        allow_null = True
     )
     branch = serializers.PrimaryKeyRelatedField(
         queryset=Branch.objects.all(),
-        required=False,
-        allow_null=True
+        required=True
+    )
+    account = serializers.PrimaryKeyRelatedField(
+        queryset=Account.objects.all(),
+        required=True
+    )
+    supplier = serializers.PrimaryKeyRelatedField(
+        queryset=Supplier.objects.all(),
+        required=True
     )
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
 
@@ -26,9 +35,8 @@ class SupplierAccountSerializer(serializers.ModelSerializer):
             'id',
             'company',
             'branch',
-            'name',
-            'account_number',
-            'account_type',
+            'account',
+            'supplier',
             'balance',
             'created_at',
             'updated_at',
@@ -81,9 +89,10 @@ class SupplierAccountSerializer(serializers.ModelSerializer):
             )
 
         try:
+            validated_data.pop('company', None)
             supplier_account = SupplierAccount.objects.create(**validated_data)
             logger.info(
-                f"{actor} created SupplierAccount '{supplier_account.name}' (ID: {supplier_account.id})."
+                f"{actor} created SupplierAccount '{supplier_account.supplier.name}' (ID: {supplier_account.id})."
             )
             return supplier_account
         except Exception as e:
@@ -102,7 +111,7 @@ class SupplierAccountSerializer(serializers.ModelSerializer):
         actor = getattr(user, 'username', None) or getattr(company, 'name', None)
 
         # Ensure company-awareness
-        if instance.company != company:
+        if instance.account.company != company:
             logger.error(
                 f"{actor} attempted to update a SupplierAccount for a different company."
             )
@@ -115,11 +124,11 @@ class SupplierAccountSerializer(serializers.ModelSerializer):
                 setattr(instance, attr, value)
             instance.save()
             logger.info(
-                f"{actor} updated SupplierAccount '{instance.name}' (ID: {instance.id})."
+                f"{actor} updated SupplierAccount '{instance.supplier.name}' (ID: {instance.id})."
             )
             return instance
         except Exception as e:
             logger.error(
-                f"{actor} failed to update SupplierAccount '{instance.name}' (ID: {instance.id}): {str(e)}"
+                f"{actor} failed to update SupplierAccount '{instance.supplier.name}' (ID: {instance.id}): {str(e)}"
             )
             raise serializers.ValidationError("Failed to update SupplierAccount.") from e

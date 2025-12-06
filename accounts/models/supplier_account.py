@@ -15,15 +15,11 @@ class SupplierAccount(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='supplier_accounts'
     )
-
     branch = models.ForeignKey(
         'branch.Branch',
         on_delete=models.CASCADE,
-        related_name='supplier_accounts',
-        null=True,
-        blank=True
+        related_name='supplier_accounts'
     )
-    
     is_primary = models.BooleanField(default=False)
 
     class Meta:
@@ -40,19 +36,19 @@ class SupplierAccount(CreateUpdateBaseModel):
                 is_primary=True
             )
 
-#             # Exclude current record if editing
-#             if self.pk:
-#                 exists = exists.exclude(pk=self.pk)
+            # Exclude current record if editing
+            if self.pk:
+                exists = exists.exclude(pk=self.pk)
 
-#             if exists.exists():
-#                 logger.warning(
-#                     f"Attempted to set multiple primary accounts for Customer {self.customer.name}."
-#                 )
-#                 raise ValidationError("This customer already has a primary account.")
+            if exists.exists():
+                logger.warning(
+                    f"Attempted to set multiple primary accounts for Customer {self.customer.name}."
+                )
+                raise ValidationError("This customer already has a primary account.")
 
-#     def save(self, *args, **kwargs):
-#         # Run validation
-#         self.clean()
+    def save(self, *args, **kwargs):
+        # Run validation
+        self.clean()
 
         # Ensure no other accounts remain primary
         if self.is_primary:

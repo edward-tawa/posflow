@@ -14,7 +14,7 @@ from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, Co
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.utilities.pagination import StandardResultsSetPagination
-from config.utilities.get_queryset import get_company_queryset
+from config.utilities.get_queryset import get_account_company_queryset
 from accounts.permissions.account_permissions import AccountPermission
 from accounts.services.accounts_service import AccountsService
 from company.models.company_model import Company
@@ -38,7 +38,7 @@ class BranchAccountViewSet(ModelViewSet):
 
     def get_queryset(self):
         """Return BranchAccount queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, BranchAccount).select_related('branch', 'account')
+        return get_account_company_queryset(self.request, BranchAccount).select_related('branch', 'account')
     
     def perform_create(self, serializer):
         user = self.request.user
@@ -54,16 +54,16 @@ class BranchAccountViewSet(ModelViewSet):
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         branch_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(branch=branch_account.branch.name, account_number=branch_account.account.number).info(
-            f"BranchAccount for branch '{branch_account.branch.name}' and account '{branch_account.account.name}' (Number: {branch_account.account.number}) updated by {actor}."
+        logger.bind(branch=branch_account.branch.name, account_number=branch_account.account.account_number).info(
+            f"BranchAccount for branch '{branch_account.branch.name}' and account '{branch_account.account.name}' (Number: {branch_account.account.account_number}) updated by {actor}."
         )
 
     def perform_destroy(self, instance):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(branch=instance.branch.name, account_number=instance.account.number).warning(
-            f"BranchAccount for branch '{instance.branch.name}' and account '{instance.account.name}' (Number: {instance.account.number}) deleted by {actor}."
+        logger.bind(branch=instance.branch.name, account_number=instance.account.account_number).warning(
+            f"BranchAccount for branch '{instance.branch.name}' and account '{instance.account.name}' (Number: {instance.account.account_number}) deleted by {actor}."
         )
         instance.delete()
 

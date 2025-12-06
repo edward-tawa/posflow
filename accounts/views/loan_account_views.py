@@ -15,7 +15,7 @@ from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, Co
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.utilities.pagination import StandardResultsSetPagination
-from config.utilities.get_queryset import get_company_queryset
+from config.utilities.get_queryset import get_account_company_queryset
 from accounts.permissions.account_permissions import AccountPermission
 from suppliers.permissions.supplier_permissions import SupplierPermissions
 from accounts.services.accounts_service import AccountsService
@@ -41,7 +41,7 @@ class LoanAccountViewSet(ModelViewSet):
 
     def get_queryset(self):
         """Return LoanAccount queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, LoanAccount).select_related('loan', 'account')
+        return get_account_company_queryset(self.request, LoanAccount).select_related('loan', 'account')
     
     def perform_create(self, serializer):
         user = self.request.user
@@ -57,16 +57,16 @@ class LoanAccountViewSet(ModelViewSet):
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         loan_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(loan=loan_account.loan.name, account_number=loan_account.account.number).info(
-            f"LoanAccount for loan '{loan_account.loan.name}' and account '{loan_account.account.name}' (Number: {loan_account.account.number}) updated by {actor}."
+        logger.bind(loan=loan_account.loan.borrower.username, account_number=loan_account.account.account_number).info(
+            f"LoanAccount for loan '{loan_account.loan.borrower.username}' and account '{loan_account.account.name}' (Number: {loan_account.account.account_number}) updated by {actor}."
         )
 
     def perform_destroy(self, instance):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(loan=instance.loan.name, account_number=instance.account.number).warning(
-            f"LoanAccount for loan '{instance.loan.name}' and account '{instance.account.name}' (Number: {instance.account.number}) deleted by {actor}."
+        logger.bind(loan=instance.loan.borrower.username, account_number=instance.account.account_number).warning(
+            f"LoanAccount for loan '{instance.loan.borrower.username}' and account '{instance.account.name}' (Number: {instance.account.account_number}) deleted by {actor}."
         )
         instance.delete()
 

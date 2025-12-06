@@ -9,7 +9,7 @@ class EmployeeAccount(CreateUpdateBaseModel):
         'users.User',
         on_delete=models.CASCADE,
         related_name='employee_accounts'
-    ) #?
+    )
     account = models.ForeignKey(
         'accounts.Account',
         on_delete=models.CASCADE,
@@ -20,8 +20,6 @@ class EmployeeAccount(CreateUpdateBaseModel):
         'branch.Branch',
         on_delete=models.CASCADE,
         related_name='employee_accounts',
-        null=True,
-        blank=True
     )
     
     is_primary = models.BooleanField(default=False)

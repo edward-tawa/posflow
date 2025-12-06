@@ -5,22 +5,29 @@ from branch.models.branch_model import Branch
 from company.models.company_model import Company
 from config.utilities.get_company_or_user_company import get_expected_company
 from accounts.models.account_model import Account
-
-
+from users.models.user_model import User
 
 
 class EmployeeAccountSerializer(serializers.ModelSerializer):
-    # company = serializers.PrimaryKeyRelatedField(
-    #     queryset=Company.objects.all(),
-    #     required=True
-    # )
-    balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    company = serializers.CharField(source='employee.company', read_only = True)
+    company = serializers.PrimaryKeyRelatedField(
+        queryset=Company.objects.all(),
+        required=True,
+        allow_null = True
+    )
     branch = serializers.PrimaryKeyRelatedField(
         queryset=Branch.objects.all(),
-        required=False,
-        allow_null=True
+        required=True,
     )
+    account = serializers.PrimaryKeyRelatedField(
+        queryset=Account.objects.all(),
+        required=True
+    )
+    employee = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        required=True
+    )
+    balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+
     class Meta:
         model = EmployeeAccount
         fields = [
@@ -85,9 +92,7 @@ class EmployeeAccountSerializer(serializers.ModelSerializer):
         try:
             logger.info(validated_data)
             validated_data.pop('company', None)
-            employee_account = EmployeeAccount.objects.create(
-                **validated_data
-            )
+            employee_account = EmployeeAccount.objects.create(**validated_data)
             logger.info(
                 f"{actor} created EmployeeAccount '{employee_account.employee.first_name}' "
                 f"(ID: {employee_account.id}) for company '{company.name}'."
@@ -110,7 +115,7 @@ class EmployeeAccountSerializer(serializers.ModelSerializer):
         actor = getattr(user, 'username', None) or getattr(company, 'name', None)
 
         # Ensure company-awareness
-        if validated_data.get('company', instance.company) != company:
+        if validated_data.get('company', instance.account.company) != company:
             logger.error(
                 f"{actor} attempted to update EmployeeAccount for a different company."
             )
@@ -123,13 +128,13 @@ class EmployeeAccountSerializer(serializers.ModelSerializer):
                 setattr(instance, attr, value)
             instance.save()
             logger.info(
-                f"{actor} updated EmployeeAccount '{instance.employee_name}' "
+                f"{actor} updated EmployeeAccount '{instance.employee.username}' "
                 f"(ID: {instance.id}) for company '{company.name}'."
             )
             return instance
         except Exception as e:
             logger.error(
-                f"{actor} failed to update EmployeeAccount '{instance.employee_name}' "
+                f"{actor} failed to update EmployeeAccount '{instance.employee.username}' "
                 f"(ID: {instance.id}): {str(e)}"
             )
             raise serializers.ValidationError("Failed to update EmployeeAccount.") from e
