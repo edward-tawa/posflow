@@ -6,6 +6,7 @@ from company.serializers.company_serializer import CompanySerializer
 
 class BranchSerializer(serializers.ModelSerializer):
     company = CompanySerializer(read_only=True)
+    
     class Meta:
         model = Branch
         fields = [

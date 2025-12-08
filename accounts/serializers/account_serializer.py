@@ -2,14 +2,13 @@ from rest_framework import serializers
 from company.models.company_model import Company
 from config.utilities.get_company_or_user_company import get_expected_company
 from accounts.models.account_model import Account
+from company.serializers.company_serializer import CompanySerializer
 from loguru import logger
 
 
+
 class AccountSerializer(serializers.ModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    company = CompanySerializer(read_only = True)
     account_number = serializers.CharField(read_only=True)
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
 
