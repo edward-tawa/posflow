@@ -1,8 +1,7 @@
 from rest_framework.routers import DefaultRouter
-from inventory.views.product_category_views import ProductCategoryViewSet
+from inventory.views.stock_take_item import StockTakeItemViewSet
 from django.urls import path, include
 
 router = DefaultRouter()
-router.register(r'product-categories', ProductCategoryViewSet, basename='product-category')
+router.register(r'stocktake-item', StockTakeItemViewSet, basename='product-category')
 urlpatterns = router.urls
-#Stocktake item doesnot exist

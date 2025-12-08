@@ -10,8 +10,14 @@ from users.models import User
 
 class CustomerSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
-
+    company = serializers.PrimaryKeyRelatedField(
+        queryset=Company.objects.all(), 
+        required=True
+    )#to be removed
+    branch = serializers.PrimaryKeyRelatedField(
+        queryset = Branch.objects.all(),
+        required = True
+    )
     class Meta:
         model = Customer
         fields = [

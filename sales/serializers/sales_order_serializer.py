@@ -25,7 +25,7 @@ class SalesOrderSerializer(CompanyValidationMixin, serializers.ModelSerializer):
             'branch',
             'customer',
             'order_number',
-            'customer_name',
+            # 'customer_name',
             'order_date',
             'status',
             'total_amount',

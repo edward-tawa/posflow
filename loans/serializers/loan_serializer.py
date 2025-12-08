@@ -4,6 +4,7 @@ from config.utilities.get_company_or_user_company import get_expected_company
 from loguru import logger
 from loans.models import Loan
 from users.models import User
+from users.serializers.user_serializer import UserSerializer
 
 
 class LoanSerializer(CompanyValidationMixin, serializers.ModelSerializer):
@@ -11,8 +12,9 @@ class LoanSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     issued_by_name = serializers.CharField(source='issued_by.name', read_only=True)
     borrower_summary = serializers.SerializerMethodField(read_only=True)
     issued_by_summary = serializers.SerializerMethodField(read_only=True)
-    borrower = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=True)
-    issued_by = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False, allow_null=True)
+    borrower = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), required=True
+    )
 
     class Meta:
         model = Loan
@@ -103,6 +105,7 @@ class LoanSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         
         actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')
         try:
+            logger.info(validated_data)
             loan = Loan.objects.create(**validated_data)
             logger.success(f"Loan '{loan.id}' created for borrower '{loan.borrower.first_name}' by {actor}.")
             return loan

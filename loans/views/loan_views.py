@@ -9,6 +9,7 @@ from loans.models import Loan
 from loans.permissions.loan_permissions import LoanPermissions
 from loans.serializers.loan_serializer import LoanSerializer
 from loguru import logger
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 
 class LoanViewSet(ModelViewSet):
@@ -29,8 +30,8 @@ class LoanViewSet(ModelViewSet):
     # Filtering, search & ordering
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = [
-        'borrower__name',
-        'issued_by__name',
+        'borrower__first_name',
+        'issued_by__first_name',
         'notes'
     ]
     ordering_fields = ['created_at', 'updated_at', 'start_date', 'end_date', 'loan_amount']
@@ -41,10 +42,9 @@ class LoanViewSet(ModelViewSet):
         """
         Returns the Loan queryset filtered by the logged-in company.
         """
-        return (
-            get_company_queryset(self.request, Loan)
-            .select_related('borrower', 'issued_by')
-        )
+        company = get_company_queryset(self.request, Loan)
+        logger.info(company)
+        return Loan.objects.all().select_related('borrower', 'issued_by')
 
     def perform_create(self, serializer):
         """
@@ -53,12 +53,12 @@ class LoanViewSet(ModelViewSet):
         user = self.request.user
         company = get_logged_in_company(self.request)
 
-        loan = serializer.save()
+        loan = serializer.save(issued_by = self.request.user)
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
 
         logger.success(
             f"Loan '{loan.id}' created by '{actor}' "
-            f"for borrower '{loan.borrower.name}'."
+            f"for borrower '{loan.borrower.first_name}'."
         )
 
     def perform_update(self, serializer):
@@ -73,7 +73,7 @@ class LoanViewSet(ModelViewSet):
 
         logger.info(
             f"Loan '{loan.id}' updated by '{actor}' "
-            f"for borrower '{loan.borrower.name}'."
+            f"for borrower '{loan.borrower.first_name}'."
         )
 
     def perform_destroy(self, instance):
@@ -84,7 +84,7 @@ class LoanViewSet(ModelViewSet):
         company = get_logged_in_company(self.request)
 
         loan_id = instance.id
-        borrower_name = instance.borrower.name
+        borrower_name = instance.borrower.first_name
         instance.delete()
 
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')

@@ -5,13 +5,13 @@ from decimal import Decimal, ROUND_HALF_UP
 from loguru import logger
 
 
-class SalesReceiptItem(CreateUpdateBaseModel):
+class SalesReturnItem(CreateUpdateBaseModel):
     sales_receipt = models.ForeignKey(
         'sales.SalesReceipt',
         on_delete=models.CASCADE,
         related_name='items'
     )
-    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='receipt-items')
+    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE)
 
     quantity = models.PositiveIntegerField()
     
@@ -23,7 +23,7 @@ class SalesReceiptItem(CreateUpdateBaseModel):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.receipt.update_total_amount()
+        # self.receipt.update_total_amount()
 
     def delete(self, *args, **kwargs):
         receipt = self.receipt

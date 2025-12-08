@@ -10,7 +10,14 @@ from customers.models.customer_branch_history_model import CustomerBranchHistory
 class CustomerBranchHistorySerializer(CompanyValidationMixin, serializers.ModelSerializer):
     branch_summary = serializers.SerializerMethodField(read_only=True)
     customer_summary = serializers.SerializerMethodField(read_only=True)
-
+    branch = serializers.PrimaryKeyRelatedField(
+        queryset = Branch.objects.all(),
+        required = True
+    )#to be removed
+    customer = serializers.PrimaryKeyRelatedField(
+        queryset = Customer.objects.all(),
+        required = True
+    )
     class Meta:
         model = CustomerBranchHistory
         fields = [

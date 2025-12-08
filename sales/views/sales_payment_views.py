@@ -48,7 +48,7 @@ class SalesPaymentViewSet(ModelViewSet):
         """
         return (
             get_company_queryset(self.request, SalesPayment)
-            .select_related('company', 'branch', 'sales_order', 'processed_by')
+            .select_related('sales_order')
         )
 
     def perform_create(self, serializer):
@@ -66,8 +66,8 @@ class SalesPaymentViewSet(ModelViewSet):
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
 
         logger.success(
-            f"SalesPayment '{payment.payment_number}' for order '{payment.sales_order.order_number}' "
-            f"created by '{actor}' for company '{payment.company.name}'."
+            f"SalesPayment '{payment.payment.payment_number}' for order '{payment.sales_order.order_number}' "
+            f"created by '{actor}' for company '{payment.sales_order.company.name}'."
         )
 
     def perform_update(self, serializer):

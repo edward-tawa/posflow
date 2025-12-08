@@ -31,7 +31,7 @@ class SalesOrderItemSerializer(CompanyValidationMixin, serializers.ModelSerializ
             'updated_at',
         ]
         read_only_fields = [
-            'id', 'sales_order', 'subtotal', 'tax_amount', 'total_price',
+            'id', 'subtotal', 'tax_amount', 'total_price',
             'created_at', 'updated_at'
         ]
 

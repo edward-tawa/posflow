@@ -1,33 +1,33 @@
 from rest_framework import serializers
 from inventory.models import Product
-# from sales.models.sales_return_item_model import SalesReturnItem 'SALES RETURN ITEM CLASS DOES NOT EXIST IN sales_return_item_model.py'
+from sales.models.sales_return_item_model import SalesReturnItem
 from loguru import logger
 from decimal import Decimal, ROUND_HALF_UP
 
 
 class SalesReturnItemSerializer(serializers.ModelSerializer):
     product_summary = serializers.SerializerMethodField(read_only=True)
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    # product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
     class Meta:
-        # model = SalesReturnItem
+        model = SalesReturnItem
         fields = [
             'id',
-            'sales_return',
             'product',
             'product_summary',
-            'product_name',
+            # 'product_name',
             'quantity',
             'unit_price',
-            'tax_rate',
-            'subtotal',
-            'tax_amount',
-            'total_price',
+            # 'tax_rate',
+            # 'subtotal',
+            # 'tax_amount',
+            # 'total_price',
             'created_at',
             'updated_at',
+            'sales_receipt'
         ]
         read_only_fields = [
-            'id', 'sales_return', 'subtotal', 'tax_amount', 'total_price',
+            'id', 'subtotal', 'tax_amount', 'total_price',
             'created_at', 'updated_at'
         ]
 
@@ -60,6 +60,7 @@ class SalesReturnItemSerializer(serializers.ModelSerializer):
         product = validated_data.get('product')
 
         try:
+            logger.info(validated_data)
             item = SalesReturnItem.objects.create(**validated_data)
             actor = getattr(user, 'username', 'Unknown')
             logger.info(f"SalesReturnItem for product '{product.name}' created by '{actor}'.")

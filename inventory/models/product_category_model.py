@@ -7,7 +7,7 @@ class ProductCategory(CreateUpdateBaseModel):
     # Model representing product categories in inventory
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='product_categories')
     name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField()
 
     class Meta:
         unique_together = ('company', 'name')

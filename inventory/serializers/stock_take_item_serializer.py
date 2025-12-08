@@ -26,6 +26,6 @@ class StockTakeItemSerializer(serializers.ModelSerializer):
         Optionally attach the company automatically from the stock_take.
         """
         stock_take = validated_data.get('stock_take')
-        if hasattr(stock_take, 'company'):
-            validated_data['company'] = stock_take.company
+        # if hasattr(stock_take, 'company'):
+        #     validated_data['company'] = stock_take.company
         return super().create(validated_data)

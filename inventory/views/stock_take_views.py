@@ -38,7 +38,12 @@ class StockTakeViewSet(ModelViewSet):
         return StockTake.objects.none()
 
     def perform_create(self, serializer):
-        stock_take = serializer.save()
+        logger.info(self.request.user.branch)
+        stock_take = serializer.save(
+            company = self.request.user.company, 
+            branch = self.request.user.branch, 
+            performed_by = self.request.user
+        )
         user = self.request.user
         logger.success(
             f"StockTake created by '{user.username}' ({user.role}) "
