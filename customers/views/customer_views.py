@@ -11,9 +11,6 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from users.models.user_model import User
 from company.models.company_model import Company
 
-
-
-
 class CustomerViewSet(ModelViewSet):
     """
     ViewSet for viewing customers.
@@ -30,7 +27,6 @@ class CustomerViewSet(ModelViewSet):
     ordering = ['last_name', 'first_name']  # Default ordering
 
 
-    
     def get_queryset(self):
         """
         Optionally restricts the returned customers to a given company,

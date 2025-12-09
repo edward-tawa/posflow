@@ -23,25 +23,37 @@ class SupplierCreditNoteViewSet(ModelViewSet):
 
     # ---------------- Helper Methods ----------------
     def _get_company(self):
-        """Returns the company context for the request."""
-        user = self.request.user
-        return getattr(user, 'company', None) or get_expected_company(self.request)
+        try:
+            """Returns the company context for the request."""
+            user = self.request.user
+            return getattr(user, 'company', None) or get_expected_company(self.request)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def _get_actor(self):
-        """Returns a string identifying who is performing the action."""
-        user = self.request.user
-        company = self._get_company()
-        return getattr(user, 'username', None) or getattr(company, 'name', None) or 'Unknown'
+        try:
+            """Returns a string identifying who is performing the action."""
+            user = self.request.user
+            company = self._get_company()
+            return getattr(user, 'username', None) or getattr(company, 'name', None) or 'Unknown'
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     # ---------------- QuerySet ----------------
     def get_queryset(self):
-        company = self._get_company()
-        if not company:
-            logger.warning(f"{self._get_actor()} has no associated company context.")
-            return SupplierCreditNote.objects.none()
+        try:
+            company = self._get_company()
+            if not company:
+                logger.warning(f"{self._get_actor()} has no associated company context.")
+                return SupplierCreditNote.objects.none()
 
-        logger.info(f"{self._get_actor()} fetching SupplierCreditNotes for company '{getattr(company, 'name', 'Unknown')}'.")
-        return SupplierCreditNote.objects.filter(company=company)
+            logger.info(f"{self._get_actor()} fetching SupplierCreditNotes for company '{getattr(company, 'name', 'Unknown')}'.")
+            return SupplierCreditNote.objects.filter(company=company)
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     # ---------------- Create ----------------
     def perform_create(self, serializer):

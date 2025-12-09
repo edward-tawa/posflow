@@ -31,13 +31,17 @@ class PurchaseReturnItemViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        GET_QUERYSET()
-        -------------------
-        Returns the PurchaseReturnItem queryset filtered by the logged-in company/user.
-        -------------------
-        """
-        return get_company_queryset(self.request, PurchaseReturnItem).select_related('purchase_return', 'product')
+        try:
+            """
+            GET_QUERYSET()
+            -------------------
+            Returns the PurchaseReturnItem queryset filtered by the logged-in company/user.
+            -------------------
+            """
+            return get_company_queryset(self.request, PurchaseReturnItem).select_related('purchase_return', 'product')
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """

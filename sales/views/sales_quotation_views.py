@@ -34,16 +34,20 @@ class SalesQuotationViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        GET_QUERYSET()
-        -------------------
-        Returns the SalesQuotation queryset filtered by the logged-in company/user.
-        -------------------
-        """
-        return (
-            get_company_queryset(self.request, SalesQuotation)
-            .select_related('company', 'branch', 'customer', 'created_by')
-        )
+        try:
+            """
+            GET_QUERYSET()
+            -------------------
+            Returns the SalesQuotation queryset filtered by the logged-in company/user.
+            -------------------
+            """
+            return (
+                get_company_queryset(self.request, SalesQuotation)
+                .select_related('company', 'branch', 'customer', 'created_by')
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """

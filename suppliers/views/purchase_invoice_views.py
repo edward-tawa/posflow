@@ -44,11 +44,15 @@ class PurchaseInvoiceViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return invoices belonging to the logged-in user's company."""
-        return (
-            get_company_queryset(self.request, PurchaseInvoice)
-            .select_related('supplier', 'purchase_order', 'company', 'branch', 'issued_by')
-        )
+        try:
+            """Return invoices belonging to the logged-in user's company."""
+            return (
+                get_company_queryset(self.request, PurchaseInvoice)
+                .select_related('supplier', 'purchase_order', 'company', 'branch', 'issued_by')
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """Create PurchaseInvoice with company and logging enforcement."""

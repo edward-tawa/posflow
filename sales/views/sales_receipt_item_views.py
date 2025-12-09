@@ -35,16 +35,20 @@ class SalesReceiptItemViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        GET_QUERYSET()
-        -------------------
-        Returns the SalesReceiptItem queryset filtered by the logged-in company/user.
-        -------------------
-        """
-        return (
-            get_company_queryset(self.request, SalesReceiptItem)
-            .select_related('sales_receipt', 'product', 'sales_receipt__company')
-        )
+        try:
+            """
+            GET_QUERYSET()
+            -------------------
+            Returns the SalesReceiptItem queryset filtered by the logged-in company/user.
+            -------------------
+            """
+            return (
+                get_company_queryset(self.request, SalesReceiptItem)
+                .select_related('sales_receipt', 'product', 'sales_receipt__company')
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """

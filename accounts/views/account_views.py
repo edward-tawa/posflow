@@ -34,8 +34,11 @@ class AccountViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return Account queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, Account)
+        try:
+            """Return Account queryset filtered by the logged-in company/user."""
+            return get_company_queryset(self.request, Account)
+        except Exception as e:
+            logger.error(f"Error: {e}")
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -49,7 +52,7 @@ class AccountViewSet(ModelViewSet):
     def perform_update(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        account = serializer.save()
+        account = serializer.save(company = company)
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
         logger.bind(account_number=account.account_number).info(
             f"Account '{account.name}' (Number: {account.account_number}) updated by {actor}."
@@ -161,4 +164,3 @@ class UnfreezeAccount(APIView):
             logger.info(f"Account ID {account_id} unfrozen by user {request.user}.")
             return Response({"detail": f"Account {account_id} has been unfrozen."}, status=status.HTTP_200_OK)
         return Response({"detail": f"Failed to unfreeze account {account_id}."}, status=status.HTTP_400_BAD_REQUEST)
-        

@@ -16,7 +16,7 @@ class PurchaseReturnItemSerializer(serializers.ModelSerializer):
             'purchase_return',
             'product',
             'product_summary',
-            'product_name',
+            # 'product_name',
             'quantity',
             'unit_price',
             'tax_rate',

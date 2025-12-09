@@ -40,9 +40,13 @@ class LoanAccountViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return LoanAccount queryset filtered by the logged-in company/user."""
-        return get_account_company_queryset(self.request, LoanAccount).select_related('loan', 'account')
-    
+        try:
+            """Return LoanAccount queryset filtered by the logged-in company/user."""
+            return get_account_company_queryset(self.request, LoanAccount).select_related('loan', 'account')
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
+
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)

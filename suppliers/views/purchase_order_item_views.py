@@ -31,14 +31,18 @@ class PurchaseOrderItemViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        GET_QUERYSET()
-        -------------------
-        Returns the PurchaseOrderItem queryset filtered by the logged-in company/user.
-        -------------------
-        """
-        """Return PurchaseOrderItem queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, PurchaseOrderItem).select_related('purchase_order', 'product')
+        try:
+            """
+            GET_QUERYSET()
+            -------------------
+            Returns the PurchaseOrderItem queryset filtered by the logged-in company/user.
+            -------------------
+            """
+            """Return PurchaseOrderItem queryset filtered by the logged-in company/user."""
+            return get_company_queryset(self.request, PurchaseOrderItem).select_related('purchase_order', 'product')
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """

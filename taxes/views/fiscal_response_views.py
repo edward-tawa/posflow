@@ -46,16 +46,20 @@ class FiscalisationResponseViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        Returns FiscalisationResponse queryset filtered by logged-in company/user.
-        """
-        return (
-            get_company_queryset(self.request, FiscalisationResponse)
-            .select_related(
-                'fiscal_invoice',
-                'fiscal_invoice__company'
+        try:
+            """
+            Returns FiscalisationResponse queryset filtered by logged-in company/user.
+            """
+            return (
+                get_company_queryset(self.request, FiscalisationResponse)
+                .select_related(
+                    'fiscal_invoice',
+                    'fiscal_invoice__company'
+                )
             )
-        )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """

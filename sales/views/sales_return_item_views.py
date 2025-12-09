@@ -8,7 +8,7 @@ from config.auth.jwt_token_authentication import (
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.utilities.pagination import StandardResultsSetPagination
-# from sales.models.sales_return_item_model import SalesReturnItem 'SALES RETURN ITEM CLASS DOES NOT EXIST IN sales_return_item_model.py'
+from sales.models.sales_return_item_model import SalesReturnItem 
 from sales.permissions.sales_permissions import SalesPermissions
 from sales.serializers.sales_return_item_serializer import SalesReturnItemSerializer
 from loguru import logger
@@ -53,21 +53,25 @@ class SalesReturnItemViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        GET_QUERYSET()
-        -------------------
-        Returns items filtered by the logged-in company
-        using the parent sales_return.company relationship.
-        -------------------
-        """
-        return (
-            get_company_queryset(
-                self.request,
-                SalesReturnItem,
-                parent_field='sales_return__company'
+        try:
+            """
+            GET_QUERYSET()
+            -------------------
+            Returns items filtered by the logged-in company
+            using the parent sales_return.company relationship.
+            -------------------
+            """
+            return (
+                get_company_queryset(
+                    self.request,
+                    SalesReturnItem,
+                    # parent_field='sales_return__company'
+                )
+                .select_related('product')
             )
-            .select_related('sales_return', 'product')
-        )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """
@@ -84,7 +88,7 @@ class SalesReturnItemViewSet(ModelViewSet):
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
 
         logger.success(
-            f"SalesReturnItem '{item.product_name}' added to SalesReturn '{item.sales_return.return_number}' "
+            f"SalesReturnItem '{item.product.name}' added to SalesReturn '{item.sales_receipt.receipt_number}' "
             f"by '{actor}'."
         )
 

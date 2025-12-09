@@ -27,10 +27,14 @@ class StockMovementViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        # Return only stock movements for the user's company
-        return get_company_queryset(self.request, StockMovement).select_related(
-            'company', 'branch', 'product', 'sales_order', 'sales_return', 'purchase_order', 'purchase_return'
-        )
+        try:
+            # Return only stock movements for the user's company
+            return get_company_queryset(self.request, StockMovement).select_related(
+                'company', 'branch', 'product', 'sales_order', 'sales_return', 'purchase_order', 'purchase_return'
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         user = self.request.user

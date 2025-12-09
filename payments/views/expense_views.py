@@ -39,9 +39,13 @@ class ExpenseViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        return get_company_queryset(self.request, Expense).select_related(
-            'company', 'branch', 'incurred_by'
-        )
+        try:
+            return get_company_queryset(self.request, Expense).select_related(
+                'company', 'branch', 'incurred_by'
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         user = self.request.user

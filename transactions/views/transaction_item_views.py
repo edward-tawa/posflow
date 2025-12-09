@@ -45,13 +45,17 @@ class TransactionItemViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        Returns TransactionItem queryset filtered by logged-in company.
-        """
-        return (
-            get_company_queryset(self.request, TransactionItem)
-            .select_related('transaction', 'product', 'transaction__company')
-        )
+        try:
+            """
+            Returns TransactionItem queryset filtered by logged-in company.
+            """
+            return (
+                get_company_queryset(self.request, TransactionItem)
+                .select_related('transaction', 'product', 'transaction__company')
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """

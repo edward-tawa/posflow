@@ -38,9 +38,13 @@ class PaymentAllocationViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        return get_company_queryset(self.request, PaymentAllocation).select_related(
-            'company', 'branch', 'payment'
-        )
+        try:
+            return get_company_queryset(self.request, PaymentAllocation).select_related(
+                'company', 'branch', 'payment'
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         user = self.request.user

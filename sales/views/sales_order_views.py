@@ -40,16 +40,20 @@ class SalesOrderViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        GET_QUERYSET()
-        -------------------
-        Returns the SalesOrder queryset filtered by the logged-in company/user.
-        -------------------
-        """
-        return (
-            get_company_queryset(self.request, SalesOrder)
-            .select_related('company', 'branch', 'customer', 'cashier')
-        )
+        try:
+            """
+            GET_QUERYSET()
+            -------------------
+            Returns the SalesOrder queryset filtered by the logged-in company/user.
+            -------------------
+            """
+            return (
+                get_company_queryset(self.request, SalesOrder)
+                .select_related('company', 'branch', 'customer', 'cashier')
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """

@@ -37,11 +37,15 @@ class SupplierDebitNoteItemViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return debit note items belonging to the logged-in user's company."""
-        return (
-            get_company_queryset(self.request, SupplierDebitNoteItem)
-            .select_related('supplier_debit_note', 'supplier_debit_note__supplier', 'supplier_debit_note__company')
-        )
+        try:
+            """Return debit note items belonging to the logged-in user's company."""
+            return (
+                get_company_queryset(self.request, SupplierDebitNoteItem)
+                .select_related('supplier_debit_note', 'supplier_debit_note__supplier', 'supplier_debit_note__company')
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """Create SupplierDebitNoteItem with company and logging enforcement."""

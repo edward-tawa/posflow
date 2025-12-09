@@ -39,13 +39,17 @@ class PaymentViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        Returns the Payment queryset filtered by the logged-in company/user.
-        """
-        return (
-            get_company_queryset(self.request, Payment)
-            .select_related('company', 'branch', 'paid_by')
-        )
+        try:
+            """
+            Returns the Payment queryset filtered by the logged-in company/user.
+            """
+            return (
+                get_company_queryset(self.request, Payment)
+                .select_related('company', 'branch', 'paid_by')
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         """

@@ -39,9 +39,13 @@ class SupplierAccountViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return SupplierAccount queryset filtered by the logged-in company/user."""
-        return get_account_company_queryset(self.request, SupplierAccount).select_related('supplier', 'account')
-    
+        try:
+            """Return SupplierAccount queryset filtered by the logged-in company/user."""
+            return get_account_company_queryset(self.request, SupplierAccount).select_related('supplier', 'account')
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
+
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
