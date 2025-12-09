@@ -5,7 +5,7 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from inventory.permissions.inventory_permissions import InventoryPermission
 from rest_framework.filters import SearchFilter, OrderingFilter
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_company_queryset  # helper function
 from company.models.company_model import Company
 from loguru import logger

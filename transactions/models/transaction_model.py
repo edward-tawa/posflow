@@ -27,6 +27,8 @@ class Transaction(CreateUpdateBaseModel):
         ('PENDING', 'Pending'),
         ('COMPLETED', 'Completed'),
         ('FAILED', 'Failed'),
+        ('CANCELLED', 'Cancelled'),
+        ('REVERSED', 'Reversed'),
         ('VOIDED', 'Voided'),
     ]
 
@@ -72,6 +74,7 @@ class Transaction(CreateUpdateBaseModel):
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
     transaction_category = models.CharField(max_length=20, choices=TRANSACTION_CATEGORIES)
     transaction_number = models.CharField(max_length=20, unique=True, editable=False)
+    reversal_applied = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
     transaction_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)

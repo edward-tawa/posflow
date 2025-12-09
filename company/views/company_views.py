@@ -14,7 +14,7 @@ from company.models.company_model import Company
 from company.serializers.company_serializer import CompanySerializer
 from company.serializers.company_auth_serializer import CompanyLoginSerializer
 from company.permissions.company_create_or_is_admin import CompanyCreateOrAdminPermission
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from loguru import logger
 from config.utilities.check_company_existance import check_existance
 

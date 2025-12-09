@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from payments.models import PaymentMethod
 from payments.serializers.payment_method_serializer import PaymentMethodSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions

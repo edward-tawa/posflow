@@ -5,7 +5,7 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.utilities.get_company_or_user_company import get_expected_company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from suppliers.models.purchase_return_item_model import PurchaseReturnItem
 from suppliers.serializers.purchase_return_item_serializer import PurchaseReturnItemSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions

@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from suppliers.models.purchase_order_item_model import PurchaseOrderItem
 from suppliers.serializers.purchase_order_item_serializer import PurchaseOrderItemSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions

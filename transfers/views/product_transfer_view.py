@@ -8,7 +8,7 @@ from transfers.django_filters.product_transfer_filters import ProductTransferFil
 from rest_framework import status
 from rest_framework.response import Response
 from company.models.company_model import Company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, CompanyCookieJWTAuthentication
 from config.utilities.get_queryset import get_company_queryset
 from loguru import logger

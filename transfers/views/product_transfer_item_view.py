@@ -3,7 +3,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.response import Response
 from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, CompanyCookieJWTAuthentication
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 # from config.utilities.get_logged_in_company import get_company_queryset 'TYPO OR MISSING FUNCTION IN UTILITIES'
 from transfers.models.product_transfer_item_model import ProductTransferItem
 from transfers.serializers.product_transfer_item_serializer import ProductTransferItemSerializer

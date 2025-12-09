@@ -5,7 +5,7 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from sales.permissions.sales_permissions import SalesPermissions
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.sales_return_model import SalesReturn
 from sales.serializers.sales_return_serializer import SalesReturnSerializer
 from loguru import logger
@@ -24,8 +24,6 @@ class SalesReturnViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-
-    # If you want permissions later, plug them in here.
     permission_classes = [SalesPermissions]
 
     # Filtering, search & ordering
@@ -44,7 +42,7 @@ class SalesReturnViewSet(ModelViewSet):
         """
         return (
             get_company_queryset(self.request, SalesReturn)
-            .select_related('company', 'branch', 'customer', 'sale_order')
+            .select_related('company', 'branch', 'customer', 'issued_by', 'sale_order')
         )
 
     def perform_create(self, serializer):

@@ -7,8 +7,13 @@ from config.auth.jwt_token_authentication import (
 )
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
+<<<<<<< HEAD
 from config.utilities.pagination import StandardResultsSetPagination
 from sales.models.sales_return_item_model import SalesReturnItem 
+=======
+from config.pagination.pagination import StandardResultsSetPagination
+# from sales.models.sales_return_item_model import SalesReturnItem 'SALES RETURN ITEM CLASS DOES NOT EXIST IN sales_return_item_model.py'
+>>>>>>> 953fc17 (accounts)
 from sales.permissions.sales_permissions import SalesPermissions
 from sales.serializers.sales_return_item_serializer import SalesReturnItemSerializer
 from loguru import logger

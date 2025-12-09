@@ -6,7 +6,7 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from company.models.company_model import Company
 from rest_framework.filters import SearchFilter, OrderingFilter
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from loguru import logger
 
 

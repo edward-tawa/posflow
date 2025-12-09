@@ -5,7 +5,7 @@ from branch.permissions.branch_permissions import BranchPermissions
 from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, CompanyCookieJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from rest_framework.response import Response
 from rest_framework import status
 from loguru import logger

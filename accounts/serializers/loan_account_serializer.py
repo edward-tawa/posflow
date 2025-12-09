@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from loans.permissions.loan_permissions import LoanPermissions
+from loguru import logger
 from accounts.models.account_model import Account
 from accounts.models.loan_account_model import LoanAccount
 from branch.models.branch_model import Branch
@@ -7,7 +7,7 @@ from company.models.company_model import Company
 from loans.models.loan_model import Loan
 from accounts.models.account_model import Account
 from config.utilities.get_company_or_user_company import get_expected_company
-from loguru import logger
+
 
 class LoanAccountSerializer(serializers.ModelSerializer):
     company = serializers.PrimaryKeyRelatedField(

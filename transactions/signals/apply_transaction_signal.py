@@ -17,3 +17,5 @@ def apply_transaction_after_creation(sender, instance, created, **kwargs):
             logger.info(f"Transaction {instance.transaction_number} applied successfully.")
         except Exception as e:
             logger.error(f"Failed to apply transaction {instance.transaction_number}: {e}")
+
+
