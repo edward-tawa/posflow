@@ -28,13 +28,17 @@ class CashTransferViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        return get_company_queryset(self.request, CashTransfer).select_related(
-            'transfer',
-            'source_branch',
-            'destination_branch',
-            'source_branch_account',
-            'destination_branch_account'
-        ).all()
+        try:
+            return get_company_queryset(self.request, CashTransfer).select_related(
+                'transfer',
+                'source_branch',
+                'destination_branch',
+                'source_branch_account',
+                'destination_branch_account'
+            ).all()
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         user = self.request.user
