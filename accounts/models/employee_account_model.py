@@ -9,7 +9,7 @@ class EmployeeAccount(CreateUpdateBaseModel):
         'users.User',
         on_delete=models.CASCADE,
         related_name='employee_accounts'
-    )
+    ) 
     account = models.ForeignKey(
         'accounts.Account',
         on_delete=models.CASCADE,

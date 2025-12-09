@@ -10,7 +10,7 @@ from suppliers.permissions.supplier_permissions import SupplierPermissions
 from config.utilities.get_company_or_user_company import get_expected_company
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from loguru import logger
 
 

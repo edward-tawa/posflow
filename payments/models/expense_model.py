@@ -8,6 +8,16 @@ import uuid
 
 class Expense(CreateUpdateBaseModel):
     PREFIX = 'EX'
+    EXPENSE_CATEGORY = [
+        ('TRAVEL', 'Travel'),
+        ('MEALS', 'Meals'),
+        ('SUPPLIES', 'Supplies'),
+        ('UTILITIES', 'Utilities'),
+        ('RENT', 'Rent'),
+        ('SALARIES', 'Salaries'),
+        ('PETTYCASH', 'Pettycash'),
+        ('MISC', 'Miscellaneous'),
+    ]
     company = models.ForeignKey(
         'company.Company',
         on_delete=models.CASCADE,
@@ -20,6 +30,7 @@ class Expense(CreateUpdateBaseModel):
     )
     expense_number = models.CharField(max_length=20, unique=True, editable=False)
     expense_date = models.DateTimeField(auto_now_add=True)
+    category = models.CharField(max_length=20, choices=EXPENSE_CATEGORY)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.TextField(blank=True, null=True)
     incurred_by = models.ForeignKey(

@@ -3,11 +3,12 @@ from django.db.models import Q
 from transactions.models.transaction_model import Transaction
 from accounts.models.account_model import Account
 from accounts.services.accounts_service import AccountsService
+from rest_framework.response import Response
 from loguru import logger
 from django.db import transaction as db_transaction
+from config.pagination.pagination import StandardResultsSetPagination
 
 class TransactionService:
-
     @staticmethod
     def validate_transaction(transaction):
         logger.debug(f"Validating transaction {transaction.transaction_number}")
@@ -31,8 +32,9 @@ class TransactionService:
             total_amount=data.get('total_amount'),
             debit_account=data.get('debit_account'),
             credit_account=data.get('credit_account'),
+            status="PENDING"
         )
-        logger.info(f"Transaction {transaction.transaction_number} created")
+        logger.info(f"Transaction {transaction.transaction_number} created and marked as PENDING")
         return transaction
     
     @staticmethod
@@ -63,8 +65,16 @@ class TransactionService:
             credit_account.save(update_fields=['balance'])
             logger.info(f"Credited Account {credit_account.id}: {credit_balance} → {credit_account.balance}")
 
+             # Mark transaction as completed
+            transaction.status = "COMPLETED"
+            transaction.save(update_fields=["status"])
+            logger.info(f"Transaction {transaction.transaction_number} marked as COMPLETED")
+
+
         except Exception as e:
-            logger.error(f"Transaction {transaction.transaction_number} failed: {e}")
+            transaction.status = "FAILED"
+            transaction.save(update_fields=["status"])
+            logger.exception(f"Transaction {transaction.transaction_number} failed: {e}, transaction status {transaction.status}")
             raise
     
     @staticmethod
@@ -181,22 +191,30 @@ class TransactionService:
         return transactions
     
     @staticmethod
-    def get_transactions_by_type(transaction_type):
+    def get_transactions_by_type(transaction_type, company, branch):
         logger.info(f"Retrieving transactions of type {transaction_type}")
         transactions = Transaction.objects.filter(
+            company=company,
+            branch=branch,
             transaction_type=transaction_type
         ).order_by('-transaction_date')
         logger.info(f"Found {transactions.count()} transactions of type {transaction_type}")
         return transactions
     
     @staticmethod
-    def get_transactions_by_category(transaction_category):
-        logger.info(f"Retrieving transactions of category {transaction_category}")
+    def get_transactions_by_category(transaction_category, company, branch):
+        logger.info(f"Retrieving transactions of category {transaction_category} for company {company.id}, branch {branch.id}")
+
         transactions = Transaction.objects.filter(
-            transaction_category=transaction_category
+            transaction_category=transaction_category,
+            company=company,
+            branch=branch
         ).order_by('-transaction_date')
-        logger.info(f"Found {transactions.count()} transactions of category {transaction_category}")
+
+        logger.info(f"Found {transactions.count()} transactions of category {transaction_category} for company {company.id}, branch {branch.id}")
+
         return transactions
+
     
     @staticmethod
     def get_transactions_by_company(company):
@@ -208,27 +226,29 @@ class TransactionService:
         return transactions
     
     @staticmethod
-    def get_transaction_by_branch(branch):
+    def get_transaction_by_branch(company, branch):
         logger.info(f"Retrieving transactions for branch {branch.id}")
         transactions = Transaction.objects.filter(
+            company=company,
             branch=branch
         ).order_by('-transaction_date')
         logger.info(f"Found {transactions.count()} transactions for branch {branch.id}")
         return transactions
 
     @staticmethod
-    def get_paginated_transactions(account=None, company=None, page=1, page_size=50):
-        logger.info(f"Fetching paginated transactions page {page} size {page_size}")
+    def get_transactions(account=None, company=None):
+        """
+        Returns a filtered queryset of transactions.
+        Pagination is handled in the view.
+        """
+        logger.info(f"Fetching transactions for account={account} company={company}")
         qs = Transaction.objects.all()
         if account:
             qs = qs.filter(models.Q(debit_account=account) | models.Q(credit_account=account))
         if company:
             qs = qs.filter(company=company)
-        start = (page - 1) * page_size
-        end = start + page_size
-        paginated = qs.order_by('-transaction_date')[start:end]
-        logger.info(f"Returning {paginated.count()} transactions for page {page}")
-        return paginated
+        return qs.order_by('-transaction_date')
+
     
     @staticmethod
     def search_transactions(query):
@@ -251,8 +271,8 @@ class TransactionService:
         exists = Transaction.objects.filter(transaction_number=transaction_number).exists()
 
         if exists:
+            logger.warning(f"Duplicate transaction number found: {transaction_number}")
             raise ValueError(f"Duplicate transaction number: {transaction_number}")
-        return False
     
     @staticmethod
     def schedule_transaction(transaction_data, schedule_date):

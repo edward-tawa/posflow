@@ -7,7 +7,7 @@ from company.models.company_model import Company
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from config.utilities.get_company_or_user_company import get_expected_company
 from config.utilities.get_logged_in_company import get_logged_in_company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_company_queryset
 from suppliers.models.purchase_order_model import PurchaseOrder
 from suppliers.serializers.purcahse_order_serializer import PurchaseOrderSerializer

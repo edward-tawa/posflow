@@ -8,7 +8,7 @@ from config.auth.jwt_token_authentication import (
 )
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 
 from taxes.models.fiscalisation_response_model import FiscalisationResponse
 from taxes.serializers.fiscal_response_serializer import FiscalisationResponseSerializer

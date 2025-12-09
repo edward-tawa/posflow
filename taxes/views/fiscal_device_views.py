@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from taxes.models.fiscal_device_model import FiscalDevice
 from taxes.serializers.fiscal_device_serializer import FiscalDeviceSerializer
 from taxes.permissions.fiscalisation_permissions import FiscalisationPermissions

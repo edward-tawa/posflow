@@ -5,7 +5,7 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from sales.permissions.sales_permissions import SalesPermissions
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.sales_invoice_model import SalesInvoice
 from sales.serializers.sales_invoice_serializer import SalesInvoiceSerializer
 from loguru import logger

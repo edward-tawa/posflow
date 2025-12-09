@@ -5,7 +5,7 @@ from loguru import logger
 from decimal import Decimal, ROUND_HALF_UP
 
 
-class SalesReturnItemSerializer(serializers.ModelSerializer):
+class SalesReturnItemSerializer(serializers.ModelSerializer): 
     product_summary = serializers.SerializerMethodField(read_only=True)
     # product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 

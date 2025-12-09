@@ -7,7 +7,7 @@ from config.auth.jwt_token_authentication import (
 )
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.sales_receipt_model import SalesReceipt
 from sales.permissions.sales_permissions import SalesPermissions
 from sales.serializers.sales_receipt_serializer import SalesReceiptSerializer

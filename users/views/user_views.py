@@ -13,7 +13,7 @@ from users.serializers.user_serializer import UserSerializer
 from users.serializers.user_auth_serializer import UserLoginSerializer
 from users.permissions.user_permissions import UserPermissions
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
-from config.utilities.pagination import StandardResultsSetPagination
+from config.pagination.pagination import StandardResultsSetPagination
 from rest_framework.permissions import AllowAny
 from loguru import logger
 
