@@ -13,11 +13,13 @@ class CompanyRolePermission(BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
+        
         if not user.is_authenticated:
             logger.warning(f"Unauthenticated access attempt to {view.__class__.__name__}")
             return False
 
         allowed_roles = self.VIEW_ROLES if request.method in SAFE_METHODS else self.EDIT_ROLES
+        
         if user.is_staff or user.is_superuser or user.role in allowed_roles:
             return True
 

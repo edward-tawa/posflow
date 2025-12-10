@@ -49,7 +49,7 @@ class CustomerBranchHistoryViewSet(ModelViewSet):
             )
         except Exception as e:
             logger.error(f"Error: {e}")
-            return f"Error: {e}"
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         """Create CustomerBranchHistory with company enforcement and logging."""

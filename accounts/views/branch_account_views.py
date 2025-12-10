@@ -13,13 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, CompanyCookieJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
-<<<<<<< HEAD
-from config.utilities.pagination import StandardResultsSetPagination
-from config.utilities.get_queryset import get_account_company_queryset
-=======
 from config.pagination.pagination import StandardResultsSetPagination
-from config.utilities.get_queryset import get_company_queryset
->>>>>>> 953fc17 (accounts)
+from config.utilities.get_queryset import get_account_company_queryset
 from accounts.permissions.account_permissions import AccountPermission
 from accounts.services.accounts_service import AccountsService
 from company.models.company_model import Company

@@ -27,8 +27,12 @@ class PurchasesReturnsAccountViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return PurchasesReturnsAccount queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, PurchasesReturnsAccount).select_related('account', 'branch', 'supplier', 'return_person')
+        try:
+            """Return PurchasesReturnsAccount queryset filtered by the logged-in company/user."""
+            return get_company_queryset(self.request, PurchasesReturnsAccount).select_related('account', 'branch', 'supplier', 'return_person')
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user

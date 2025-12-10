@@ -39,13 +39,17 @@ class FiscalDocumentViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        Returns the FiscalDocument queryset filtered by the logged-in company/user.
-        """
-        return (
-            get_company_queryset(self.request, FiscalDocument)
-            .select_related('company', 'branch', 'device')
-        )
+        try:
+            """
+            Returns the FiscalDocument queryset filtered by the logged-in company/user.
+            """
+            return (
+                get_company_queryset(self.request, FiscalDocument)
+                .select_related('company', 'branch', 'device')
+            )
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         """

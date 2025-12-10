@@ -27,8 +27,12 @@ class CashAccountViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return CashAccount queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, CashAccount).select_related('account', 'branch')
+        try:
+            """Return CashAccount queryset filtered by the logged-in company/user."""
+            return get_company_queryset(self.request, CashAccount).select_related('account', 'branch')
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user

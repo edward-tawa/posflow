@@ -27,9 +27,13 @@ class ExpenseAccountViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return ExpenseAccount queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, ExpenseAccount).select_related('account', 'branch', 'expense_category', 'paid_by')
-
+        try:
+            """Return ExpenseAccount queryset filtered by the logged-in company/user."""
+            return get_company_queryset(self.request, ExpenseAccount).select_related('account', 'branch', 'expense', 'paid_by')
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return self.queryset.none()
+        
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)

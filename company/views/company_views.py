@@ -17,6 +17,7 @@ from company.permissions.company_create_or_is_admin import CompanyCreateOrAdminP
 from config.pagination.pagination import StandardResultsSetPagination
 from loguru import logger
 from config.utilities.check_company_existance import check_existance
+from drf_yasg.utils import swagger_auto_schema
 
 
 # Only list and retrieve companies via this ViewSet
@@ -47,6 +48,7 @@ class CompanyRegisterView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
     
+    @swagger_auto_schema(request_body=CompanySerializer)
     def post(self, request):
        
         serializer = CompanySerializer(data=request.data)
@@ -60,6 +62,7 @@ class CompanyRegisterView(APIView):
 # Update an existing company
 class CompanyUpdateView(APIView):
     permission_classes = [CompanyCreateOrAdminPermission]
+    @swagger_auto_schema(request_body=CompanySerializer)
     def patch(self, request, pk):
         company = Company.objects.get(pk=pk)
         serializer = CompanySerializer(company, data=request.data, partial=True)
@@ -85,6 +88,7 @@ class CompanyDeleteView(APIView):
 class CompanyLoginView(APIView):
     permission_classes = [CompanyCreateOrAdminPermission]
 
+    @swagger_auto_schema(request_body=CompanySerializer)
     def post(self, request):
         serializer = CompanyLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -105,7 +109,13 @@ class CompanyLoginView(APIView):
         refresh_token = str(refresh)
 
         # Create response
-        response = Response({"message": "Login successful"}, status=200)
+        response = Response(
+            {
+                "message": "Login successful",
+                "access_token": access_token
+            }, 
+            status=200
+        )
 
         # Development vs production cookie flags
         secure_flag = not settings.DEBUG  # True if production, False if dev

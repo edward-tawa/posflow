@@ -15,6 +15,7 @@ from users.permissions.user_permissions import UserPermissions
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from config.pagination.pagination import StandardResultsSetPagination
 from rest_framework.permissions import AllowAny
+from drf_yasg.utils import swagger_auto_schema
 from loguru import logger
 
 # Read-only ViewSet for listing/retrieving users
@@ -57,19 +58,41 @@ class UserRegisterView(APIView):
     permission_classes = [UserPermissions]
     authentication_classes = [CompanyCookieJWTAuthentication]
 
+    @swagger_auto_schema(request_body=UserSerializer)
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        if not serializer.is_valid():
-            print(serializer.errors)  # <- This will show what is failing
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        #Taking care of the 2 different possibilities that either user creating or regestering user might be company or user .
+        #If user is creating user then request.user.company works to assign company but if company is creating user then request.user.company does not work
+        try:
+            #Get user branch and company
+            logger.info({
+                "request":request.data,
+                "user": request.user
+            })
+            serializer = UserSerializer(data=request.data)
+            if not serializer.is_valid():
+                print(serializer.errors)  # <- This will show what is failing
+            serializer.is_valid(raise_exception=True)
+            serializer.save(company = self.request.user.company, branch = request.user.branch)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.info({
+                "request":request.data,
+                "user": request.user
+            })
+            serializer = UserSerializer(data=request.data)
+            if not serializer.is_valid():
+                print(serializer.errors)  # <- This will show what is failing
+            serializer.is_valid(raise_exception=True)
+            serializer.save(company = self.request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 
 # Update an existing user
 class UserUpdateView(APIView):
     permission_classes = [UserPermissions]
 
+    @swagger_auto_schema(request_body=UserSerializer)
     def patch(self, request, pk):
         try:
             user = User.objects.get(pk=pk)
@@ -100,6 +123,8 @@ class UserDeleteView(APIView):
 class UserLoginView(APIView):
     permission_classes = [AllowAny] 
     serializer_class = UserLoginSerializer
+
+    @swagger_auto_schema(request_body=UserSerializer)
     def post(self, request):
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -43,16 +43,20 @@ class TransferViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        Limit transfers to the logged-in user's company.
-        Preload related users for performance.
-        """
-        return get_company_queryset(self.request, Transfer).select_related(
-            'company',
-            'transferred_by',
-            'received_by',
-            'sent_by'
-        ).all()
+        try:
+            """
+            Limit transfers to the logged-in user's company.
+            Preload related users for performance.
+            """
+            return get_company_queryset(self.request, Transfer).select_related(
+                'company',
+                'transferred_by',
+                'received_by',
+                'sent_by'
+            ).all()
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user

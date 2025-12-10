@@ -9,6 +9,8 @@ from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_company_queryset
 from accounts.permissions.account_permissions import AccountPermission
 from company.models.company_model import Company
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 class BankAccountViewSet(ModelViewSet):
@@ -27,8 +29,12 @@ class BankAccountViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return BankAccount queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, BankAccount).select_related('account', 'branch')
+        try:
+            """Return BankAccount queryset filtered by the logged-in company/user."""
+            return get_company_queryset(self.request, BankAccount).select_related('account', 'branch')
+        except Exception as e:
+            logger.error(f"Error: {e}")
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user
