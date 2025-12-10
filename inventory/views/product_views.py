@@ -27,21 +27,25 @@ class ProductViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        user = self.request.user
-        if not user.is_authenticated:
-            logger.warning("Unauthenticated access attempt to ProductViewSet.")
-            return Product.objects.none()
+        try:
+            user = self.request.user
+            if not user.is_authenticated:
+                logger.warning("Unauthenticated access attempt to ProductViewSet.")
+                return Product.objects.none()
 
-        # Determine the "company context"
-        company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        identifier = getattr(company, 'name', None) or getattr(company, 'username', None) or 'Unknown'
+            # Determine the "company context"
+            company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
+            identifier = getattr(company, 'name', None) or getattr(company, 'username', None) or 'Unknown'
 
-        if not company:
-            logger.warning(f"{identifier} has no associated company.")
-            return Product.objects.none()
+            if not company:
+                logger.warning(f"{identifier} has no associated company.")
+                return Product.objects.none()
 
-        logger.info(f"{identifier} fetching products for company '{getattr(company, 'name', 'Unknown')}'.")
-        return Product.objects.filter(company=company).select_related('product_category', 'company')
+            logger.info(f"{identifier} fetching products for company '{getattr(company, 'name', 'Unknown')}'.")
+            return Product.objects.filter(company=company).select_related('product_category', 'company')
+        except Exception as e:
+            logger.error(e)
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user

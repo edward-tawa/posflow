@@ -38,7 +38,7 @@ class AccountViewSet(ModelViewSet):
             """Return Account queryset filtered by the logged-in company/user."""
             return get_company_queryset(self.request, Account)
         except Exception as e:
-            logger.error(f"Error: {e}")
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user

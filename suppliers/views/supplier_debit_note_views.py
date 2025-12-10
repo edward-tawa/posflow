@@ -45,7 +45,7 @@ class SupplierDebitNoteViewSet(ModelViewSet):
             )
         except Exception as e:
             logger.error(f"Error: {e}")
-            return f"Error: {e}"
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         """Create SupplierDebitNote with company and logging enforcement."""

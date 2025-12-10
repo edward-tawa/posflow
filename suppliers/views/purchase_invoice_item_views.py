@@ -31,7 +31,7 @@ class PurchaseInvoiceItemViewSet(ModelViewSet):
             return getattr(user, 'company', None) or get_expected_company(self.request)
         except Exception as e:
             logger.error(f"Error: {e}")
-            return f"Error: {e}"
+            return self.queryset.none()
 
     def _get_actor(self):
         try:

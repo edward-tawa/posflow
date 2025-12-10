@@ -25,17 +25,21 @@ class StockTakeViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        user = self.request.user
-        if not user.is_authenticated:
-            logger.warning("Unauthorized access attempt to StockTakeViewSet.")
-            return StockTake.objects.none()
+        try:
+            user = self.request.user
+            if not user.is_authenticated:
+                logger.warning("Unauthorized access attempt to StockTakeViewSet.")
+                return StockTake.objects.none()
 
-        company = getattr(user, 'company', None)
-        if company:
-            logger.info(f"User '{user.username}' retrieved stocktakes for company '{company.name}'.")
-            return StockTake.objects.filter(company=company)
-        logger.warning(f"User '{user.username}' has no associated company. Returning empty queryset.")
-        return StockTake.objects.none()
+            company = getattr(user, 'company', None)
+            if company:
+                logger.info(f"User '{user.username}' retrieved stocktakes for company '{company.name}'.")
+                return StockTake.objects.filter(company=company)
+            logger.warning(f"User '{user.username}' has no associated company. Returning empty queryset.")
+            return StockTake.objects.none()
+        except Exception as e:
+            logger.error(e)
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         logger.info(self.request.user.branch)

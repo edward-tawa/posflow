@@ -45,18 +45,22 @@ class SupplierViewSet(ModelViewSet):
 
     # ---------------- QuerySet ----------------
     def get_queryset(self):
-        user = self.request.user
-        if not user.is_authenticated:
-            logger.warning("Unauthenticated access attempt to SupplierViewSet.")
-            return Supplier.objects.none()
+        try:
+            user = self.request.user
+            if not user.is_authenticated:
+                logger.warning("Unauthenticated access attempt to SupplierViewSet.")
+                return Supplier.objects.none()
 
-        company = self._get_company()
-        if not company:
-            logger.warning(f"{self._get_actor()} has no associated company context.")
-            return Supplier.objects.none()
+            company = self._get_company()
+            if not company:
+                logger.warning(f"{self._get_actor()} has no associated company context.")
+                return Supplier.objects.none()
 
-        logger.info(f"{self._get_actor()} fetching suppliers for company '{getattr(company, 'name', 'Unknown')}'.")
-        return Supplier.objects.filter(company=company)
+            logger.info(f"{self._get_actor()} fetching suppliers for company '{getattr(company, 'name', 'Unknown')}'.")
+            return Supplier.objects.filter(company=company)
+        except Exception as e:
+            logger.error(e)
+            return self.queryset.none()
 
     # ---------------- Create ----------------
     def perform_create(self, serializer):

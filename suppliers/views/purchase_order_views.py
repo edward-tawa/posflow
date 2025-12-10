@@ -40,7 +40,7 @@ class PurchaseOrderViewSet(ModelViewSet):
             return get_company_queryset(self.request, PurchaseOrder).select_related('supplier', 'company')
         except Exception as e:
             logger.error(f"Error: {e}")
-            return f"Error: {e}"
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user

@@ -33,8 +33,12 @@ class ProductStockViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return ProductStock queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, ProductStock)
+        try:
+            """Return ProductStock queryset filtered by the logged-in company/user."""
+            return get_company_queryset(self.request, ProductStock)
+        except Exception as e:
+            logger.error(e)
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user

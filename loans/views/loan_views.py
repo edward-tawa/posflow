@@ -39,12 +39,16 @@ class LoanViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """
-        Returns the Loan queryset filtered by the logged-in company.
-        """
-        company = get_company_queryset(self.request, Loan)
-        logger.info(company)
-        return Loan.objects.all().select_related('borrower', 'issued_by')
+        try:
+            """
+            Returns the Loan queryset filtered by the logged-in company.
+            """
+            company = get_company_queryset(self.request, Loan)
+            logger.info(company)
+            return Loan.objects.all().select_related('borrower', 'issued_by')
+        except Exception as e:
+            logger.error(e)
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         """

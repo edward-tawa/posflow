@@ -27,8 +27,11 @@ class SalesAccountViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        """Return SalesAccount queryset filtered by the logged-in company/user."""
-        return get_company_queryset(self.request, SalesAccount).select_related('account', 'branch', 'customer', 'sales_person')
+        try:
+            """Return SalesAccount queryset filtered by the logged-in company/user."""
+            return get_company_queryset(self.request, SalesAccount).select_related('account', 'branch', 'customer', 'sales_person')
+        except Exception as e:
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user

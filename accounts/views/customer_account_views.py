@@ -14,7 +14,7 @@ from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, Co
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
-from config.utilities.get_queryset import get_company_queryset
+from config.utilities.get_queryset import get_account_company_queryset
 from accounts.permissions.account_permissions import AccountPermission
 from customers.permissions.manage_customers_permission import ManageCustomersPermission
 from accounts.services.accounts_service import AccountsService
@@ -44,7 +44,7 @@ class CustomerAccountViewSet(ModelViewSet):
             return get_account_company_queryset(self.request, CustomerAccount).select_related('customer', 'account')
         except Exception as e:
             logger.error(f"Error: {e}")
-            return f"Error: {e}"
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user

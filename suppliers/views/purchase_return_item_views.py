@@ -41,7 +41,7 @@ class PurchaseReturnItemViewSet(ModelViewSet):
             return get_company_queryset(self.request, PurchaseReturnItem).select_related('purchase_return', 'product')
         except Exception as e:
             logger.error(f"Error: {e}")
-            return f"Error: {e}"
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         """

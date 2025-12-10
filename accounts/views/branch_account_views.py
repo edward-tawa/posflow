@@ -42,7 +42,7 @@ class BranchAccountViewSet(ModelViewSet):
             return get_account_company_queryset(self.request, BranchAccount).select_related('branch', 'account')
         except Exception as e:
             logger.error(f"Error: {e}")
-            return f"Error: {e}"
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         user = self.request.user
