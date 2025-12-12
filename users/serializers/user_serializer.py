@@ -1,19 +1,50 @@
 from rest_framework import serializers
 from users.models.user_model import User
 from users.serializers.company_field import CompanyRelatedField
+from branch.models.branch_model import Branch
+from company.models.company_model import Company
+from django.db.models import Q
+from loguru import logger
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     company = CompanyRelatedField(required=False, allow_null=True)
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = [
-            'id', 'email', 'first_name', 'last_name', 'company', 'role', 'password', 
-            'is_active', 'is_staff', 'updated_at', 'created_at', 'username'
+            'id', ''
+            'email', 
+            'first_name', 
+            'last_name', 
+            'company',
+            'company_summary',
+            'branch_summary',
+            'role', 
+            'password', 
+            'is_active', 
+            'is_staff', 
+            'updated_at', 
+            'created_at', 
+            'username',
+            'branch'
         ]
         read_only_fields = ['id', 'is_active', 'updated_at', 'created_at']
 
+    def get_company_summary(self, obj):
+        return{
+            "id": obj.company.id,
+            "name": obj.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return{
+            "id": obj.branch.id,
+            "name": obj.branch.name
+        }
+    
     def create(self, validated_data):
         password = validated_data.pop('password')
         # Pop is_staff if provided, default to False

@@ -45,7 +45,7 @@ class UserViewSet(ReadOnlyModelViewSet):
 
         # If a Company instance (superuser), can see all users of that company
         elif hasattr(current, "id"):  # crude check for Company
-            logger.info(User.objects.filter(company=current.company).values('role'))
+            logger.info(User.objects.filter(company=current).values('role'))
             return User.objects.filter(company=current)
 
         return User.objects.none()

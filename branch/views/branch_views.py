@@ -43,11 +43,11 @@ class BranchViewSet(ModelViewSet):
         return self.queryset.none()
 
     def perform_create(self, serializer):
-        user_company = getattr(self.request.user, 'company', None)
+        user_company = getattr(self.request.user, 'name', None)
         if not user_company:
             raise ValidationError({"error": "User has no associated company"})
-
-        serializer.save(company=user_company)
+        logger.info(user_company)
+        serializer.save()
 
     def perform_update(self, serializer):
         branch = self.get_object()

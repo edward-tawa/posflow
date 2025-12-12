@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, CompanyCookieJWTAuthentication
 from config.pagination.pagination import StandardResultsSetPagination
-# from config.utilities.get_logged_in_company import get_company_queryset 'TYPO OR MISSING FUNCTION IN UTILITIES'
+from config.utilities.get_queryset import get_company_queryset
 from transfers.models.product_transfer_item_model import ProductTransferItem
 from transfers.serializers.product_transfer_item_serializer import ProductTransferItemSerializer
 from config.permissions.company_role_base_permission import CompanyRolePermission
@@ -26,11 +26,14 @@ class ProductTransferItemViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        # return get_company_queryset(self.request, ProductTransferItem).selected_related(
-        #     'product',
-        #     'transfer',
-        # ).all()
-        pass
+        try:
+            return get_company_queryset(self.request, ProductTransferItem).selected_related(
+                'product',
+                'transfer',
+            ).all()
+        except Exception as e:
+            logger.error(e)
+            return self.queryset.none()
 
     def perform_create(self, serializer):
         product_transfer_item = serializer.save()

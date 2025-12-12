@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
+from loguru import logger
 
 class BranchPermissions(BasePermission):
     """
@@ -12,15 +13,15 @@ class BranchPermissions(BasePermission):
     EDIT_ROLES = ['Manager']
 
     def has_permission(self, request, view):
+        logger.info(request.user)
         user = request.user
         if not user or not user.is_authenticated:
             return False
 
         # Allow safe methods for VIEW_ROLES + staff/superuser
-        if request.method in SAFE_METHODS:
-            return user.role in self.VIEW_ROLES or user.is_staff or user.is_superuser
-        # Allow editing only for EDIT_ROLES + staff/superuser
-        return user.role in self.EDIT_ROLES or user.is_staff or user.is_superuser
+        if request.method in SAFE_METHODS: 
+            return user.is_staff or user.is_superuser
+        return user.is_staff or user.is_superuser
 
     def has_object_permission(self, request, view, obj):
         user = request.user
@@ -33,7 +34,5 @@ class BranchPermissions(BasePermission):
 
         # Allow SAFE_METHODS for view roles
         if request.method in SAFE_METHODS:
-            return user.role in self.VIEW_ROLES or user.is_staff or user.is_superuser
-
-        # Editing allowed for EDIT_ROLES + staff/superuser
-        return user.role in self.EDIT_ROLES or user.is_staff or user.is_superuser
+            user.is_staff or user.is_superuser
+        user.is_staff or user.is_superuser

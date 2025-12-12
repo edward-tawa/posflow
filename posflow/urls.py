@@ -24,6 +24,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Company app endpoints
+    path('swagger/', include('swagger.urls')),
+
+    # Company app endpoints
     path('posflow/', include('company.urls')),
 
     # Users app endpoints
@@ -39,34 +42,34 @@ urlpatterns = [
     path('posflow/', include('customers.urls')),
 
     # Inventory app endpoints
-    # path('posflow/', include('inventory.urls')),
+    path('posflow/', include('inventory.urls')),
 
     # Loans app endpoints
     path('posflow/', include('loans.urls')),
 
     # Payments app endpoints
-    # path('posflow/', include('payments.urls')), 'MISSING URL PARTTERNS'
+    path('posflow/', include('payments.urls')),
 
     # Promotions app endpoints
-    # path('posflow/', include('promotions.urls')),  'PROMOTIONS DOES NOT HAVE ANYTHING'
+    # path('posflow/', include('promotions.urls')), # 'PROMOTIONS DOES NOT HAVE ANYTHING'
 
     # Reports app endpoints
-    # path('posflow/', include('reports.urls')), 'REPORTS DOES NOT HAVE ANYTHING'
+    # path('posflow/', include('reports.urls')), # 'REPORTS DOES NOT HAVE ANYTHING'
 
     # Sales app endpoints
-    # path('posflow/', include('sales.urls')),
+    path('posflow/', include('sales.urls')),
 
     # Suppliers app endpoints
-    # path('posflow/', include('suppliers.urls')),
+    path('posflow/', include('suppliers.urls')),
 
     # Taxes app endpoints
-    # path('posflow/', include('taxes.urls')), 'TAXES DOES NOT HAVE ANYTHING'
+    path('posflow/', include('taxes.urls')), # 'TAXES DOES NOT HAVE ANYTHING'
 
     # Transactions app endpoints
-    # path('posflow/', include('transactions.urls')),
+    path('posflow/', include('transactions.urls')),
 
     # Transfers app endpoints
-    # path('posflow/', include('transfers.urls')),
+    path('posflow/', include('transfers.urls')),
 ]
 
 if settings.DEBUG:
