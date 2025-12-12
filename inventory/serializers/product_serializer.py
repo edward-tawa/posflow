@@ -4,14 +4,14 @@ from company.serializers.company_serializer import CompanySerializer
 from inventory.serializers.category_field import CategoryField
 
 class ProductSerializer(serializers.ModelSerializer):
-    company = CompanySerializer(read_only=True)
+    company_summary = serializers.SerializerMethodField(read_only = True)
     category = CategoryField(required=False, allow_null=True)
 
     class Meta:
         model = Product
         fields = [
             'id',
-            'company',
+            'company_summary',
             'name',
             'description',
             'price',
@@ -21,6 +21,12 @@ class ProductSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.company.id,
+            'name': obj.company.name
+        }
 
     def validate_price(self, value):
         if value < 0:
