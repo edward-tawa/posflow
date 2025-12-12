@@ -8,12 +8,9 @@ from customers.models.customer_branch_history_model import CustomerBranchHistory
 
 
 class CustomerBranchHistorySerializer(CompanyValidationMixin, serializers.ModelSerializer):
+    company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
     customer_summary = serializers.SerializerMethodField(read_only=True)
-    branch = serializers.PrimaryKeyRelatedField(
-        queryset = Branch.objects.all(),
-        required = True
-    )#to be removed
     customer = serializers.PrimaryKeyRelatedField(
         queryset = Customer.objects.all(),
         required = True
@@ -22,9 +19,8 @@ class CustomerBranchHistorySerializer(CompanyValidationMixin, serializers.ModelS
         model = CustomerBranchHistory
         fields = [
             'id',
-            'branch',
+            'company_summary',
             'branch_summary',
-            'customer',
             'customer_summary',
             'last_visited',
             'created_at',
@@ -46,6 +42,12 @@ class CustomerBranchHistorySerializer(CompanyValidationMixin, serializers.ModelS
             'email': obj.customer.email
         }
 
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.branch.company.id,
+            'name': obj.branch.company.name
+        }
+    
     def validate(self, attrs):
         """Optional validation if you want to enforce company context via branch/customer"""
         request = self.context.get('request')
