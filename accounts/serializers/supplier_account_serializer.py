@@ -10,15 +10,8 @@ from suppliers.models.supplier_model import Supplier
 
 
 class SupplierAccountSerializer(serializers.ModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True,
-        allow_null = True
-    )
-    branch = serializers.PrimaryKeyRelatedField(
-        queryset=Branch.objects.all(),
-        required=True
-    )
+    company_summary = serializers.SerializerMethodField(read_only = True)
+    branch_summary = serializers.SerializerMethodField(read_only = True)
     account = serializers.PrimaryKeyRelatedField(
         queryset=Account.objects.all(),
         required=True
@@ -33,8 +26,8 @@ class SupplierAccountSerializer(serializers.ModelSerializer):
         model = SupplierAccount
         fields = [
             'id',
-            'company',
-            'branch',
+            'company_summary',
+            'branch_summary',
             'account',
             'supplier',
             'balance',
@@ -43,6 +36,18 @@ class SupplierAccountSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'balance', 'account_number']
 
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.account.company.id,
+            "name": obj.account.company.name
+        }
+
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            "name": obj.branch.name
+        }
+    
     # ----------------------- VALIDATORS -----------------------
     def validate_company(self, company):
         request = self.context.get('request')

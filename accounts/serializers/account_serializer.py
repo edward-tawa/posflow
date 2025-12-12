@@ -8,7 +8,8 @@ from loguru import logger
 
 
 class AccountSerializer(serializers.ModelSerializer):
-    company = CompanySerializer(read_only = True)
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     account_number = serializers.CharField(read_only=True)
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
 
@@ -16,7 +17,8 @@ class AccountSerializer(serializers.ModelSerializer):
         model = Account
         fields = [
             'id',
-            'company',
+            'company_summary',
+            'branch_summary',
             'name',
             'account_number',
             'account_type',
@@ -25,7 +27,18 @@ class AccountSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at','account_number']
+    
+    def get_company_summary(self, obj):
+        return {
+            "id": obj.company.id,
+            "name": obj.company.name
+        }
 
+    def get_branch_summary(self, obj):
+        return {
+            "id": obj.branch.id,
+            "name": obj.branch.name
+        }
     # ----------------------- VALIDATORS -----------------------
     def validate_company(self, company):
         request = self.context.get('request')

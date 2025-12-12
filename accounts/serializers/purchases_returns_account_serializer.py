@@ -9,12 +9,8 @@ from config.utilities.get_company_or_user_company import get_expected_company
 
 class PurchasesReturnsAccountSerializer(serializers.ModelSerializer):
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    company = serializers.CharField(source="account.company.id", read_only=True)
-    branch = serializers.PrimaryKeyRelatedField(
-        queryset=Branch.objects.all(),
-        required=False,
-        allow_null=True
-    )
+    company_summary = serializers.SerializerMethodField(read_only = True)
+    branch_summary = serializers.SerializerMethodField(read_only = True)
     supplier = serializers.PrimaryKeyRelatedField(
         queryset=Supplier.objects.all(),
         required=False,
@@ -30,9 +26,9 @@ class PurchasesReturnsAccountSerializer(serializers.ModelSerializer):
         model = PurchasesReturnsAccount
         fields = [
             'id',
-            'company',
+            'company_summary',
             'account',
-            'branch',
+            'branch_summary',
             'supplier',
             'return_person',
             'balance',
@@ -40,6 +36,18 @@ class PurchasesReturnsAccountSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'balance']
+
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.account.company.id,
+            "name": obj.account.company.name
+        }
+
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            "name": obj.branch.name
+        }
 
     # ----------------------- VALIDATORS -----------------------
     def validate_company(self, company):

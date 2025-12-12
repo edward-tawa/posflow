@@ -8,15 +8,8 @@ from accounts.models.account_model import Account
 from customers.models.customer_model import Customer
 
 class CustomerAccountSerializer(serializers.ModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True,
-        allow_null = True
-    )
-    branch = serializers.PrimaryKeyRelatedField(
-        queryset=Branch.objects.all(),
-        required=True,
-    )
+    company_summary = serializers.SerializerMethodField(read_only = True)
+    branch_summary = serializers.SerializerMethodField(read_only = True)
     customer = serializers.PrimaryKeyRelatedField(
         queryset=Customer.objects.all(),
         required=True,
@@ -30,16 +23,28 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
         model = CustomerAccount
         fields = [
             'id',
-            'company',
+            'company_summary',
             'customer',
             'account',
-            'branch',
+            'branch_summary',
             'balance',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'balance', 'account_number']
 
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.account.company.id,
+            "name": obj.account.company.name
+        }
+
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            "name": obj.branch.name
+        }
+    
     # ----------------------- VALIDATORS -----------------------
     def validate_company(self, company):
         request = self.context.get('request')

@@ -4,5 +4,6 @@ from .branch_account_model import BranchAccount
 from .supplier_account import SupplierAccount
 from .employee_account_model import EmployeeAccount
 from .loan_account_model import LoanAccount
+from .bank_account_model import BankAccount
 
 

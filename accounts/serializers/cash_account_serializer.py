@@ -8,12 +8,8 @@ from config.utilities.get_company_or_user_company import get_expected_company
 
 class CashAccountSerializer(serializers.ModelSerializer):
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
-    company = serializers.CharField(source="account.company.id", read_only=True)
-    branch = serializers.PrimaryKeyRelatedField(
-        queryset=Branch.objects.all(),
-        required=False,
-        allow_null=True
-    )
+    company_summary = serializers.SerializerMethodField(read_only = True)
+    branch_summary = serializers.SerializerMethodField(read_only = True)
 
     class Meta:
         model = CashAccount
@@ -28,6 +24,18 @@ class CashAccountSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'balance']
 
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.account.company.id,
+            "name": obj.account.company.name
+        }
+
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.account.branch.id,
+            "name": obj.account.branch.name
+        }
+    
     # ----------------------- VALIDATORS -----------------------
     def validate_company(self, company):
         request = self.context.get('request')

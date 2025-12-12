@@ -9,15 +9,8 @@ from branch.models.branch_model import Branch
 
 
 class BranchAccountSerializer(serializers.ModelSerializer):
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True,
-        allow_null = True
-    )
-    branch = serializers.PrimaryKeyRelatedField(
-        queryset=Branch.objects.all(),
-        required=True,
-    )
+    company_summary = serializers.SerializerMethodField(read_only = True)
+    branch_summary = serializers.SerializerMethodField(read_only = True)
     account = serializers.PrimaryKeyRelatedField(
         queryset=Account.objects.all(),
         required=True,
@@ -27,14 +20,26 @@ class BranchAccountSerializer(serializers.ModelSerializer):
         model = BranchAccount
         fields = [
             'id',
-            'company',
-            'branch',
+            'company_summary',
+            'branch_summary',
             'account',
             'balance',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'balance']
+
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.account.company.id,
+            "name": obj.account.company.name
+        }
+
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            "name": obj.branch.name
+        }
 
     # ----------------------- VALIDATORS -----------------------
     def validate_company(self, company):

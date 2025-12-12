@@ -24,7 +24,7 @@ class Account(CreateUpdateBaseModel):
 
     name = models.CharField(max_length=255)
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='accounts')
-    branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='accounts', null=True, blank=True)
+    branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='accounts')
     account_number = models.CharField(max_length=100, unique=True)
     account_type = models.CharField(max_length=20, choices=ACCOUNT_TYPES)
     balance = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
