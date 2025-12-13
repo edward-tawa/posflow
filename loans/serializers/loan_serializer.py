@@ -8,10 +8,9 @@ from users.serializers.user_serializer import UserSerializer
 
 
 class LoanSerializer(CompanyValidationMixin, serializers.ModelSerializer):
-    borrower_name = serializers.CharField(source='borrower.name', read_only=True)
-    issued_by_name = serializers.CharField(source='issued_by.name', read_only=True)
     borrower_summary = serializers.SerializerMethodField(read_only=True)
     issued_by_summary = serializers.SerializerMethodField(read_only=True)
+    company_summary = serializers.SerializerMethodField(read_only=True)
     borrower = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(), required=True
     )
@@ -20,15 +19,13 @@ class LoanSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         model = Loan
         fields = [
             'id',
+            'company_summary',
             'borrower',
-            'borrower_name',
             'borrower_summary',
             'loan_amount',
             'interest_rate',
             'start_date',
             'end_date',
-            'issued_by',
-            'issued_by_name',
             'issued_by_summary',
             'is_active',
             'notes',
@@ -49,6 +46,12 @@ class LoanSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     # -------------------------
     #  READ METHODS
     # -------------------------
+
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.borrower.company.id,
+            'name': obj.borrower.company.name,
+        }
 
     def get_borrower_summary(self, obj):
         return {

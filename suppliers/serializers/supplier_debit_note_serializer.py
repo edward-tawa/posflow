@@ -10,17 +10,14 @@ from suppliers.models.supplier_debit_note_model import SupplierDebitNote
 
 class SupplierDebitNoteSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SupplierDebitNote
         fields = [
             'id',
-            'company',
             'company_summary',
+            'branch_summary',
             'supplier',
             'debit_note_number',
             'debit_date',
@@ -35,6 +32,12 @@ class SupplierDebitNoteSerializer(CompanyValidationMixin, serializers.ModelSeria
         return {
             'id': obj.company.id,
             'name': obj.company.name
+        }
+    
+    #Missing link to branch
+    def get_branch_summary(self, obj):
+        return {
+            None
         }
 
     def validate(self, attrs):

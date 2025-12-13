@@ -7,26 +7,44 @@ from users.serializers.user_serializer import UserSerializer
 from loguru import logger
 
 class StockTakeSerializer(serializers.ModelSerializer):
-    company = CompanySerializer(read_only = True)
-    branch = BranchSerializer(read_only = True)
-    performed_by = UserSerializer(read_only = True)
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only = True)
+    performed_by_summary = serializers.SerializerMethodField(read_only= True)
 
     class Meta:
         model = StockTake
         fields = [
             'id',
-            'company',
-            'branch',
+            'company_summary',
+            'branch_summary',
             'reference_number',
             'counted_at',
             'quantity_counted',
-            'performed_by',
+            'performed_by_summary',
             'status',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'company', 'branch', 'reference_number', 'counted_at', 'performed_by']
         required_fields = ['company', 'branch', 'quantity_counted']
+    
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.company.id,
+            'name': obj.company.name
+        }
+
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name
+        }
+    
+    def get_performed_by_summary(self, obj):
+        return {
+            'id': obj.performed_by.id,
+            'name': obj.performed_by.name
+        }
 
     def create(self, validated_data):
         request = self.context.get('request')

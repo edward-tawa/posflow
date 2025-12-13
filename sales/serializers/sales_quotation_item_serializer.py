@@ -11,17 +11,14 @@ class SalesQuotationItemSerializer(CompanyValidationMixin, serializers.ModelSeri
     product_summary = serializers.SerializerMethodField(read_only=True)
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
     company_summary = serializers.SerializerMethodField(read_only=True)
-    # company = serializers.PrimaryKeyRelatedField(
-    #     queryset=SalesQuotation._meta.get_field('company').related_model.objects.all(),
-    #     required=True
-    # )
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SalesQuotationItem
         fields = [
             'id',
-            # 'company',
             'company_summary',
+            'branch_summary',
             'sales_quotation',
             'product',
             'product_summary',
@@ -46,6 +43,12 @@ class SalesQuotationItemSerializer(CompanyValidationMixin, serializers.ModelSeri
             'name': obj.sales_quotation.company.name
         }
 
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.sales_quotation.branch.id,
+            'name': obj.sales_quotation.branch.name
+        }
+    
     def get_product_summary(self, obj):
         return {
             'id': obj.product.id,

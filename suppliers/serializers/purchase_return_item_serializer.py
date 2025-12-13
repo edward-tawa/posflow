@@ -6,6 +6,8 @@ from decimal import Decimal, ROUND_HALF_UP
 
 
 class PurchaseReturnItemSerializer(serializers.ModelSerializer):
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     product_summary = serializers.SerializerMethodField(read_only=True)
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
@@ -13,10 +15,11 @@ class PurchaseReturnItemSerializer(serializers.ModelSerializer):
         model = PurchaseReturnItem
         fields = [
             'id',
+            'company_summary',
+            'branch_summary',
             'purchase_return',
             'product',
             'product_summary',
-            # 'product_name',
             'quantity',
             'unit_price',
             'tax_rate',
@@ -37,6 +40,20 @@ class PurchaseReturnItemSerializer(serializers.ModelSerializer):
             'id': obj.product.id,
             'name': obj.product.name,
             'sku': getattr(obj.product, 'sku', None)
+        }
+
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.product.company.id,
+            'name': obj.product.company.name,
+           
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.product.branch.id,
+            'name': obj.product.branch.name,
+           
         }
 
     def validate(self, attrs):

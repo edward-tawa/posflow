@@ -12,6 +12,7 @@ from users.models import User
 
 class DeliveryNoteSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
 
     class Meta:
@@ -20,6 +21,7 @@ class DeliveryNoteSerializer(CompanyValidationMixin, serializers.ModelSerializer
             'id',
             'company',
             'company_summary',
+            'branch_summary',
             'branch',
             'customer',
             'sales_order',
@@ -28,7 +30,6 @@ class DeliveryNoteSerializer(CompanyValidationMixin, serializers.ModelSerializer
             'total_amount',
             'issued_by',
             'tax_rate',
-            # 'notes',
             'created_at',
             'updated_at',
         ]
@@ -42,6 +43,12 @@ class DeliveryNoteSerializer(CompanyValidationMixin, serializers.ModelSerializer
             'name': obj.company.name
         }
 
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name,
+        }
+    
     def validate(self, attrs):
         request = self.context['request']
         expected_company = get_expected_company(request)

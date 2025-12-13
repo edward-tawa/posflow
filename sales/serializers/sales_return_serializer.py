@@ -12,17 +12,14 @@ from sales.models.sales_return_model import SalesReturn
 
 class SalesReturnSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SalesReturn
         fields = [
             'id',
-            'company',
             'company_summary',
+            'branch_summary',
             'branch',
             'customer',
             'sale_order',
@@ -34,12 +31,18 @@ class SalesReturnSerializer(CompanyValidationMixin, serializers.ModelSerializer)
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'return_number', 'total_amount']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'return_number']
 
     def get_company_summary(self, obj):
         return {
             'id': obj.company.id,
             'name': obj.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name
         }
 
     def validate(self, attrs):

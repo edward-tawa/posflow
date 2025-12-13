@@ -9,6 +9,8 @@ from users.models import User
 
 class PaymentReceiptItemSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     payment_receipt_summary = serializers.SerializerMethodField(read_only=True)
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     subtotal = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     tax_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     total_price = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
@@ -19,6 +21,8 @@ class PaymentReceiptItemSerializer(CompanyValidationMixin, serializers.ModelSeri
             'id',
             'payment_receipt',
             'payment_receipt_summary',
+            'company_summary',
+            'branch_summary',
             'description',
             'quantity',
             'unit_price',
@@ -45,6 +49,20 @@ class PaymentReceiptItemSerializer(CompanyValidationMixin, serializers.ModelSeri
             'id': receipt.id,
             'receipt_number': receipt.receipt_number,
             'amount': str(receipt.amount)
+        }
+    
+    def get_company_summary(self, obj):
+        receipt = obj.payment_receipt
+        return {
+            'id': receipt.company.id,
+            'name': receipt.company.name,
+        }
+    
+    def get_branch_summary(self, obj):
+        receipt = obj.payment_receipt
+        return {
+            'id': receipt.branch.id,
+            'name': receipt.branch.name,
         }
 
     def validate(self, attrs):

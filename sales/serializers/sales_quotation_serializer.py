@@ -7,14 +7,14 @@ from loguru import logger
 
 class SalesQuotationSerializer(serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SalesQuotation
         fields = [
             'id',
-            'company',
             'company_summary',
-            'branch',
+            'branch_summary',
             'customer',
             'quotation_number',
             'quotation_date',
@@ -35,6 +35,12 @@ class SalesQuotationSerializer(serializers.ModelSerializer):
         return {
             'id': obj.company.id,
             'name': obj.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name
         }
 
     def validate(self, attrs):

@@ -12,7 +12,7 @@ from datetime import date
 
 class PurchaseReturnSerializer(serializers.ModelSerializer):
     company_summary = CompanySummarySerializer(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     items = PurchaseReturnItemSerializer(many=True, required=False, read_only=True)
 
     class Meta:
@@ -21,16 +21,24 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
             'id',
             'purchase_order',
             'purchase_return_number',
-            'company',
             'company_summary',
+            'branch_summary',
             'return_date',
             'issued_by',
             'total_amount',
             'items',
             'created_at',
             'updated_at',
+            'branch'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'purchase_return_number', 'total_amount']
+
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name,
+           
+        }
 
     def validate(self, attrs):
         request = self.context.get('request')

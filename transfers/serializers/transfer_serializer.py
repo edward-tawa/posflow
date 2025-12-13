@@ -13,6 +13,7 @@ class TransferSerializer(serializers.ModelSerializer):
         required=False
     )
     company_detail = CompanySummarySerializer(source='company', read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Transfer
@@ -20,6 +21,7 @@ class TransferSerializer(serializers.ModelSerializer):
             'id',
             'company',
             'company_detail',
+            'branch_summary',
             'reference_number',
             'transferred_by',
             'received_by',
@@ -32,6 +34,13 @@ class TransferSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'reference_number']
+
+    def get_branch_summary(self, obj):
+        transferred_by = obj.transferred_by.branch
+        return {
+            'id': transferred_by.id,
+            'name': transferred_by.name
+        }
 
     def create(self, validated_data):
         request = self.context.get('request')

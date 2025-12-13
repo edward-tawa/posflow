@@ -11,17 +11,14 @@ from loguru import logger
 
 class SupplierSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = CompanySummarySerializer(source='company', read_only=True)
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required= True
-    )
+    branch_summary = serializers.SerializerMethodField(read_only=True)
    
     class Meta:
         model = Supplier
         fields = [
             'id',
-            'company',
             'company_summary',
+            'branch_summary',
             'name',
             'email',
             'phone_number',
@@ -32,6 +29,11 @@ class SupplierSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+    #Missing link to branch
+    def get_branch_summary(self, obj):
+        return {
+            None
+        }
 
     def validate(self, attrs):
         request = self.context['request']

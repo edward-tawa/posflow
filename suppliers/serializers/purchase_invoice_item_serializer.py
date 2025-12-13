@@ -9,6 +9,8 @@ from company.models.company_model import Company
 
 
 class PurchaseInvoiceItemSerializer(CompanyValidationMixin, serializers.ModelSerializer):
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     purchase_invoice_summary = serializers.SerializerMethodField(read_only=True)
     product_summary = serializers.SerializerMethodField(read_only=True)
 
@@ -16,6 +18,8 @@ class PurchaseInvoiceItemSerializer(CompanyValidationMixin, serializers.ModelSer
         model = PurchaseInvoiceItem
         fields = [
             'id',
+            'company_summary',
+            'branch_summary',
             'purchase_invoice',
             'purchase_invoice_summary',
             'product',
@@ -42,6 +46,19 @@ class PurchaseInvoiceItemSerializer(CompanyValidationMixin, serializers.ModelSer
             'name': obj.product.name,
             'tax_rate': getattr(obj.product, 'tax_rate', 0)
         }
+    
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.purchase_invoice.company.id,
+            'name': obj.purchase_invoice.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.purchase_invoice.branch.id,
+            'name': obj.purchase_invoice.branch.name
+        }
+
 
     def validate(self, attrs):
         """Validate that the item belongs to the correct company via invoice"""

@@ -10,6 +10,7 @@ from branch.models.branch_model import Branch
 
 class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), required=False, allow_null=True)
 
@@ -19,6 +20,7 @@ class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer)
             'id',
             'company',
             'company_summary',
+            'branch_summary',
             'branch',
             'customer',
             'transaction_type',
@@ -41,6 +43,12 @@ class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer)
         return {
             'id': obj.company.id,
             'name': obj.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name
         }
 
     def validate(self, attrs):

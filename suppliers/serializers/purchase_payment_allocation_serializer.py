@@ -13,6 +13,7 @@ from users.models import User
 
 class PurchasePaymentAllocationSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     supplier_summary = serializers.SerializerMethodField(read_only=True)
     purchase_payment_summary = serializers.SerializerMethodField(read_only=True)
     purchase_invoice_summary = serializers.SerializerMethodField(read_only=True)
@@ -23,7 +24,7 @@ class PurchasePaymentAllocationSerializer(CompanyValidationMixin, serializers.Mo
             'id',
             'company',
             'company_summary',
-            'branch',
+            'branch_summary',
             'supplier',
             'supplier_summary',
             'purchase_payment',
@@ -46,6 +47,12 @@ class PurchasePaymentAllocationSerializer(CompanyValidationMixin, serializers.Mo
         return {
             'id': obj.company.id,
             'name': obj.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name
         }
 
     def get_supplier_summary(self, obj):

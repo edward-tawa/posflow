@@ -11,24 +11,18 @@ from suppliers.models.supplier_model import Supplier
 
 class PurchasePaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
-    # company = serializers.PrimaryKeyRelatedField(
-    #     queryset=Company.objects.all(),
-    #     required=True
-    # )
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = PurchasePayment
         fields = [
             'id',
-            # 'company',
             'company_summary',
-            # 'branch',
+            'branch_summary',
             'supplier',
             'payment',
             'payment_date',
             'amount_paid',
-            # 'payment_method',
-            # 'issued_by',
             'created_at',
             'updated_at',
             'purchase_invoice'
@@ -36,12 +30,17 @@ class PurchasePaymentSerializer(CompanyValidationMixin, serializers.ModelSeriali
         read_only_fields = ['id', 'created_at', 'updated_at', 'payment_date']
 
     def get_company_summary(self, obj):
-        # return {
-        #     'id': obj.company.id,
-        #     'name': obj.company.name
-        # }
-        pass
+        return {
+            'id': obj.payment.company.id,
+            'name': obj.payment.company.name
+        }
 
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.payment.branch.id,
+            'name': obj.payment.branch.name
+        }
+    
     def validate(self, attrs):
         """Validate total_amount and payment method within company context"""
         request = self.context['request']

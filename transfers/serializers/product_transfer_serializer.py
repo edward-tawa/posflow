@@ -14,6 +14,7 @@ class ProductTransferSerializer(serializers.ModelSerializer):
         required=False
     )
     company_detail = CompanySummarySerializer(source='transfer.company', read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     transfer = serializers.PrimaryKeyRelatedField(
         queryset=Transfer.objects.all(),
     )
@@ -26,6 +27,7 @@ class ProductTransferSerializer(serializers.ModelSerializer):
             'transfer',
             'company',
             'company_detail',
+            'branch_summary',
             'source_branch',
             'destination_branch',
             'notes',
@@ -34,9 +36,13 @@ class ProductTransferSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'reference_number']
 
+    def get_branch_summary(self, obj):
+        branch = obj.source_branch
+        return {
+            'id': branch.id,
+            'name': branch.name
+        }
     
-    
-
     def create(self, validated_data):
         request = self.context.get('request')
         company = get_logged_in_company(request)

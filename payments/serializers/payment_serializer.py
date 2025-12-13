@@ -10,6 +10,7 @@ from users.models import User
 
 class PaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
     paid_by_summary = serializers.SerializerMethodField(read_only=True)
 
@@ -19,7 +20,7 @@ class PaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer):
             'id',
             'company',
             'company_summary',
-            'branch',
+            'branch_summary',
             'paid_by',
             'paid_by_summary',
             'payment_type',
@@ -46,6 +47,12 @@ class PaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         return {
             'id': obj.company.id,
             'name': obj.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name
         }
 
     def get_paid_by_summary(self, obj):

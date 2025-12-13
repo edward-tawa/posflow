@@ -15,9 +15,9 @@ class CashAccountSerializer(serializers.ModelSerializer):
         model = CashAccount
         fields = [
             'id',
-            'company',
+            'company_summary',
             'account',
-            'branch',
+            'branch_summary',
             'balance',
             'created_at',
             'updated_at',

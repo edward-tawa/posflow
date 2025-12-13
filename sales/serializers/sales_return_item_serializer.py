@@ -6,25 +6,23 @@ from decimal import Decimal, ROUND_HALF_UP
 
 
 class SalesReturnItemSerializer(serializers.ModelSerializer): 
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     product_summary = serializers.SerializerMethodField(read_only=True)
-    # product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
     class Meta:
         model = SalesReturnItem
         fields = [
             'id',
+            'company_summary',
+            'branch_summary',
             'product',
             'product_summary',
-            # 'product_name',
             'quantity',
             'unit_price',
-            # 'tax_rate',
-            # 'subtotal',
-            # 'tax_amount',
-            # 'total_price',
             'created_at',
             'updated_at',
-            'sales_receipt'
         ]
         read_only_fields = [
             'id', 'subtotal', 'tax_amount', 'total_price',
@@ -37,6 +35,18 @@ class SalesReturnItemSerializer(serializers.ModelSerializer):
             'id': obj.product.id,
             'name': obj.product.name,
             'sku': getattr(obj.product, 'sku', None)
+        }
+
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.product.company.id,
+            'name': obj.product.company.name,
+        }
+
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.product.branch.id,
+            'name': obj.product.branch.name,
         }
 
     def validate(self, attrs):

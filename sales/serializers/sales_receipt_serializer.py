@@ -11,15 +11,15 @@ class SalesReceiptSerializer(serializers.ModelSerializer):
         many=True, read_only=True
     )
     company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SalesReceipt
         fields = [
             'id',
-            'company',
             'company_summary',
+            'branch_summary',
             'sales_payment',
-            'branch',
             'customer',
             'receipt_number',
             'receipt_date',
@@ -39,6 +39,12 @@ class SalesReceiptSerializer(serializers.ModelSerializer):
         return {
             'id': obj.company.id,
             'name': obj.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name
         }
 
     def validate(self, attrs):

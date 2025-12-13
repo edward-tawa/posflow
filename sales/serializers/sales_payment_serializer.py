@@ -11,25 +11,18 @@ from sales.models.sales_payment_model import SalesPayment
 
 class SalesPaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
-
+    branch_summary = serializers.SerializerMethodField(read_only=True)
+    #payment summary
     class Meta:
         model = SalesPayment
         fields = [
             'id',
-            'company',
             'company_summary',
-            'branch',
+            'branch_summary',
             'sales_order',
-            'payment_number',
-            'payment_date',
-            'amount',
-            'payment_method',
-            'processed_by',
-            'notes',
+            'payment',
+            'amount_applied',
+            'sales_receipt',
             'created_at',
             'updated_at',
         ]
@@ -37,8 +30,14 @@ class SalesPaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer
 
     def get_company_summary(self, obj):
         return {
-            'id': obj.company.id,
-            'name': obj.company.name
+            'id': obj.payment.company.id,
+            'name': obj.payment.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.payment.branch.id,
+            'name': obj.payment.branch.name
         }
 
     def validate(self, attrs):
@@ -80,9 +79,10 @@ class SalesPaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer
         sales_order = validated_data.get('sales_order')
 
         try:
+            validated_data.pop('company')
             payment = SalesPayment.objects.create(**validated_data)
             logger.info(
-                f"SalesPayment '{payment.payment_number}' for order '{sales_order.order_number}' "
+                f"SalesPayment '{payment.payment.payment_number if payment.payment.payment_number else None}' for order '{sales_order.order_number}' "
                 f"created for company '{expected_company.name}' by {actor}."
             )
             return payment

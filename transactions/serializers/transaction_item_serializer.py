@@ -10,10 +10,11 @@ from company.models.company_model import Company
 class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     transaction_number = serializers.CharField(source='transaction.transaction_number', read_only=True)
     transaction_company_summary = serializers.SerializerMethodField(read_only=True)
+    transaction_branch_summary = serializers.SerializerMethodField(read_only=True)
     product_name = serializers.CharField(read_only=True)  # optional if stored
     transaction = serializers.PrimaryKeyRelatedField(queryset=Transaction.objects.all(), required=True)
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), required=True)
-
+ 
     class Meta:
         model = TransactionItem
         fields = [
@@ -21,6 +22,7 @@ class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSeriali
             'transaction',
             'transaction_number',
             'transaction_company_summary',
+            'transaction_branch_summary',
             'product',
             'product_name',
             'quantity',
@@ -28,7 +30,6 @@ class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSeriali
             'tax_rate',
             'subtotal',
             'tax_amount',
-            # 'total_price',
             'created_at',
             'updated_at',
         ]
@@ -39,7 +40,6 @@ class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSeriali
             'product_name',
             'subtotal',
             'tax_amount',
-            # 'total_price',
             'created_at',
             'updated_at',
         ]
@@ -49,6 +49,13 @@ class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSeriali
         return {
             'id': company.id,
             'name': company.name
+        }
+    
+    def get_transaction_branch_summary(self, obj):
+        branch = obj.transaction.branch
+        return {
+            'id': branch.id,
+            'name': branch.name
         }
 
     def validate(self, attrs):

@@ -5,6 +5,8 @@ from loguru import logger
 
 
 class SalesReceiptItemSerializer(serializers.ModelSerializer):
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     product_summary = serializers.SerializerMethodField(read_only=True)
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
@@ -12,12 +14,13 @@ class SalesReceiptItemSerializer(serializers.ModelSerializer):
         model = SalesReceiptItem
         fields = [
             'id',
+            'company_summary',
+            'branch_summary',
             'sales_receipt',
             'product',
             'product_summary',
             'quantity',
             'unit_price',
-            # 'total',
             'tax_rate',
             'created_at',
             'updated_at',
@@ -31,6 +34,19 @@ class SalesReceiptItemSerializer(serializers.ModelSerializer):
             'name': obj.product.name,
             'sku': getattr(obj.product, 'sku', None)
         }
+
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.sales_receipt.company.id,
+            'name': obj.sales_receipt.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.sales_receipt.branch.id,
+            'name': obj.sales_receipt.branch.name
+        }
+
 
     def create(self, validated_data):
         request = self.context.get('request')

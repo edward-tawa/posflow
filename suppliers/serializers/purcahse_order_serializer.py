@@ -1,29 +1,24 @@
 from rest_framework import serializers
 from suppliers.models.purchase_order_model import PurchaseOrder
 from suppliers.models.supplier_model import Supplier
-from company.serializers.company_summary_serializer import CompanySummarySerializer
 from company.models.company_model import Company
 from config.utilities.get_company_or_user_company import get_expected_company
 from loguru import logger
 from datetime import date
 
 class PurchaseOrderSerializer(serializers.ModelSerializer):
-    company_summary = CompanySummarySerializer(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     supplier = serializers.PrimaryKeyRelatedField(
         queryset=Supplier.objects.all(),
     )
-
     class Meta:
         model = PurchaseOrder
         fields = [
             'id',
             'reference_number',
-            'company',
             'company_summary',
+            'branch_summary',
             'supplier',
             'quantity_ordered',
             'order_date',
@@ -36,6 +31,17 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'reference_number']
 
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.company.id,
+            'name': obj.company.name
+        }
+    
+    #Missing branch FK in model
+    def get_branch_summary(self, obj):
+        return {
+          None
+        }
 
     def validate(self, attrs):
         logger.info(attrs)

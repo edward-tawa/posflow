@@ -12,16 +12,18 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
     product_detail = ProductSummarySerializer(source='product', read_only=True)
     product_category = ProductCategorySerializer(read_only=True)
-    # purchase_order = serializers.PrimaryKeyRelatedField(
-    #     queryset=PurchaseOrderItem.objects.all()
-    # )
+    purchase_order = serializers.PrimaryKeyRelatedField(
+        queryset=PurchaseOrderItem.objects.all()
+    )
     company_summary = CompanySummarySerializer(source='company', read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = PurchaseOrderItem
         fields = [
             'id',
             'company_summary',
+            'branch_summary',
             'purchase_order',
             'product',          # client sends ID
             'product_detail',   # client sees product summary
@@ -34,6 +36,11 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'total_price', 'product_category', 'product_detail']
 
+    def get_branch_summary(self, obj):
+        return{
+            'id': obj.product.company.id,
+            'name': obj.product.company.name
+        }
 
     def validate(self, attrs):
         """"

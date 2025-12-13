@@ -11,12 +11,16 @@ from suppliers.models.supplier_model import Supplier
 
 
 class SupplierDebitNoteItemSerializer(CompanyValidationMixin, serializers.ModelSerializer):
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     supplier_debit_note_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SupplierDebitNoteItem
         fields = [
             'id',
+            'company_summary',
+            'branch_summary',
             'supplier_debit_note',
             'supplier_debit_note_summary',
             'description',
@@ -36,6 +40,19 @@ class SupplierDebitNoteItemSerializer(CompanyValidationMixin, serializers.ModelS
             'supplier_id': note.supplier.id,
             'supplier_name': note.supplier.name,
         }
+    
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.supplier_debit_note.company.id,
+            'name': obj.supplier_debit_note.company.name,
+        }
+
+    #Missing link to branch
+    def get_branch_summary(self, obj):
+        return {
+            None
+        }
+
 
     def validate(self, attrs):
         """Validate quantity and unit_price"""

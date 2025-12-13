@@ -12,18 +12,14 @@ from suppliers.models.purchase_order_model import PurchaseOrder
 
 class PurchaseInvoiceSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = PurchaseInvoice
         fields = [
             'id',
-            'company',
             'company_summary',
-            'branch',
+            'branch_summary',
             'supplier',
             'purchase_order',
             'invoice_number',
@@ -40,6 +36,12 @@ class PurchaseInvoiceSerializer(CompanyValidationMixin, serializers.ModelSeriali
         return {
             'id': obj.company.id,
             'name': obj.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name
         }
 
     def validate(self, attrs):

@@ -22,6 +22,7 @@ class CustomerBranchHistorySerializer(CompanyValidationMixin, serializers.ModelS
             'company_summary',
             'branch_summary',
             'customer_summary',
+            'customer',
             'last_visited',
             'created_at',
             'updated_at',

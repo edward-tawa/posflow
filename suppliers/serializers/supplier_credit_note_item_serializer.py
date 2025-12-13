@@ -10,12 +10,16 @@ from suppliers.models.supplier_model import Supplier
 
 
 class SupplierCreditNoteItemSerializer(CompanyValidationMixin, serializers.ModelSerializer):
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     supplier_credit_note_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = SupplierCreditNoteItem
         fields = [
             'id',
+            'company_summary',
+            'branch_summary',
             'supplier_credit_note',
             'supplier_credit_note_summary',
             'description',
@@ -34,6 +38,18 @@ class SupplierCreditNoteItemSerializer(CompanyValidationMixin, serializers.Model
             'credit_note_number': note.credit_note_number,
             'supplier_id': note.supplier.id,
             'supplier_name': note.supplier.name,
+        }
+    
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.supplier_credit_note.company.id,
+            'name': obj.supplier_credit_note.company.name,
+        }
+
+    #Missing link to branch
+    def get_branch_summary(self, obj):
+        return {
+            None
         }
 
     def validate(self, attrs):

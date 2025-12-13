@@ -9,6 +9,8 @@ from sales.models.sales_order_model import SalesOrder
 
 class SalesOrderItemSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     product_summary = serializers.SerializerMethodField(read_only=True)
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
     sales_order_summary = serializers.SerializerMethodField(read_only=True)
 
@@ -16,6 +18,8 @@ class SalesOrderItemSerializer(CompanyValidationMixin, serializers.ModelSerializ
         model = SalesOrderItem
         fields = [
             'id',
+            'company_summary',
+            'branch_summary',
             'sales_order',
             'sales_order_summary',
             'product',
@@ -47,6 +51,18 @@ class SalesOrderItemSerializer(CompanyValidationMixin, serializers.ModelSerializ
             'id': obj.sales_order.id,
             'order_number': obj.sales_order.order_number,
             'customer_name': obj.sales_order.customer_name,
+        }
+    
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.product.company.id,
+            'name': obj.product.company.name,
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.product.branch.id,
+            'name': obj.product.branch.name,
         }
 
     def validate(self, attrs):

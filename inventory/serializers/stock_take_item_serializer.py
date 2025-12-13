@@ -3,6 +3,7 @@ from inventory.models.stock_take_item_model import StockTakeItem
 
 
 class StockTakeItemSerializer(serializers.ModelSerializer):
+    company_summary = serializers.SerializerMethodField(read_only = True)
     product_name = serializers.CharField(source='product.name', read_only=True)
     discrepancy = serializers.IntegerField(read_only=True)
 
@@ -10,6 +11,7 @@ class StockTakeItemSerializer(serializers.ModelSerializer):
         model = StockTakeItem
         fields = [
             'id',
+            'company_summary',
             'stock_take',
             'product',
             'product_name',
@@ -21,6 +23,12 @@ class StockTakeItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'discrepancy', 'product_name']
 
+    def get_company_summary(self, obj):
+        return {
+            'id': obj.stock_take.company.id,
+            'name': obj.stock_take.company.name
+        }
+    
     def create(self, validated_data):
         """
         Optionally attach the company automatically from the stock_take.
