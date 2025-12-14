@@ -6,6 +6,10 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from django.db.models import Q
 from loguru import logger
 
 
@@ -72,3 +76,59 @@ class StockTakeViewSet(ModelViewSet):
         logger.warning(
             f"StockTake '{ref}' deleted by '{user.username}' from company '{company_name}'."
         )
+
+
+
+    @action(detail=True, methods=["post"], url_path="update-status")
+    def update_status(self, request, pk=None):
+        new_status = request.data.get("status")
+        try:
+            stock_take = self.get_object()
+            updated = StockTakeService.update_stock_take_status(stock_take, new_status)
+            serializer = self.get_serializer(updated)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"], url_path="update-quantity")
+    def update_quantity(self, request, pk=None):
+        new_quantity = request.data.get("quantity_counted")
+        try:
+            new_quantity = int(new_quantity)
+            stock_take = self.get_object()
+            updated = StockTakeService.update_quantity_counted(stock_take, new_quantity)
+            serializer = self.get_serializer(updated)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request, pk=None):
+        stock_take = self.get_object()
+        try:
+            approved = StockTakeService.approve_stock_take(stock_take, request.user)
+            serializer = self.get_serializer(approved)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request, pk=None):
+        reason = request.data.get("reason", "")
+        stock_take = self.get_object()
+        try:
+            rejected = StockTakeService.reject_stock_take(stock_take, request.user, reason)
+            serializer = self.get_serializer(rejected)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["post"], url_path="finalize")
+    def finalize(self, request, pk=None):
+        stock_take = self.get_object()
+        try:
+            finalized = StockTakeService.finalize_stock_take(stock_take)
+            serializer = self.get_serializer(finalized)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

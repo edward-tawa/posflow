@@ -18,7 +18,6 @@ class SalesReturn(CreateUpdateBaseModel):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     processed_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, related_name='processed_sales_returns')
     notes = models.TextField(blank=True, null=True)
-    total_amount = models.DecimalField(decimal_places=2, max_digits=10)
 
     def generate_return_number(self):
         """Generates a unique return number for the sales return."""
@@ -43,7 +42,7 @@ class SalesReturn(CreateUpdateBaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Return {self.return_number} - {self.customer_name}"
+        return f"Return {self.return_number} - {self.customer.name}"
     
 
     class Meta:

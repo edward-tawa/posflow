@@ -18,14 +18,14 @@ class StockTakeSerializer(serializers.ModelSerializer):
             'company_summary',
             'branch_summary',
             'reference_number',
-            'counted_at',
+            'stock_take_date',
             'quantity_counted',
             'performed_by_summary',
             'status',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'company', 'branch', 'reference_number', 'counted_at', 'performed_by']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'company', 'branch', 'reference_number', 'stock_take_date', 'performed_by']
         required_fields = ['company', 'branch', 'quantity_counted']
     
     def get_company_summary(self, obj):

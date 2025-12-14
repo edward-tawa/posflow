@@ -14,13 +14,14 @@ class ProductSerializer(serializers.ModelSerializer):
             'company_summary',
             'name',
             'description',
+            'sku',
             'price',
             'stock_quantity',
             'category',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'sku', 'created_at', 'updated_at']
 
     def get_company_summary(self, obj):
         return {

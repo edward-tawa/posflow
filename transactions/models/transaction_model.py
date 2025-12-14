@@ -9,17 +9,38 @@ import uuid
 
 class Transaction(CreateUpdateBaseModel):
     TRANSACTION_CATEGORIES = [
-        ('SALE', 'Sale'),
-        ('PURCHASE', 'Purchase'),
+        ('CASH SALE', 'Cash Sale'),
+        ('CREDIT SALE', 'Credit Sale'),
+        ('CASH PURCHASE', 'Cash Purchase'),
+        ('CREDIT PURCHASE', 'Credit Purchase'),
         ('SALES RETURN', 'Sales Return'),
         ('PURCHASE RETURN', 'Purchase Return'),
+        ('REFUND', 'Refund'),
         ('ADJUSTMENT', 'Adjustment'),
         ('TRANSFER', 'Transfer'),
+        ('CUSTOMER PAYMENT', 'Customer Payment'),
+        ('SUPPLIER PAYMENT', 'Supplier Payment'),
+        ('RECEIPT', 'Receipt'),
+        ('RECEIVABLES', 'Receivables'),
+        ('PAYABLES', 'Payables'),
+        ('OTHER', 'Other'),
     ]
 
     TRANSACTION_TYPES = [
         ('INCOMING', 'Incoming'),
         ('OUTGOING', 'Outgoing'),
+        ('TRANSFER', 'Transfer'),
+        ('CREDIT', 'Credit'),
+        ('DEBIT', 'Debit'),
+    ]
+
+    TRANSACTION_PAYMENT_METHODS = [
+        ('CASH', 'Cash'),
+        ('BANK', 'Bank'),
+        ('ECOCASH', 'Ecocash'),
+        ('MOBILE MONEY', 'Mobile Money'),
+        ('CHEQUE', 'Cheque'),
+        ('OTHER', 'Other'),
     ]
 
     STATUS_CHOICES = [
@@ -74,7 +95,8 @@ class Transaction(CreateUpdateBaseModel):
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
     transaction_category = models.CharField(max_length=20, choices=TRANSACTION_CATEGORIES)
     transaction_number = models.CharField(max_length=20, unique=True, editable=False)
-    reversal_applied = models.BooleanField(default=False)
+    payment_method = models.CharField(max_length=20, choices=TRANSACTION_PAYMENT_METHODS, default='CASH')
+    reversal_applied = models.BooleanField(default=False, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
     transaction_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)

@@ -5,15 +5,18 @@ from loguru import logger
 
 
 class CashAccount(CreateUpdateBaseModel):
-    account = models.ForeignKey(
+    account = models.OneToOneField(
         'accounts.Account',
         on_delete=models.CASCADE,
-        related_name='cash_accounts'
+        related_name='cash_account'
     )
-    balance = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-        default=0.00
+
+    branch = models.OneToOneField(
+        'branch.Branch',
+        on_delete=models.CASCADE,
+        related_name='cash_account',
+        null=True,
+        blank=True
     )
 
     class Meta:

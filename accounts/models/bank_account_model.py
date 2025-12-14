@@ -4,15 +4,15 @@ from loguru import logger
 
 
 class BankAccount(CreateUpdateBaseModel):
-    account = models.ForeignKey(
+    account = models.OneToOneField(
         'accounts.Account',
         on_delete=models.CASCADE,
-        related_name='bank_accounts'
+        related_name='bank_account'
     )
-    branch = models.ForeignKey(
+    branch = models.OneToOneField(
         'branch.Branch',
         on_delete=models.CASCADE,
-        related_name='bank_accounts',
+        related_name='bank_account',
         null=True,
         blank=True
     )

@@ -24,6 +24,7 @@ class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer)
             'branch',
             'customer',
             'transaction_type',
+            'payment_method',
             'transaction_number',
             'transaction_date',
             'total_amount',

@@ -12,7 +12,7 @@ class StockTake(CreateUpdateBaseModel):
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='stock_takes')
     quantity_counted = models.PositiveIntegerField(default=0)
     performed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='stock_takes')
-    counted_at = models.DateTimeField(auto_now_add=True)
+    stock_take_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=[
         ('pending', 'Pending'),
         ('completed', 'Completed'),

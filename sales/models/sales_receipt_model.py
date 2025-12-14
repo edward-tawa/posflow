@@ -7,14 +7,19 @@ import uuid
 
 class SalesReceipt(CreateUpdateBaseModel):
     PREFIX = 'RECEIPT'
-
+    STATUS_CHOICES = [('DRAFT', 'Draft'), ('ISSUED', 'Issued'), ('VOIDED', 'Voided')]
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='sales_receipts')
     sales_payment = models.ForeignKey('sales.SalesPayment', on_delete=models.SET_NULL, null=True, related_name='sales_receipts')
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='sales_receipts')
     customer = models.ForeignKey('customers.Customer', on_delete=models.CASCADE, related_name='sales_receipts')
+    sale = models.ForeignKey('sales.Sale', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_receipts')
     receipt_number = models.CharField(max_length=20, unique=True)
     receipt_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    is_voided = models.BooleanField(default=False)
+    void_reason = models.TextField(blank=True, null=True)
+    voided_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
     issued_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, related_name='issued_sales_receipts')
     notes = models.TextField(blank=True, null=True)
 

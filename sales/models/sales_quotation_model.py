@@ -47,7 +47,7 @@ class SalesQuotation(CreateUpdateBaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Quotation {self.quotation_number} - {self.customer}"
+        return f"Quotation {self.quotation_number} - {self.customer.name}"
     
     class Meta:
         indexes = [

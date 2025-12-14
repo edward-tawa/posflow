@@ -29,6 +29,7 @@ class StockMovement(CreateUpdateBaseModel):
     movement_date = models.DateTimeField(auto_now_add=True)
     quantity = models.IntegerField()  # Positive for stock in, negative for stock out
     movement_type = models.CharField(max_length=50, choices=MOVEMENT_TYPE_CHOICE, help_text="Type of stock movement")  # e.g., 'purchase', 'sale', 'adjustment'
+    reason = models.TextField(blank=True, null=True, help_text="Reason for the stock movement, if applicable")
     reference_number = models.CharField(max_length=100, editable=False, unique=True)
 
     def generate_reference_number(self):

@@ -20,23 +20,41 @@ class TransactionService:
             raise ValueError("Cannot apply transaction: one of the accounts is frozen.")
         logger.debug(f"Transaction {transaction.transaction_number} passed validation")
         
-    @staticmethod
-    def create_transaction(**data):
-        logger.info("Creating transaction with data: {}".format(data))
-        transaction = Transaction.objects.create(
-            company=data.get('company'),
-            transaction_type=data.get('transaction_type'),
-            transaction_category=data.get('transaction_category'),
-            transaction_number=data.get('transaction_number'),
-            transaction_date=data.get('transaction_date'),
-            total_amount=data.get('total_amount'),
-            debit_account=data.get('debit_account'),
-            credit_account=data.get('credit_account'),
-            status="PENDING"
-        )
-        logger.info(f"Transaction {transaction.transaction_number} created and marked as PENDING")
-        return transaction
-    
+    def create_transaction(
+                    company,
+                    branch,
+                    debit_account,
+                    credit_account,
+                    transaction_type,
+                    transaction_category,
+                    total_amount=0,
+                    customer=None,
+                    supplier=None
+                ):
+        """
+        Create a transaction with auto-generated transaction_number, status, and date.
+        """
+        try:
+            transaction = Transaction.objects.create(
+                company=company,
+                branch=branch,
+                debit_account=debit_account,
+                credit_account=credit_account,
+                transaction_type=transaction_type,
+                transaction_category=transaction_category,
+                customer=customer,
+                supplier=supplier,
+                # total_amount defaults to 0
+                # status defaults to 'DRAFT'
+                # transaction_number is auto-generated in save()
+                # transaction_date is auto_now_add
+            )
+            logger.info(f"Transaction {transaction.transaction_number} created with status {transaction.status}")
+            return transaction
+        except Exception as e:
+            logger.exception(f"Error creating transaction: {str(e)}")
+            raise
+        
     @staticmethod
     @db_transaction.atomic
     def apply_transaction_to_accounts(transaction):

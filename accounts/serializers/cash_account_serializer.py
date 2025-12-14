@@ -6,6 +6,7 @@ from company.models.company_model import Company
 from branch.models.branch_model import Branch
 from config.utilities.get_company_or_user_company import get_expected_company
 
+
 class CashAccountSerializer(serializers.ModelSerializer):
     balance = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
     company_summary = serializers.SerializerMethodField(read_only = True)

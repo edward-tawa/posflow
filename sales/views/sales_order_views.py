@@ -11,6 +11,7 @@ from sales.serializers.sales_order_serializer import SalesOrderSerializer
 from loguru import logger
 
 
+
 class SalesOrderViewSet(ModelViewSet):
     """
     ViewSet for managing Sales Orders.
