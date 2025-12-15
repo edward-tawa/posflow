@@ -1,1 +1,2 @@
+from .customer_branch_history_model import CustomerBranchHistory
 from .customer_model import Customer
