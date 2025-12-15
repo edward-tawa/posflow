@@ -3,7 +3,10 @@ from django.db import transaction as db_transaction
 from loguru import logger
 from inventory.models.stock_take_model import StockTake
 from inventory.services.product_stock_service import ProductStockService
-
+from inventory.models.product_model import Product
+from rest_framework.decorators import action
+from rest_framework import status
+from rest_framework.response import Response
 
 
 
@@ -44,8 +47,7 @@ class StockItemService:
             raise
     
 
-    #action use Viewset class
-    # @action(detail=False, methods=["post"], url_path="add-item") 
+    @action(detail=False, methods=["post"], url_path="add-item") 
     def add_item(self, request):
         """
         Adds or updates a stock take item using update_or_create logic.
