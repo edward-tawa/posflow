@@ -44,8 +44,8 @@ class StockItemService:
             raise
     
 
-
-    @action(detail=False, methods=["post"], url_path="add-item")
+    #action use Viewset class
+    # @action(detail=False, methods=["post"], url_path="add-item") 
     def add_item(self, request):
         """
         Adds or updates a stock take item using update_or_create logic.

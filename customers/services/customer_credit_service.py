@@ -283,7 +283,7 @@ class CustomerCreditService:
             raise
 
     @staticmethod
-    @db_transaction
+    @db_transaction.atomic()
     def reduce_credit_limit(customer, amount):
         """
             Reduces customer credit limit by the specified amount.

@@ -1,6 +1,8 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 from customers.views.create_credit_sale_views import CreateCreditSaleView
 
-router = DefaultRouter()
-router.register(r'customers/(?P<customer_id>\d+)/create-credit-sale', CreateCreditSaleView, basename='create-credit-sale')
-urlpatterns = router.urls
+
+urlpatterns = [
+    path('customers/<int:customer_id>/create-credit-sale', CreateCreditSaleView.as_view(), name='create-credit-sale')
+]

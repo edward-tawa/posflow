@@ -22,10 +22,10 @@ class StockTake(CreateUpdateBaseModel):
     notes = models.TextField(blank=True, null=True)
 
     class Meta:
-        ordering = ['-counted_at']
+        ordering = ['-stock_take_date']
 
     def __str__(self):
-        return f"StockTake at {self.counted_at} for {self.company.name} - {self.branch.name} branch"
+        return f"StockTake at {self.stock_take_date} for {self.company.name} - {self.branch.name} branch"
     
 
     @staticmethod
