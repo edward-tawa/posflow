@@ -8,6 +8,12 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.sales_order_model import SalesOrder
 from sales.serializers.sales_order_serializer import SalesOrderSerializer
+from sales.services.sales_order_service import SalesOrderService
+from sales.serializers.sales_order_item_serializer import SalesOrderItemSerializer
+from rest_framework import status
+from rest_framework.response import Response
+from django.db.models import Q
+from rest_framework.decorators import action
 from loguru import logger
 
 
@@ -93,3 +99,51 @@ class SalesOrderViewSet(ModelViewSet):
             f"SalesOrder '{order.order_number}' updated by '{actor}' "
             f"for company '{order.company.name}'."
         )
+    
+
+
+    @action(detail=True, methods=['post'], url_path='attach-invoice')
+    def attach_invoice(self, request, pk=None):
+        order = self.get_object()
+        invoice_id = request.data.get("invoice_id")
+        if not invoice_id:
+            return Response({"detail": "invoice_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            invoice = SalesInvoice.objects.get(id=invoice_id)
+            updated_order = SalesOrderService.attach_to_invoice(order, invoice)
+            serializer = self.get_serializer(updated_order)
+            return Response(serializer.data)
+        except SalesInvoice.DoesNotExist:
+            return Response({"detail": "Invoice not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error attaching invoice: {str(e)}")
+            return Response({"detail": "Error attaching invoice."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        order = self.get_object()
+        new_status = request.data.get("status")
+        if not new_status:
+            return Response({"detail": "status is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            updated_order = SalesOrderService.update_sales_order_status(order, new_status)
+            serializer = self.get_serializer(updated_order)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error updating status: {str(e)}")
+            return Response({"detail": "Error updating status."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'], url_path='bulk-items')
+    def bulk_items(self, request, pk=None):
+        order = self.get_object()
+        items_data = request.data.get("items_data", [])
+        if not items_data:
+            return Response({"detail": "items_data is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            created_items = SalesOrderService.bulk_create_order_items(order, items_data)
+            # Assuming you have a serializer for order items
+            serializer = SalesOrderItemSerializer(created_items, many=True)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error(f"Error bulk creating order items: {str(e)}")
+            return Response({"detail": "Error creating order items."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

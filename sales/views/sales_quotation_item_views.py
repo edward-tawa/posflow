@@ -8,6 +8,13 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.sales_quotation_item_model import SalesQuotationItem
 from sales.serializers.sales_quotation_item_serializer import SalesQuotationItemSerializer
+from sales.services.sales_quotation_item_service import SalesQuotationItemService
+from sales.models.sales_quotation_model import SalesQuotation
+from sales.models.sales_invoice_model import SalesInvoice
+from rest_framework import status
+from rest_framework.response import Response
+from django.db.models import Q
+from rest_framework.decorators import action
 from loguru import logger
 
 
@@ -86,3 +93,52 @@ class SalesQuotationItemViewSet(ModelViewSet):
             f"SalesQuotationItem for product '{item.product.name}' updated by '{actor}' "
             f"for company '{item.company.name}'."
         )
+
+
+
+    @action(detail=True, methods=['post'], url_path='attach-quotation')
+    def attach_quotation(self, request, pk=None):
+        item = self.get_object()
+        quotation_id = request.data.get("quotation_id")
+        if not quotation_id:
+            return Response({"detail": "quotation_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            quotation = SalesQuotation.objects.get(id=quotation_id)
+            updated_item = SalesQuotationItemService.attach_to_sales_quotation(item, quotation)
+            serializer = self.get_serializer(updated_item)
+            return Response(serializer.data)
+        except SalesQuotation.DoesNotExist:
+            return Response({"detail": "Quotation not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error attaching quotation: {str(e)}")
+            return Response({"detail": "Error attaching quotation."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    @action(detail=True, methods=['post'], url_path='attach-invoice')
+    def attach_invoice(self, request, pk=None):
+        item = self.get_object()
+        invoice_id = request.data.get("invoice_id")
+        if not invoice_id:
+            return Response({"detail": "invoice_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            invoice = SalesInvoice.objects.get(id=invoice_id)
+            updated_item = SalesQuotationItemService.attach_to_sales_invoice(item, invoice)
+            serializer = self.get_serializer(updated_item)
+            return Response(serializer.data)
+        except SalesInvoice.DoesNotExist:
+            return Response({"detail": "Invoice not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error attaching invoice: {str(e)}")
+            return Response({"detail": "Error attaching invoice."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    @action(detail=True, methods=['post'], url_path='detach-invoice')
+    def detach_invoice(self, request, pk=None):
+        item = self.get_object()
+        try:
+            updated_item = SalesQuotationItemService.detach_from_sales_invoice(item)
+            serializer = self.get_serializer(updated_item)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error detaching invoice: {str(e)}")
+            return Response({"detail": "Error detaching invoice."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

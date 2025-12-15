@@ -8,6 +8,11 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.sales_invoice_item_model import SalesInvoiceItem
 from sales.serializers.sales_invoice_item_serializer import SalesInvoiceItemSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from sales.services.sales_invoice_item_service import SalesInvoiceItemService
+from sales.models.sales_invoice_model import SalesInvoice
 from loguru import logger
 
 
@@ -91,3 +96,29 @@ class SalesInvoiceItemViewSet(ModelViewSet):
             f"SalesInvoiceItem '{item.product_name}' updated by '{actor}' "
             f"for company '{item.sales_invoice.company.name}'."
         )
+
+    
+
+    @action(detail=False, methods=['post'], url_path='bulk-create')
+    def bulk_create_items(self, request):
+        try:
+            invoice_id = request.data.get('invoice_id')
+            items_data = request.data.get('items', [])
+            invoice = SalesInvoice.objects.get(id=invoice_id)
+            created_items = SalesInvoiceItemService.bulk_create_sales_invoice_items(items_data, invoice)
+            serializer = self.get_serializer(created_items, many=True)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error(f"Error bulk creating invoice items: {e}")
+            return Response({"detail": "Error bulk creating items."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], url_path='mark-invoice-paid')
+    def mark_invoice_as_paid(self, request):
+        try:
+            invoice_id = request.data.get('invoice_id')
+            invoice = SalesInvoice.objects.get(id=invoice_id)
+            updated_invoice = SalesInvoiceItemService.mark_invoice_as_paid(invoice)
+            return Response({"invoice_number": updated_invoice.invoice_number, "status": updated_invoice.status}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error marking invoice as paid: {e}")
+            return Response({"detail": "Error marking invoice as paid."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
