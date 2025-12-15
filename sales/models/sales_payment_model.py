@@ -5,9 +5,11 @@ from loguru import logger
 import uuid
 
 
-
 class SalesPayment(CreateUpdateBaseModel):
-   
+    """
+    Docstring for SalesPayment
+        Model representing the application of a payment to a sales order and receipt.
+    """
     sales_order = models.ForeignKey(
         'sales.SalesOrder', on_delete=models.CASCADE, related_name='payments'
     )

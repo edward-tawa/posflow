@@ -8,6 +8,11 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.delivery_note_item_model import DeliveryNoteItem
 from sales.serializers.delivery_note_item_serializer import DeliveryNoteItemSerializer
+from sales.services.delivery_note_item_service import DeliveryNoteItemService
+from rest_framework import status
+from rest_framework.response import Response
+from django.db.models import Q
+from rest_framework.decorators import action
 from loguru import logger
 
 
@@ -88,3 +93,33 @@ class DeliveryNoteItemViewSet(ModelViewSet):
         logger.info(
             f"DeliveryNoteItem for product '{item.product.name}' in delivery note '{item.delivery_note.delivery_number}' updated by '{actor}'."
         )
+
+
+
+    @action(detail=True, methods=['post'], url_path='attach')
+    def attach(self, request, pk=None):
+        item = self.get_object()
+        note_id = request.data.get("note_id")
+        if not note_id:
+            return Response({"detail": "note_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            note = DeliveryNote.objects.get(id=note_id)
+            updated_item = DeliveryNoteItemService.attach_to_note(item, note)
+            serializer = self.get_serializer(updated_item)
+            return Response(serializer.data)
+        except DeliveryNote.DoesNotExist:
+            return Response({"detail": "Delivery Note not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error attaching item to note: {str(e)}")
+            return Response({"detail": "Error attaching item."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'], url_path='detach')
+    def detach(self, request, pk=None):
+        item = self.get_object()
+        try:
+            updated_item = DeliveryNoteItemService.detach_from_note(item)
+            serializer = self.get_serializer(updated_item)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error detaching item from note: {str(e)}")
+            return Response({"detail": "Error detaching item."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

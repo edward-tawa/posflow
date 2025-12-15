@@ -8,6 +8,11 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.sales_payment_model import SalesPayment
 from sales.serializers.sales_payment_serializer import SalesPaymentSerializer
+from sales.services.sales_payment_service import SalesPaymentService
+from rest_framework import status
+from rest_framework.response import Response
+from django.db.models import Q
+from rest_framework.decorators import action
 from loguru import logger
 
 
@@ -92,3 +97,54 @@ class SalesPaymentViewSet(ModelViewSet):
             f"SalesPayment '{payment.payment_number}' updated by '{actor}' "
             f"for company '{payment.company.name}'."
         )
+
+
+
+
+    @action(detail=False, methods=['post'], url_path='apply')
+    def apply_payment(self, request):
+        try:
+            sales_order_id = request.data.get("sales_order")
+            sales_receipt_id = request.data.get("sales_receipt")
+            payment_id = request.data.get("payment")
+            amount = request.data.get("amount")
+
+            if not all([sales_order_id, sales_receipt_id, payment_id, amount]):
+                return Response({"detail": "All fields are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            # You would typically fetch sales_order, sales_receipt, payment objects here
+            sales_payment = SalesPaymentService.create_sales_payment(
+                sales_order=request.data['sales_order'],
+                sales_receipt=request.data['sales_receipt'],
+                payment=request.data['payment'],
+                amount=request.data['amount']
+            )
+            serializer = self.get_serializer(sales_payment)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error applying payment: {e}")
+            return Response({"detail": "Error applying payment."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'], url_path='update-amount')
+    def update_amount(self, request, pk=None):
+        sales_payment = self.get_object()
+        new_amount = request.data.get("new_amount")
+        if new_amount is None:
+            return Response({"detail": "new_amount is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            updated_payment = SalesPaymentService.update_sales_payment(sales_payment, new_amount)
+            serializer = self.get_serializer(updated_payment)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error updating payment amount: {e}")
+            return Response({"detail": "Error updating payment."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['delete'], url_path='reverse')
+    def reverse_payment(self, request, pk=None):
+        sales_payment = self.get_object()
+        try:
+            SalesPaymentService.delete_sales_payment(sales_payment)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            logger.error(f"Error reversing payment: {e}")
+            return Response({"detail": "Error reversing payment."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

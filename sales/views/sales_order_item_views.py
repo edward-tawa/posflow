@@ -8,6 +8,12 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.sales_order_item_model import SalesOrderItem
 from sales.serializers.sales_order_item_serializer import SalesOrderItemSerializer
+from sales.services.sales_order_item_service import SalesOrderItemService
+from sales.models.sales_order_model import SalesOrder
+from rest_framework import status
+from rest_framework.response import Response
+from django.db.models import Q
+from rest_framework.decorators import action
 from loguru import logger
 
 
@@ -91,3 +97,36 @@ class SalesOrderItemViewSet(ModelViewSet):
             f"SalesOrderItem '{item.product_name}' updated by '{actor}' "
             f"for SalesOrder '{item.sales_order.order_number}' and company '{item.sales_order.company.name}'."
         )
+
+
+
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        item = self.get_object()
+        new_status = request.data.get("status")
+        if not new_status:
+            return Response({"detail": "status is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            updated_item = SalesOrderItemService.update_sales_order_item_status(item, new_status)
+            serializer = self.get_serializer(updated_item)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"Error updating item status: {str(e)}")
+            return Response({"detail": "Error updating item status."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'], url_path='attach-order')
+    def attach_order(self, request, pk=None):
+        item = self.get_object()
+        order_id = request.data.get("order_id")
+        if not order_id:
+            return Response({"detail": "order_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            order = SalesOrder.objects.get(id=order_id)
+            updated_item = SalesOrderItemService.attach_to_sales_order(item, order)
+            serializer = self.get_serializer(updated_item)
+            return Response(serializer.data)
+        except SalesOrder.DoesNotExist:
+            return Response({"detail": "Sales Order not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error attaching item to order: {str(e)}")
+            return Response({"detail": "Error attaching item to order."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
