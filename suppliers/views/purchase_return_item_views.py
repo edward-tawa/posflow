@@ -9,6 +9,9 @@ from config.pagination.pagination import StandardResultsSetPagination
 from suppliers.models.purchase_return_item_model import PurchaseReturnItem
 from suppliers.serializers.purchase_return_item_serializer import PurchaseReturnItemSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -78,3 +81,35 @@ class PurchaseReturnItemViewSet(ModelViewSet):
             f"PurchaseReturnItem for product '{purchase_return_item.product.name}' updated by '{actor}' "
             f"under PurchaseReturn '{purchase_return_item.purchase_return.purchase_return_number}'."
         )
+
+
+
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        item = self.get_object()
+        new_status = request.data.get('status')
+        if not new_status:
+            return Response({'detail': 'status is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            PurchaseReturnItemService.update_item_status(item, new_status)
+            return Response({'detail': f"Item '{item.product_name}' status updated to '{new_status}'."})
+        except ValueError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='attach-return')
+    def attach_return(self, request, pk=None):
+        item = self.get_object()
+        return_id = request.data.get('purchase_return_id')
+        if not return_id:
+            return Response({'detail': 'purchase_return_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        purchase_return = PurchaseReturn.objects.filter(id=return_id).first()
+        if not purchase_return:
+            return Response({'detail': 'PurchaseReturn not found.'}, status=status.HTTP_404_NOT_FOUND)
+        PurchaseReturnItemService.attach_to_return(item, purchase_return)
+        return Response({'detail': f"Item '{item.product_name}' attached to return '{purchase_return.id}'."})
+
+    @action(detail=True, methods=['post'], url_path='detach-return')
+    def detach_return(self, request, pk=None):
+        item = self.get_object()
+        PurchaseReturnItemService.detach_from_return(item)
+        return Response({'detail': f"Item '{item.product_name}' detached from its return."})

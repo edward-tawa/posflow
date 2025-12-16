@@ -12,6 +12,9 @@ from config.utilities.get_queryset import get_company_queryset
 from suppliers.models.purchase_order_model import PurchaseOrder
 from suppliers.serializers.purcahse_order_serializer import PurchaseOrderSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -66,3 +69,13 @@ class PurchaseOrderViewSet(ModelViewSet):
         )
 
 
+
+    @action(detail=True, methods=['post'], url_path='approve')
+    def approve_order(self, request, pk=None):
+        order = self.get_object()
+        from suppliers.services.purchase_order_service import PurchaseOrderService
+        try:
+            PurchaseOrderService.approve_order(order)
+            return Response({'detail': f"Purchase Order '{order.id}' approved."})
+        except Exception as e:
+            return Response({'detail': str(e)}, status=400)

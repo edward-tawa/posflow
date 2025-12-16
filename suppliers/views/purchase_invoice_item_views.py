@@ -7,6 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from suppliers.models.purchase_invoice_item_model import PurchaseInvoiceItem
 from suppliers.serializers.purchase_invoice_item_serializer import PurchaseInvoiceItemSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -90,3 +93,28 @@ class PurchaseInvoiceItemViewSet(ModelViewSet):
             f"PurchaseInvoiceItem {instance.id} for product '{instance.product.name}' deleted by {self._get_actor()}."
         )
         instance.delete()
+
+
+    @action(detail=True, methods=['post'], url_path='attach-to-invoice')
+    def attach_to_invoice(self, request, pk=None):
+        item = self.get_object()
+        invoice_id = request.data.get('invoice_id')
+        if not invoice_id:
+            return Response({"error": "invoice_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            invoice = PurchaseInvoice.objects.get(id=invoice_id)
+        except PurchaseInvoice.DoesNotExist:
+            return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        item = PurchaseInvoiceItemService.attach_to_invoice(item, invoice)
+        return Response(self.get_serializer(item).data, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # DETACH FROM INVOICE
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='detach-from-invoice')
+    def detach_from_invoice(self, request, pk=None):
+        item = self.get_object()
+        item = PurchaseInvoiceItemService.detach_from_invoice(item)
+        return Response(self.get_serializer(item).data, status=status.HTTP_200_OK)

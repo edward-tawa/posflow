@@ -14,7 +14,9 @@ from config.utilities.get_queryset import get_company_queryset
 from suppliers.models.purchase_invoice_model import PurchaseInvoice
 from suppliers.serializers.purchase_invoice_serializer import PurchaseInvoiceSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions
-
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -84,3 +86,37 @@ class PurchaseInvoiceViewSet(ModelViewSet):
         logger.info(
             f"PurchaseInvoice '{invoice.invoice_number}' updated by '{actor}'."
         )
+
+
+    @action(detail=True, methods=['post'], url_path='detach-from-supplier')
+    def detach_from_supplier(self, request, pk=None):
+        invoice = self.get_object()
+        invoice = PurchaseInvoiceService.detach_from_supplier(invoice)
+        return Response(self.get_serializer(invoice).data, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # UPDATE STATUS
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        invoice = self.get_object()
+        new_status = request.data.get('status')
+        if not new_status:
+            return Response({"error": "status is required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            invoice = PurchaseInvoiceService.update_invoice_status(invoice, new_status)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(self.get_serializer(invoice).data, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # APPROVE INVOICE
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='approve')
+    def approve(self, request, pk=None):
+        invoice = self.get_object()
+        try:
+            invoice = PurchaseInvoiceService.approve_invoice(invoice)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(self.get_serializer(invoice).data, status=status.HTTP_200_OK)

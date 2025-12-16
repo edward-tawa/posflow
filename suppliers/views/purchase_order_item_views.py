@@ -8,6 +8,9 @@ from config.pagination.pagination import StandardResultsSetPagination
 from suppliers.models.purchase_order_item_model import PurchaseOrderItem
 from suppliers.serializers.purchase_order_item_serializer import PurchaseOrderItemSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -77,3 +80,45 @@ class PurchaseOrderItemViewSet(ModelViewSet):
         logger.info(
             f"PurchaseOrderItem for product '{purchase_order_item.product.name}' updated by '{actor}'."
         )
+
+
+    @action(detail=True, methods=['post'], url_path='attach-to-order')
+    def attach_to_order(self, request, pk=None):
+        item = self.get_object()
+        order_id = request.data.get('order_id')
+        if not order_id:
+            return Response({"error": "order_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            order = PurchaseOrder.objects.get(id=order_id)
+        except PurchaseOrder.DoesNotExist:
+            return Response({"error": "PurchaseOrder not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        item = PurchaseOrderItemService.attach_to_order(item, order)
+        return Response(self.get_serializer(item).data, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # DETACH ITEM FROM ORDER
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='detach-from-order')
+    def detach_from_order(self, request, pk=None):
+        item = self.get_object()
+        item = PurchaseOrderItemService.detach_from_order(item)
+        return Response(self.get_serializer(item).data, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # UPDATE ITEM STATUS
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        item = self.get_object()
+        new_status = request.data.get('status')
+        if not new_status:
+            return Response({"error": "status is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            item = PurchaseOrderItemService.update_item_status(item, new_status)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(self.get_serializer(item).data, status=status.HTTP_200_OK)

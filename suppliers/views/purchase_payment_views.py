@@ -7,6 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from suppliers.models.purchase_payment_model import PurchasePayment
 from suppliers.serializers.purchase_payment_serializer import PurchasePaymentSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -91,3 +94,44 @@ class PurchasePaymentViewSet(ModelViewSet):
             f"PurchasePayment '{instance.purchase_payment_number}' deleted by {self._get_actor()}."
         )
         instance.delete()
+
+    
+
+
+    # ---------------- Custom Actions ----------------
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        payment = self.get_object()
+        new_status = request.data.get('status')
+        if not new_status:
+            return Response({'detail': 'status is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            PurchasePaymentService.update_payment_status(payment, new_status)
+            return Response({'detail': f"Payment '{payment.id}' status updated to '{new_status}'."})
+        except ValueError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='attach-supplier')
+    def attach_supplier(self, request, pk=None):
+        payment = self.get_object()
+        supplier_id = request.data.get('supplier_id')
+        if not supplier_id:
+            return Response({'detail': 'supplier_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        supplier = Supplier.objects.filter(id=supplier_id).first()
+        if not supplier:
+            return Response({'detail': 'Supplier not found.'}, status=status.HTTP_404_NOT_FOUND)
+        PurchasePaymentService.attach_to_supplier(payment, supplier)
+        return Response({'detail': f"Payment '{payment.id}' attached to supplier '{supplier.name}'."})
+
+    @action(detail=True, methods=['post'], url_path='detach-supplier')
+    def detach_supplier(self, request, pk=None):
+        payment = self.get_object()
+        PurchasePaymentService.detach_from_supplier(payment)
+        return Response({'detail': f"Payment '{payment.id}' detached from its supplier."})
+
+    @action(detail=True, methods=['post'], url_path='update-notes')
+    def update_notes(self, request, pk=None):
+        payment = self.get_object()
+        new_notes = request.data.get('notes', '')
+        PurchasePaymentService.update_payment_notes(payment, new_notes)
+        return Response({'detail': f"Payment '{payment.id}' notes updated."})

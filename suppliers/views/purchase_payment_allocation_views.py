@@ -5,6 +5,9 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from config.utilities.get_company_or_user_company import get_expected_company
 from suppliers.models.purchase_payment_allocation_model import PurchasePaymentAllocation
 from suppliers.serializers.purchase_payment_allocation_serializer import PurchasePaymentAllocationSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -102,3 +105,16 @@ class PurchasePaymentAllocationViewSet(ModelViewSet):
             f"PurchasePaymentAllocation '{instance.allocation_number}' deleted by '{self._get_actor()}'."
         )
         instance.delete()
+
+
+    
+
+    @action(detail=True, methods=['post'], url_path='validate-allocation')
+    def validate_allocation(self, request, pk=None):
+        allocation = self.get_object()
+        try:
+            PurchasePaymentAllocationService.validate_allocation(allocation)
+            return Response({'detail': f"Allocation '{allocation.id}' is valid."})
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+

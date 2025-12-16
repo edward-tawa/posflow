@@ -8,6 +8,9 @@ from config.pagination.pagination import StandardResultsSetPagination
 from suppliers.models.supplier_credit_note_item_model import SupplierCreditNoteItem
 from suppliers.serializers.supplier_credit_note_item_serializer import SupplierCreditNoteItemSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -78,3 +81,47 @@ class SupplierCreditNoteItemViewSet(ModelViewSet):
             f"SupplierCreditNoteItem {item.id} for credit note '{note.credit_note_number}' "
             f"updated by {actor}."
         )
+
+
+
+    @action(detail=True, methods=['post'], url_path='attach-credit-note')
+    def attach_credit_note(self, request, pk=None):
+        item = self.get_object()
+        credit_note_id = request.data.get('credit_note_id')
+        if not credit_note_id:
+            return Response({'detail': 'credit_note_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        credit_note = SupplierCreditNote.objects.filter(id=credit_note_id).first()
+        if not credit_note:
+            return Response({'detail': 'Credit note not found.'}, status=status.HTTP_404_NOT_FOUND)
+        SupplierCreditNoteItemService.attach_to_credit_note(item, credit_note)
+        return Response({'detail': f"Credit note item '{item.id}' attached to credit note '{credit_note.id}'."})
+
+    @action(detail=True, methods=['post'], url_path='detach-credit-note')
+    def detach_credit_note(self, request, pk=None):
+        item = self.get_object()
+        SupplierCreditNoteItemService.detach_from_credit_note(item)
+        return Response({'detail': f"Credit note item '{item.id}' detached from credit note."})
+
+    @action(detail=True, methods=['post'], url_path='update-quantity')
+    def update_quantity(self, request, pk=None):
+        item = self.get_object()
+        new_quantity = request.data.get('quantity')
+        if new_quantity is None:
+            return Response({'detail': 'quantity is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            SupplierCreditNoteItemService.update_supplier_credit_note_item_quantity(item, int(new_quantity))
+            return Response({'detail': f"Credit note item '{item.id}' quantity updated to {new_quantity}."})
+        except ValueError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='update-unit-price')
+    def update_unit_price(self, request, pk=None):
+        item = self.get_object()
+        new_price = request.data.get('unit_price')
+        if new_price is None:
+            return Response({'detail': 'unit_price is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            SupplierCreditNoteItemService.update_supplier_credit_note_item_unit_price(item, float(new_price))
+            return Response({'detail': f"Credit note item '{item.id}' unit price updated to {new_price}."})
+        except ValueError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)

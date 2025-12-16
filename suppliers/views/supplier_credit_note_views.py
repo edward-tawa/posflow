@@ -5,6 +5,9 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from config.utilities.get_company_or_user_company import get_expected_company
 from suppliers.models.supplier_credit_note_model import SupplierCreditNote
 from suppliers.serializers.supplier_credit_note_serializer import SupplierCreditNoteSerializer
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -90,3 +93,36 @@ class SupplierCreditNoteViewSet(ModelViewSet):
             f"SupplierCreditNote '{instance.credit_note_number}' deleted by '{self._get_actor()}'."
         )
         instance.delete()
+
+
+
+    # ---------------- Custom Actions ----------------
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        credit_note = self.get_object()
+        new_status = request.data.get('status')
+        if not new_status:
+            return Response({'detail': 'status is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            SupplierCreditNoteService.update_supplier_credit_note_status(credit_note, new_status)
+            return Response({'detail': f"Credit note '{credit_note.id}' status updated to '{new_status}'."})
+        except ValueError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], url_path='attach-supplier')
+    def attach_supplier(self, request, pk=None):
+        credit_note = self.get_object()
+        supplier_id = request.data.get('supplier_id')
+        if not supplier_id:
+            return Response({'detail': 'supplier_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        supplier = Supplier.objects.filter(id=supplier_id).first()
+        if not supplier:
+            return Response({'detail': 'Supplier not found.'}, status=status.HTTP_404_NOT_FOUND)
+        SupplierCreditNoteService.attach_to_supplier(credit_note, supplier)
+        return Response({'detail': f"Credit note '{credit_note.id}' attached to supplier '{supplier.id}'."})
+
+    @action(detail=True, methods=['post'], url_path='detach-supplier')
+    def detach_supplier(self, request, pk=None):
+        credit_note = self.get_object()
+        SupplierCreditNoteService.detach_from_supplier(credit_note)
+        return Response({'detail': f"Credit note '{credit_note.id}' detached from supplier."})

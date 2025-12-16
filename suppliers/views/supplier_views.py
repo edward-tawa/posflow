@@ -12,6 +12,16 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from config.pagination.pagination import StandardResultsSetPagination
 from loguru import logger
+from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser
+from rest_framework.response import Response
+from rest_framework import status
+import csv
+from io import StringIO
+from suppliers.services.supplier_service import SupplierService
+from django.shortcuts import get_object_or_404
+from branch.models.branch_model import Branch  # adjust import if needed
+
 
 
 class SupplierViewSet(ModelViewSet):
@@ -86,3 +96,72 @@ class SupplierViewSet(ModelViewSet):
             f"Supplier '{instance.name}' deleted by {self._get_actor()}."
         )
         instance.delete()
+
+
+    @action(detail=True, methods=["post"], url_path="attach-branch")
+    def attach_branch(self, request, pk=None):
+        supplier = self.get_object()
+        branch_id = request.data.get("branch_id")
+        if not branch_id:
+            return Response({"detail": "branch_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+      
+        branch = get_object_or_404(Branch, id=branch_id)
+        SupplierService.attach_to_branch(supplier, branch)
+        return Response({"detail": f"Supplier '{supplier.name}' attached to branch '{branch.name}'."})
+
+    @action(detail=True, methods=["post"], url_path="detach-branch")
+    def detach_branch(self, request, pk=None):
+        supplier = self.get_object()
+        SupplierService.detach_from_branch(supplier)
+        return Response({"detail": f"Supplier '{supplier.name}' detached from branch."})
+
+    @action(detail=True, methods=["post"], url_path="assign-company")
+    def assign_company(self, request, pk=None):
+        supplier = self.get_object()
+        company_id = request.data.get("company_id")
+        if not company_id:
+            return Response({"detail": "company_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        from company.models.company_model import Company  # adjust import if needed
+        company = get_object_or_404(Company, id=company_id)
+        SupplierService.assign_to_company(supplier, company)
+        return Response({"detail": f"Supplier '{supplier.name}' assigned to company '{company.name}'."})
+
+    @action(detail=True, methods=["post"], url_path="unassign-company")
+    def unassign_company(self, request, pk=None):
+        supplier = self.get_object()
+        SupplierService.unassign_from_company(supplier)
+        return Response({"detail": f"Supplier '{supplier.name}' unassigned from company."})
+
+    @action(detail=True, methods=["post"], url_path="update-status")
+    def update_status(self, request, pk=None):
+        supplier = self.get_object()
+        new_status = request.data.get("status")
+        if not new_status:
+            return Response({"detail": "status is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        SupplierService.update_supplier_status(supplier, new_status)
+        return Response({"detail": f"Supplier '{supplier.name}' status updated to '{new_status}'."})
+
+    @action(detail=False, methods=["post"], url_path="bulk-import", parser_classes=[MultiPartParser])
+    def bulk_import(self, request):
+        company = self._get_company()
+        branch_id = request.data.get("branch_id")
+        if not branch_id or "file" not in request.FILES:
+            return Response({"detail": "branch_id and CSV file are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        branch = get_object_or_404(Branch, id=branch_id)
+
+        csv_file = request.FILES["file"]
+        csv_content = csv_file.read().decode("utf-8")
+        created_suppliers = SupplierService.bulk_import_from_csv(csv_content, company, branch)
+        return Response({"detail": f"{len(created_suppliers)} suppliers imported successfully."})
+
+    @action(detail=False, methods=["get"], url_path="export-csv")
+    def export_csv(self, request):
+        company = self._get_company()
+        csv_data = SupplierService.export_suppliers_to_csv(company)
+        response = Response(csv_data, content_type="text/csv")
+        response["Content-Disposition"] = "attachment; filename=suppliers.csv"
+        return response
