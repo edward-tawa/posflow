@@ -7,7 +7,7 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from payments.models.payment_receipt_item_model import PaymentReceiptItem
 from payments.serializers.payment_receipt_item_serializer import PaymentReceiptItemSerializer
-from payments.permissions.payment_permissions import PaymentsPermissions
+from payments.permissions.payment_items_permissions import PaymentItemsPermissions
 from loguru import logger
 
 
@@ -24,7 +24,7 @@ class PaymentReceiptItemViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-    permission_classes = [PaymentsPermissions]
+    permission_classes = [PaymentItemsPermissions]
 
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = [

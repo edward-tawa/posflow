@@ -7,7 +7,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_company_queryset
-from accounts.permissions.account_permissions import AccountPermission
+from accounts.permissions.account_permission import AccountPermissionAccess
 from company.models.company_model import Company
 from loguru import logger
 
@@ -19,7 +19,7 @@ class PurchasesAccountViewSet(ModelViewSet):
     queryset = PurchasesAccount.objects.all()
     serializer_class = PurchasesAccountSerializer
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission]
+    permission_classes = [AccountPermissionAccess]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['account__name', 'account__account_number', 'supplier__name', 'recipient_person__username']
     ordering_fields = ['created_at', 'updated_at', 'account__name', 'supplier__name']

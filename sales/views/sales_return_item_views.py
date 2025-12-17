@@ -9,7 +9,7 @@ from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from sales.models.sales_return_item_model import SalesReturnItem 
-from sales.permissions.sales_permissions import SalesPermissions
+from sales.permissions.sales_product_permissions import SalesProductPermissions
 from sales.serializers.sales_return_item_serializer import SalesReturnItemSerializer
 from sales.services.sales_return_item_service import SalesReturnItemService
 from sales.models.sales_return_model import SalesReturn
@@ -38,7 +38,7 @@ class SalesReturnItemViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-    permission_classes = [SalesPermissions]
+    permission_classes = [SalesProductPermissions]
 
     # Filtering & search
     filter_backends = [SearchFilter, OrderingFilter]

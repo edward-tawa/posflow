@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from suppliers.models.purchase_invoice_item_model import PurchaseInvoiceItem
 from suppliers.serializers.purchase_invoice_item_serializer import PurchaseInvoiceItemSerializer
+from suppliers.permissions.supplier_product_permissions import SupplierProductPermissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -21,6 +22,7 @@ class PurchaseInvoiceItemViewSet(ModelViewSet):
     queryset = PurchaseInvoiceItem.objects.all()
     serializer_class = PurchaseInvoiceItemSerializer
     authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication, JWTAuthentication]
+    permission_classes = [SupplierProductPermissions]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['purchase_invoice__invoice_number', 'product__name']
     ordering_fields = ['created_at', 'updated_at', 'quantity', 'unit_price', 'total_price']

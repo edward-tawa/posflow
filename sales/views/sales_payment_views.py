@@ -2,7 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
-from sales.permissions.sales_permissions import SalesPermissions
+from sales.permissions.sales_payment_permissions import SalesPaymentPermissions
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
@@ -29,7 +29,7 @@ class SalesPaymentViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-    permission_classes = [SalesPermissions]
+    permission_classes = [SalesPaymentPermissions]
 
     # Filtering, search & ordering
     filter_backends = [SearchFilter, OrderingFilter]

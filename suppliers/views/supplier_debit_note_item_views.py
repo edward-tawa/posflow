@@ -14,6 +14,7 @@ from suppliers.models.supplier_debit_note_model import SupplierDebitNote
 from suppliers.serializers.supplier_debit_note_item_serializer import SupplierDebitNoteItemSerializer
 from suppliers.services.supplier_debit_note_item_service import SupplierDebitNoteItemService
 from suppliers.permissions.supplier_permissions import SupplierPermissions
+from suppliers.permissions.supplier_debit_note_premissions import SupplierDebitNotePermissions
 from loguru import logger
 
 
@@ -32,7 +33,7 @@ class SupplierDebitNoteItemViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-    permission_classes = [SupplierPermissions]
+    permission_classes = [SupplierDebitNotePermissions]
 
     # Filtering & search
     filter_backends = [SearchFilter, OrderingFilter]

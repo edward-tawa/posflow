@@ -12,7 +12,7 @@ from config.pagination.pagination import StandardResultsSetPagination
 
 from taxes.models.fiscalisation_response_model import FiscalisationResponse
 from taxes.serializers.fiscal_response_serializer import FiscalisationResponseSerializer
-from taxes.permissions.fiscalisation_permissions import FiscalisationPermissions
+from taxes.permissions.fiscalisation_invoice_item_permissions import FiscalisationInvoiceItemPermissions
 
 from loguru import logger
 
@@ -31,7 +31,7 @@ class FiscalisationResponseViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-    permission_classes = [FiscalisationPermissions]
+    permission_classes = [FiscalisationInvoiceItemPermissions]
 
     # Filtering, search & ordering
     filter_backends = [SearchFilter, OrderingFilter]

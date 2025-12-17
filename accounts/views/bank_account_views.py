@@ -7,7 +7,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_company_queryset
-from accounts.permissions.account_permissions import AccountPermission
+from accounts.permissions.account_permission import AccountPermissionAccess
 from company.models.company_model import Company
 from rest_framework.response import Response
 from rest_framework import status
@@ -21,7 +21,7 @@ class BankAccountViewSet(ModelViewSet):
     queryset = BankAccount.objects.all()
     serializer_class = BankAccountSerializer
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission]
+    permission_classes = [AccountPermissionAccess]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['account__name', 'account__account_number', 'bank_name']
     ordering_fields = ['created_at', 'updated_at', 'account__name']

@@ -1,11 +1,11 @@
-from rest_framework.permissions import BasePermission,SAFE_METHODS
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from loguru import logger
 
-class LoanPermissions(BasePermission):
+class SupplierProductPermissions(BasePermission):
     # Custom permission to allow only allowed users from the same company to access or modify suppliers.
     VIEW_ROLES = ['Manager', 'Accounting','Purchasing', 'Procurement', 'Admin']
     EDIT_ROLES = ['Manager', 'Admin']
-
+    
     def has_permission(self, request, view):
         user = request.user
         
@@ -26,7 +26,7 @@ class LoanPermissions(BasePermission):
     
     def has_object_permission(self, request, view, obj):
         user = request.user
-        if not user.is_authenticated or obj.borrower.company != getattr(user, 'company', None):
+        if not user.is_authenticated or obj.product.company != getattr(user, 'company', None):
             logger.warning(
                 f"Object permission denied for user '{user.username if user.is_authenticated else 'Anonymous'}' "
                 f"on object '{obj}'"

@@ -15,7 +15,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_account_company_queryset
-from accounts.permissions.account_permissions import AccountPermission
+from accounts.permissions.account_permission import AccountPermissionAccess
 from customers.permissions.manage_customers_permission import ManageCustomersPermission
 from accounts.services.accounts_service import AccountsService
 from company.models.company_model import Company
@@ -31,7 +31,7 @@ class CustomerAccountViewSet(ModelViewSet):
     queryset = CustomerAccount.objects.all()
     serializer_class = CustomerAccountSerializer
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission]
+    permission_classes = [AccountPermissionAccess]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['customer__first_name', 'account__name', 'account__number']
     ordering_fields = ['created_at', 'updated_at', 'customer__first_name']

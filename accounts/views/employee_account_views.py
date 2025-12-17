@@ -15,7 +15,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_account_company_queryset
-from accounts.permissions.account_permissions import AccountPermission
+from accounts.permissions.account_permission import AccountPermissionAccess
 from users.permissions.user_permissions import UserPermissions
 from accounts.services.accounts_service import AccountsService
 from company.models.company_model import Company
@@ -32,7 +32,7 @@ class EmployeeAccountViewSet(ModelViewSet):
     queryset = EmployeeAccount.objects.all()
     serializer_class = EmployeeAccountSerializer
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission]
+    permission_classes = [AccountPermissionAccess]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['employee__first_name', 'account__name', 'account__account_number']
     ordering_fields = ['created_at', 'updated_at', 'employee__first_name']
@@ -84,7 +84,7 @@ class GetEmployeeAccountTransactions(APIView):
     API View to retrieve transactions for a specific employee.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission, IsAuthenticated]
+    permission_classes = [AccountPermissionAccess, IsAuthenticated]
 
     def get(self, request, user_id):
         try:
@@ -125,7 +125,7 @@ class GetEmployeeAccountBalance(APIView):
     API View to retrieve the balance of a specific employee account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission, IsAuthenticated]
+    permission_classes = [AccountPermissionAccess, IsAuthenticated]
 
     def get(self, request, user_id):
         try:
@@ -160,7 +160,7 @@ class FreezeEmployeeAccount(APIView):
     API View to freeze a specific employee account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission, IsAuthenticated]
+    permission_classes = [AccountPermissionAccess, IsAuthenticated]
 
     def post(self, request, user_id):
         try:
@@ -202,7 +202,7 @@ class UnfreezeEmployeeAccount(APIView):
     API View to unfreeze a specific employee account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission, IsAuthenticated]
+    permission_classes = [AccountPermissionAccess, IsAuthenticated]
 
     def post(self, request, user_id):
         try:

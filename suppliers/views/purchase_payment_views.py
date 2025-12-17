@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from suppliers.models.purchase_payment_model import PurchasePayment
 from suppliers.serializers.purchase_payment_serializer import PurchasePaymentSerializer
+from suppliers.permissions.supplier_payment_permissions import SupplierPaymentPermissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -21,6 +22,7 @@ class PurchasePaymentViewSet(ModelViewSet):
     queryset = PurchasePayment.objects.all()
     serializer_class = PurchasePaymentSerializer
     authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication, JWTAuthentication]
+    permission_classes = [SupplierPaymentPermissions]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['purchase_payment_number', 'supplier__name', 'branch__name']
     ordering_fields = ['created_at', 'updated_at', 'total_amount', 'payment_date']

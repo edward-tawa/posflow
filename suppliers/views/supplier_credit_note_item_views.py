@@ -8,6 +8,7 @@ from config.pagination.pagination import StandardResultsSetPagination
 from suppliers.models.supplier_credit_note_item_model import SupplierCreditNoteItem
 from suppliers.serializers.supplier_credit_note_item_serializer import SupplierCreditNoteItemSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions
+from suppliers.permissions.supplier_credit_note_permissions import SupplierCreditNotePermissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -29,7 +30,7 @@ class SupplierCreditNoteItemViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-    permission_classes = [SupplierPermissions]
+    permission_classes = [SupplierCreditNoteItem]
 
     # Filtering & search
     filter_backends = [SearchFilter, OrderingFilter]

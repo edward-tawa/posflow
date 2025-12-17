@@ -16,7 +16,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_account_company_queryset
-from accounts.permissions.account_permissions import AccountPermission
+from accounts.permissions.account_permission import AccountPermissionAccess
 from suppliers.permissions.supplier_permissions import SupplierPermissions
 from accounts.services.accounts_service import AccountsService
 from company.models.company_model import Company
@@ -32,7 +32,7 @@ class LoanAccountViewSet(ModelViewSet):
     queryset = LoanAccount.objects.all()
     serializer_class = LoanAccountSerializer
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission]
+    permission_classes = [AccountPermissionAccess]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['loan__name', 'account__name', 'account__number']
     ordering_fields = ['created_at', 'updated_at', 'loan__name']
@@ -82,7 +82,7 @@ class GetLoanAccountTransactions(APIView):
     API View to retrieve transactions for a specific loan account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission, IsAuthenticated]
+    permission_classes = [AccountPermissionAccess, IsAuthenticated]
 
     def get(self, request, loan_account_id):
         try:
@@ -92,7 +92,7 @@ class GetLoanAccountTransactions(APIView):
             return Response({"detail": "LoanAccount not found."}, status=status.HTTP_404_NOT_FOUND)
         
          # Check permissions
-        if not AccountPermission().has_object_permission(request, self, loan_account):
+        if not AccountPermissionAccess().has_object_permission(request, self, loan_account):
             logger.warning(f"Unauthorized access attempt to Account ID {loan_account_id} by user {request.user.username}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
         
@@ -124,7 +124,7 @@ class GetLoanAccountBalance(APIView):
     API View to retrieve the balance of a specific loan account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission, IsAuthenticated]
+    permission_classes = [AccountPermissionAccess, IsAuthenticated]
 
     def get(self, request, loan_account_id):
         try:
@@ -133,7 +133,7 @@ class GetLoanAccountBalance(APIView):
             logger.warning(f"LoanAccount with ID {loan_account_id} does not exist.")
             return Response({"detail": "LoanAccount not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        if not AccountPermission().has_object_permission(request, self, loan_account):
+        if not AccountPermissionAccess().has_object_permission(request, self, loan_account):
             logger.warning(f"Unauthorized access attempt to Account ID {loan_account_id} by user {request.user.username}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
         
@@ -162,7 +162,7 @@ class FreezeLoanAccount(APIView):
     API View to freeze a specific loan account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission, IsAuthenticated]
+    permission_classes = [AccountPermissionAccess, IsAuthenticated]
 
     def post(self, request, loan_account_id):
         try:
@@ -171,7 +171,7 @@ class FreezeLoanAccount(APIView):
             logger.warning(f"LoanAccount with ID {loan_account_id} does not exist.")
             return Response({"detail": "LoanAccount not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        if not AccountPermission().has_object_permission(request, self, loan_account):
+        if not AccountPermissionAccess().has_object_permission(request, self, loan_account):
             logger.warning(f"Unauthorized freeze attempt on LoanAccount ID {loan_account_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -204,7 +204,7 @@ class UnfreezeLoanAccount(APIView):
     API View to unfreeze a specific loan account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermission, IsAuthenticated]
+    permission_classes = [AccountPermissionAccess, IsAuthenticated]
 
     def post(self, request, loan_account_id):
         try:
@@ -213,7 +213,7 @@ class UnfreezeLoanAccount(APIView):
             logger.warning(f"LoanAccount with ID {loan_account_id} does not exist.")
             return Response({"detail": "LoanAccount not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if not AccountPermission().has_object_permission(request, self, loan_account):
+        if not AccountPermissionAccess().has_object_permission(request, self, loan_account):
             logger.warning(f"Unauthorized unfreeze attempt on LoanAccount ID {loan_account_id} by user {request.user.username}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
         

@@ -8,6 +8,7 @@ from config.pagination.pagination import StandardResultsSetPagination
 from suppliers.models.purchase_order_item_model import PurchaseOrderItem
 from suppliers.serializers.purchase_order_item_serializer import PurchaseOrderItemSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions
+from suppliers.permissions.supplier_product_permissions import SupplierProductPermissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -24,7 +25,7 @@ class PurchaseOrderItemViewSet(ModelViewSet):
     queryset = PurchaseOrderItem.objects.all()
     serializer_class = PurchaseOrderItemSerializer
     authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [SupplierPermissions]
+    permission_classes = [SupplierProductPermissions]
 
     # Filtering & search
     filter_backends = [SearchFilter, OrderingFilter]

@@ -7,7 +7,7 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from taxes.models.fiscal_invoice_item_model import FiscalInvoiceItem
 from taxes.serializers.fiscal_invoice_item_serializer import FiscalInvoiceItemSerializer
-from taxes.permissions.fiscalisation_permissions import FiscalisationPermissions
+from taxes.permissions.fiscalisation_invoice_item_permissions import FiscalisationInvoiceItemPermissions
 from loguru import logger
 
 
@@ -24,7 +24,7 @@ class FiscalInvoiceItemViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-    permission_classes = [FiscalisationPermissions]
+    permission_classes = [FiscalisationInvoiceItemPermissions]
 
     # Filtering, search & ordering
     filter_backends = [SearchFilter, OrderingFilter]
