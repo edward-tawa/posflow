@@ -30,6 +30,14 @@ class Expense(CreateUpdateBaseModel):
     )
     expense_number = models.CharField(max_length=20, unique=True, editable=False)
     expense_date = models.DateTimeField(auto_now_add=True)
+    payment = models.ForeignKey(
+        'payments.Payment',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='expenses'
+    )
+    status = models.CharField(max_length=20, choices=[('PENDING', 'Pending'), ('PAID', 'Paid'), ('UPAID', 'Unpaid')], default='PENDING')
     category = models.CharField(max_length=20, choices=EXPENSE_CATEGORY)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.TextField(blank=True, null=True)

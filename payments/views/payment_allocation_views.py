@@ -8,6 +8,10 @@ from config.pagination.pagination import StandardResultsSetPagination
 from payments.models import PaymentAllocation
 from payments.serializers.payment_allocation_serializer import PaymentAllocationSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
+from payments.services.payment_allocation_service import PaymentAllocationService
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -79,3 +83,49 @@ class PaymentAllocationViewSet(ModelViewSet):
             f"PaymentAllocation '{allocation_number}' deleted by '{actor}' "
             f"from company '{company.name}'."
         )
+
+
+    @action(detail=True, methods=['post'], url_path='apply')
+    def apply_allocation(self, request, pk=None):
+        allocation = self.get_object()
+        PaymentAllocationService.apply_allocation(allocation)
+        return Response({"status": "APPLIED"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='reverse')
+    def reverse_allocation(self, request, pk=None):
+        allocation = self.get_object()
+        reason = request.data.get("reason")
+        PaymentAllocationService.reverse_allocation(allocation, reason=reason)
+        return Response({"status": "REVERSED"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        allocation = self.get_object()
+        new_status = request.data.get("status")
+        PaymentAllocationService.update_payment_allocation_status(allocation, new_status)
+        return Response({"status": new_status}, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # RELATION ACTIONS
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='attach-customer')
+    def attach_customer(self, request, pk=None):
+        allocation = self.get_object()
+        customer_id = request.data.get("customer_id")
+        PaymentAllocationService.attach_allocation_to_customer(allocation, customer_id)
+        return Response({"customer_id": customer_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='detach-customer')
+    def detach_customer(self, request, pk=None):
+        allocation = self.get_object()
+        PaymentAllocationService.detach_allocation_from_customer(allocation)
+        return Response({"customer_detached": True}, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # DELETE ACTION
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='delete')
+    def delete_allocation(self, request, pk=None):
+        allocation = self.get_object()
+        PaymentAllocationService.delete_payment_allocation(allocation)
+        return Response({"deleted": True}, status=status.HTTP_200_OK)

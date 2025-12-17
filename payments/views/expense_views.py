@@ -8,6 +8,10 @@ from config.pagination.pagination import StandardResultsSetPagination
 from payments.models import Expense
 from payments.serializers.expense_serializer import ExpenseSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
+from payments.services.expense_service import ExpenseService
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -80,3 +84,40 @@ class ExpenseViewSet(ModelViewSet):
             f"Expense '{expense_number}' deleted by '{actor}' "
             f"from company '{company.name}'."
         )
+
+
+
+    @action(detail=True, methods=['post'], url_path='mark-paid')
+    def mark_paid(self, request, pk=None):
+        expense = self.get_object()
+        ExpenseService.mark_expense_as_paid(expense)
+        return Response({"status": "PAID"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='mark-unpaid')
+    def mark_unpaid(self, request, pk=None):
+        expense = self.get_object()
+        ExpenseService.mark_expense_as_unpaid(expense)
+        return Response({"status": "UPAID"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        expense = self.get_object()
+        new_status = request.data.get("status")
+        ExpenseService.update_expense_status(expense, new_status)
+        return Response({"status": new_status}, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # PAYMENT RELATION ACTIONS
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='attach-payment')
+    def attach_payment(self, request, pk=None):
+        expense = self.get_object()
+        payment_id = request.data.get("payment_id")
+        ExpenseService.attach_expense_to_payment(expense, payment_id)
+        return Response({"payment_id": payment_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='detach-payment')
+    def detach_payment(self, request, pk=None):
+        expense = self.get_object()
+        ExpenseService.detach_expense_from_payment(expense)
+        return Response({"payment_detached": True}, status=status.HTTP_200_OK)

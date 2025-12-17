@@ -11,6 +11,9 @@ from company.models.company_model import Company
 from config.pagination.pagination import StandardResultsSetPagination
 from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, CompanyCookieJWTAuthentication
 from config.utilities.get_queryset import get_company_queryset
+from rest_framework.decorators import action
+from transfers.models.transfer_model import Transfer
+from transfers.services.product_transfer_service import ProductTransferService, ProductTransferError
 from loguru import logger
 
 
@@ -69,3 +72,46 @@ class ProductTransferViewSet(ModelViewSet):
             f"ProductTransfer '{instance.reference_number}' deleted by {identifier}."
         )
         instance.delete()
+
+
+    
+    @action(detail=True, methods=["post"], url_path="attach", url_name="attach",)
+    def attach(self, request, pk=None):
+        product_transfer = self.get_object()
+        transfer_id = request.data.get("transfer_id")
+
+        try:
+            transfer = Transfer.objects.get(id=transfer_id)
+            ProductTransferService.attach_to_transfer(product_transfer, transfer)
+        except (Transfer.DoesNotExist, ProductTransferError) as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(product_transfer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=["post"], url_path="detach", url_name="detach",)
+    def detach(self, request, pk=None):
+        product_transfer = self.get_object()
+
+        try:
+            ProductTransferService.detach_from_transfer(product_transfer)
+        except ProductTransferError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(product_transfer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+
+    @action(detail=True, methods=["post"], url_path="transfer", url_name="transfer",)
+    def transfer(self, request, pk=None):
+        product_transfer = self.get_object()
+
+        try:
+            ProductTransferService.transfer_product(product_transfer)
+        except ProductTransferError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(product_transfer)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -9,6 +9,8 @@ from transfers.models.cash_transfer_model import CashTransfer
 from transfers.serializers.cash_transfer_serializer import CashTransferSerializer
 from config.permissions.company_role_base_permission import CompanyRolePermission
 from company.models.company_model import Company
+from rest_framework.decorators import action
+from transfers.services.cash_transfer_service import CashTransferService, CashTransferError
 from loguru import logger
 
 
@@ -66,3 +68,42 @@ class CashTransferViewSet(ModelViewSet):
             f"CashTransfer '{instance.reference_number}' deleted by {identifier}."
         )
         instance.delete()
+
+
+
+    
+    @action(detail=True, methods=["post"], url_path="detach")
+    def detach(self, request, pk=None):
+        cash_transfer = self.get_object()
+
+        try:
+            CashTransferService.detach_from_transfer(cash_transfer)
+        except CashTransferError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(cash_transfer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="hold")
+    def hold(self, request, pk=None):
+        cash_transfer = self.get_object()
+
+        try:
+            CashTransferService.hold_cash_transfer(cash_transfer)
+        except CashTransferError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(cash_transfer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="release")
+    def release(self, request, pk=None):
+        cash_transfer = self.get_object()
+
+        try:
+            CashTransferService.release_cash_transfer(cash_transfer)
+        except CashTransferError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(cash_transfer)
+        return Response(serializer.data, status=status.HTTP_200_OK)

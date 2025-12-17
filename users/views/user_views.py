@@ -2,7 +2,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -16,15 +16,21 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from config.pagination.pagination import StandardResultsSetPagination
 from rest_framework.permissions import AllowAny
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import action
+from django.db.models import Q
+from users.services.user_service import UserService
 from loguru import logger
 
-# Read-only ViewSet for listing/retrieving users
-class UserViewSet(ReadOnlyModelViewSet):
+class UserViewSet(ModelViewSet):
+    """
+    Full CRUD + extra actions for User management.
+    Includes: activate/deactivate, role management, password reset, bulk operations, and search.
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = (SearchFilter, OrderingFilter)
-    search_fields = ('first_name', 'email', 'role')
+    search_fields = ('first_name', 'last_name', 'email', 'role')
     ordering_fields = '__all__'
     ordering = ['first_name']
 
@@ -34,21 +40,134 @@ class UserViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         current = self.request.user
 
-        # If a regular User instance
+        # Company admin can see all users in their company
+        if isinstance(current, User) and current.is_staff:
+            return User.objects.filter(company=current.company)
+
+        # Regular users can only see themselves
         if isinstance(current, User):
-            if current.is_staff:
-                # Company admin can see all users in their company
-                logger.info(User.objects.filter(company=current.company).values('role'))
-                return User.objects.filter(company=current.company)
-            logger.info(User.objects.filter(company=current.id).values('role'))
-            return User.objects.filter(id=current.id)  # Regular user can only see themselves
+            return User.objects.filter(id=current.id)
 
-        # If a Company instance (superuser), can see all users of that company
-        elif hasattr(current, "id"):  # crude check for Company
-            logger.info(User.objects.filter(company=current).values('role'))
-            return User.objects.filter(company=current)
-
+        # Fallback: no access
         return User.objects.none()
+
+    # -------------------------
+    # Single User Actions
+    # -------------------------
+    @action(detail=True, methods=["post"])
+    def activate(self, request, pk=None):
+        user = self.get_object()
+        UserService.activate_user(user)
+        return Response({"detail": f"User '{user.username}' activated."})
+
+    @action(detail=True, methods=["post"])
+    def deactivate(self, request, pk=None):
+        user = self.get_object()
+        UserService.deactivate_user(user)
+        return Response({"detail": f"User '{user.username}' deactivated."})
+
+    @action(detail=True, methods=["post"])
+    def assign_role(self, request, pk=None):
+        user = self.get_object()
+        role = request.data.get("role")
+        if not role:
+            return Response({"detail": "Role is required."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            UserService.assign_role_to_user(user, role)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": f"Role '{role}' assigned to user '{user.username}'."})
+
+    @action(detail=True, methods=["post"])
+    def remove_role(self, request, pk=None):
+        user = self.get_object()
+        UserService.remove_role_from_user(user)
+        return Response({"detail": f"Role removed from user '{user.username}'."})
+
+    @action(detail=True, methods=["post"])
+    def reset_password(self, request, pk=None):
+        user = self.get_object()
+        new_password = request.data.get("new_password")
+        if not new_password:
+            return Response({"detail": "New password is required."}, status=status.HTTP_400_BAD_REQUEST)
+        UserService.reset_user_password(user, new_password)
+        return Response({"detail": f"Password reset for user '{user.username}'."})
+
+    # -------------------------
+    # Bulk Actions
+    # -------------------------
+    @action(detail=False, methods=["post"])
+    def activate_bulk(self, request):
+        ids = request.data.get("user_ids", [])
+        if not ids:
+            return Response({"detail": "No user IDs provided."}, status=status.HTTP_400_BAD_REQUEST)
+        users = User.objects.filter(id__in=ids)
+        UserService.activate_users(list(users))
+        return Response({"detail": f"Activated {users.count()} users."})
+
+    @action(detail=False, methods=["post"])
+    def deactivate_bulk(self, request):
+        ids = request.data.get("user_ids", [])
+        if not ids:
+            return Response({"detail": "No user IDs provided."}, status=status.HTTP_400_BAD_REQUEST)
+        users = User.objects.filter(id__in=ids)
+        UserService.deactivate_users(list(users))
+        return Response({"detail": f"Deactivated {users.count()} users."})
+
+    @action(detail=False, methods=["post"])
+    def assign_role_bulk(self, request):
+        ids = request.data.get("user_ids", [])
+        role = request.data.get("role")
+        if not ids or not role:
+            return Response({"detail": "User IDs and role are required."}, status=status.HTTP_400_BAD_REQUEST)
+        users = User.objects.filter(id__in=ids)
+        try:
+            UserService.assign_role_to_users(list(users), role)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": f"Assigned role '{role}' to {users.count()} users."})
+
+    @action(detail=False, methods=["post"])
+    def delete_bulk(self, request):
+        ids = request.data.get("user_ids", [])
+        if not ids:
+            return Response({"detail": "No user IDs provided."}, status=status.HTTP_400_BAD_REQUEST)
+        users = User.objects.filter(id__in=ids)
+        count = users.count()
+        users.delete()
+        return Response({"detail": f"Deleted {count} users."})
+
+    @action(detail=False, methods=["post"])
+    def reset_password_bulk(self, request):
+        ids = request.data.get("user_ids", [])
+        new_password = request.data.get("new_password")
+        if not ids or not new_password:
+            return Response({"detail": "User IDs and new password are required."}, status=status.HTTP_400_BAD_REQUEST)
+        users = User.objects.filter(id__in=ids)
+        for user in users:
+            UserService.reset_user_password(user, new_password)
+        return Response({"detail": f"Password reset for {users.count()} users."})
+
+    # -------------------------
+    # Search / Query
+    # -------------------------
+    @action(detail=False, methods=["get"])
+    def search(self, request):
+        query = request.query_params.get("q", "")
+        role = request.query_params.get("role", None)
+        if not query and not role:
+            return Response({"detail": "Provide a search query or role."}, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = User.objects.all()
+        if query:
+            qs = qs.filter(Q(first_name__icontains=query) | Q(last_name__icontains=query) | Q(email__icontains=query))
+        if role:
+            if role not in UserService.ALLOWED_ROLES:
+                return Response({"detail": f"Role '{role}' is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+            qs = qs.filter(role=role)
+
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
 
 
 

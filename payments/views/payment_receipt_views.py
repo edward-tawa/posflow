@@ -8,6 +8,10 @@ from config.pagination.pagination import StandardResultsSetPagination
 from payments.models import PaymentReceipt
 from payments.serializers.payment_receipt_serializer import PaymentReceiptSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
+from payments.services.payment_receipt_service import PaymentReceiptService
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -89,3 +93,41 @@ class PaymentReceiptViewSet(ModelViewSet):
             f"PaymentReceipt '{receipt_number}' deleted by '{actor}' "
             f"from company '{company.name}'."
         )
+
+
+    @action(detail=True, methods=['post'], url_path='send')
+    def send_receipt(self, request, pk=None):
+        receipt = self.get_object()
+        PaymentReceiptService.mark_receipt_as_sent(receipt)
+        return Response({"status": "SENT"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='cancel')
+    def cancel_receipt(self, request, pk=None):
+        receipt = self.get_object()
+        PaymentReceiptService.mark_receipt_as_cancelled(receipt)
+        return Response({"status": "CANCELLED"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        receipt = self.get_object()
+        new_status = request.data.get("status")
+        PaymentReceiptService.update_payment_receipt_status(receipt, new_status)
+        return Response({"status": new_status}, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # RELATION ACTIONS
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='attach-relation')
+    def attach_relation(self, request, pk=None):
+        receipt = self.get_object()
+        relation_field = request.data.get("relation_field")
+        entity_id = request.data.get("entity_id")
+        PaymentReceiptService.attach_relation(receipt, relation_field, entity_id)
+        return Response({f"{relation_field}_id": entity_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='detach-relation')
+    def detach_relation(self, request, pk=None):
+        receipt = self.get_object()
+        relation_field = request.data.get("relation_field")
+        PaymentReceiptService.detach_relation(receipt, relation_field)
+        return Response({f"{relation_field}_detached": True}, status=status.HTTP_200_OK)

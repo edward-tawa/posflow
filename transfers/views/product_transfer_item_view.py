@@ -9,6 +9,8 @@ from transfers.models.product_transfer_item_model import ProductTransferItem
 from transfers.serializers.product_transfer_item_serializer import ProductTransferItemSerializer
 from config.permissions.company_role_base_permission import CompanyRolePermission
 from company.models.company_model import Company
+from rest_framework.decorators import action
+from transfers.services.product_transfer_item_service import ProductTransferItemService, ProductTransferItemError
 from loguru import logger
 
 class ProductTransferItemViewSet(ModelViewSet):
@@ -61,3 +63,30 @@ class ProductTransferItemViewSet(ModelViewSet):
             f"ProductTransferItem '{instance.id}' deleted by {identifier}."
         )
         instance.delete()
+
+    
+    @action(detail=True, methods=["post"], url_path="attach", url_name="attach")
+    def attach(self, request, pk=None):
+        item = self.get_object()
+        transfer_id = request.data.get("transfer_id")
+
+        try:
+            transfer = Transfer.objects.get(id=transfer_id)
+            ProductTransferItemService.attach_to_transfer(item, transfer)
+        except (Transfer.DoesNotExist, ProductTransferItemError) as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="detach", url_name="detach")
+    def detach(self, request, pk=None):
+        item = self.get_object()
+
+        try:
+            ProductTransferItemService.detach_from_transfer(item)
+        except ProductTransferItemError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(item)
+        return Response(serializer.data, status=status.HTTP_200_OK)

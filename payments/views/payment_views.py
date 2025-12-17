@@ -7,6 +7,10 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from payments.models import Payment
 from payments.serializers.payment_serializer import PaymentSerializer
+from payments.services.payment_service import PaymentService
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -99,3 +103,59 @@ class PaymentViewSet(ModelViewSet):
             f"Payment '{payment_number}' deleted by '{actor}' "
             f"from company '{company.name}'."
         )
+
+
+
+    @action(detail=True, methods=['post'], url_path='complete')
+    def complete_payment(self, request, pk=None):
+        payment = self.get_object()
+        PaymentService.mark_payment_as_completed(payment)
+        return Response({"status": "COMPLETED"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='fail')
+    def fail_payment(self, request, pk=None):
+        payment = self.get_object()
+        PaymentService.mark_payment_as_failed(payment)
+        return Response({"status": "FAILED"}, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # RELATION ACTIONS
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='attach-order')
+    def attach_order(self, request, pk=None):
+        payment = self.get_object()
+        order_id = request.data.get("order_id")
+        PaymentService.attach_payment_to_order(payment, order_id)
+        return Response({"order_id": order_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='detach-order')
+    def detach_order(self, request, pk=None):
+        payment = self.get_object()
+        PaymentService.detach_payment_from_order(payment)
+        return Response({"order_detached": True}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='attach-customer')
+    def attach_customer(self, request, pk=None):
+        payment = self.get_object()
+        customer_id = request.data.get("customer_id")
+        PaymentService.attach_payment_to_customer(payment, customer_id)
+        return Response({"customer_id": customer_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='detach-customer')
+    def detach_customer(self, request, pk=None):
+        payment = self.get_object()
+        PaymentService.detach_payment_from_customer(payment)
+        return Response({"customer_detached": True}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='attach-invoice')
+    def attach_invoice(self, request, pk=None):
+        payment = self.get_object()
+        invoice_id = request.data.get("invoice_id")
+        PaymentService.attach_payment_to_invoice(payment, invoice_id)
+        return Response({"invoice_id": invoice_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='detach-invoice')
+    def detach_invoice(self, request, pk=None):
+        payment = self.get_object()
+        PaymentService.detach_payment_from_invoice(payment)
+        return Response({"invoice_detached": True}, status=status.HTTP_200_OK)

@@ -8,6 +8,10 @@ from config.pagination.pagination import StandardResultsSetPagination
 from payments.models import PaymentMethod
 from payments.serializers.payment_method_serializer import PaymentMethodSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
+from payments.services.payment_method_service import PaymentMethodService
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -74,3 +78,30 @@ class PaymentMethodViewSet(ModelViewSet):
         logger.warning(
             f"PaymentMethod '{method_name}' deleted by '{actor}' from company '{company.name}'."
         )
+
+
+
+    @action(detail=True, methods=['post'], url_path='activate')
+    def activate(self, request, pk=None):
+        method = self.get_object()
+        PaymentMethodService.activate_payment_method(method)
+        return Response({"is_active": True}, status=status.HTTP_200_OK)
+
+
+    @action(detail=True, methods=['post'], url_path='deactivate')
+    def deactivate(self, request, pk=None):
+        method = self.get_object()
+        PaymentMethodService.deactivate_payment_method(method)
+        return Response({"is_active": False}, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # CRUD ACTIONS
+    # -------------------------
+    # Standard create, update, delete are handled by ModelViewSet,
+    # but you could add soft-delete or special validation if needed.
+
+    @action(detail=True, methods=['post'], url_path='delete')
+    def delete_method(self, request, pk=None):
+        method = self.get_object()
+        PaymentMethodService.delete_payment_method(method)
+        return Response({"deleted": True}, status=status.HTTP_200_OK)

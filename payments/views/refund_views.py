@@ -8,6 +8,10 @@ from config.pagination.pagination import StandardResultsSetPagination
 from payments.models.refund_model import Refund
 from payments.serializers.refund_serializer import RefundSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
+from payments.services.refund_service import RefundService
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from loguru import logger
 
 
@@ -82,3 +86,77 @@ class RefundViewSet(ModelViewSet):
             f"Refund '{refund_number}' deleted by '{actor}' "
             f"from company '{company.name}'."
         )
+
+    
+    @action(detail=True, methods=['post'], url_path='process')
+    def process_refund(self, request, pk=None):
+        refund = self.get_object()
+        RefundService.mark_refund_as_processed(refund)
+        return Response({"status": "processed"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='fail')
+    def fail_refund(self, request, pk=None):
+        refund = self.get_object()
+        RefundService.mark_refund_as_failed(refund)
+        return Response({"status": "failed"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='pending')
+    def pending_refund(self, request, pk=None):
+        refund = self.get_object()
+        RefundService.mark_refund_as_pending(refund)
+        return Response({"status": "pending"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='cancel')
+    def cancel_refund_action(self, request, pk=None):
+        refund = self.get_object()
+        RefundService.cancel_refund(refund)
+        return Response({"status": "cancelled"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='update-status')
+    def update_status(self, request, pk=None):
+        refund = self.get_object()
+        new_status = request.data.get("status")
+        RefundService.update_refund_status(refund, new_status)
+        return Response({"status": new_status}, status=status.HTTP_200_OK)
+
+    # -------------------------
+    # RELATION ACTIONS
+    # -------------------------
+    @action(detail=True, methods=['post'], url_path='attach-payment')
+    def attach_payment(self, request, pk=None):
+        refund = self.get_object()
+        payment_id = request.data.get("payment_id")
+        RefundService.attach_to_payment(refund, payment_id)
+        return Response({"payment_id": payment_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='detach-payment')
+    def detach_payment(self, request, pk=None):
+        refund = self.get_object()
+        RefundService.detach_from_payment(refund)
+        return Response({"payment_detached": True}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='attach-order')
+    def attach_order(self, request, pk=None):
+        refund = self.get_object()
+        order_id = request.data.get("order_id")
+        RefundService.attach_to_order(refund, order_id)
+        return Response({"order_id": order_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='detach-order')
+    def detach_order(self, request, pk=None):
+        refund = self.get_object()
+        RefundService.detach_from_order(refund)
+        return Response({"order_detached": True}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='attach-customer')
+    def attach_customer(self, request, pk=None):
+        refund = self.get_object()
+        customer_id = request.data.get("customer_id")
+        RefundService.attach_refund_to_customer(refund, customer_id)
+        return Response({"customer_id": customer_id}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='detach-customer')
+    def detach_customer(self, request, pk=None):
+        refund = self.get_object()
+        RefundService.detach_refund_from_customer(refund)
+        return Response({"customer_detached": True}, status=status.HTTP_200_OK)

@@ -10,6 +10,8 @@ from company.models.company_model import Company
 from config.pagination.pagination import StandardResultsSetPagination
 from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, CompanyCookieJWTAuthentication
 from config.utilities.get_queryset import get_company_queryset
+from rest_framework.decorators import action
+from transfers.services.transfer_service import TransferService
 from loguru import logger
 
 
@@ -94,3 +96,26 @@ class TransferViewSet(ModelViewSet):
         )
 
         instance.delete()
+
+
+
+    @action(detail=True, methods=["post"], url_path="update-status", url_name="update-status",)
+    def update_status(self, request, pk=None):
+        transfer = self.get_object()
+        new_status = request.data.get("status")
+
+        try:
+            TransferService.update_transfer_status(
+                transfer=transfer,
+                new_status=new_status
+            )
+        except ValueError as e:
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {"status": transfer.status},
+            status=status.HTTP_200_OK
+        )
