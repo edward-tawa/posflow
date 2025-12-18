@@ -6,7 +6,7 @@ from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, Co
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
-from config.utilities.get_queryset import get_company_queryset
+from config.utilities.get_queryset import get_account_company_queryset
 from accounts.permissions.account_permission import AccountPermissionAccess
 from company.models.company_model import Company
 from loguru import logger
@@ -29,7 +29,7 @@ class PurchasesAccountViewSet(ModelViewSet):
     def get_queryset(self):
         try:
             """Return PurchasesAccount queryset filtered by the logged-in company/user."""
-            return get_company_queryset(self.request, PurchasesAccount).select_related('account', 'branch', 'supplier', 'recipient_person')
+            return get_account_company_queryset(self.request, PurchasesAccount).select_related('account', 'branch', 'supplier', 'recipient_person')
         except Exception as e:
             logger.error(f"Error: {e}")
             return self.queryset.none()

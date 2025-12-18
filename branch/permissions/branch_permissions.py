@@ -25,14 +25,15 @@ class BranchPermissions(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         user = request.user
+     
         if not user or not user.is_authenticated:
             return False
         
         # Object must belong to user's company
         if obj.company != getattr(user, 'company', None):
             return False
-
+        
         # Allow SAFE_METHODS for view roles
-        if request.method in SAFE_METHODS:
-            user.is_staff or user.is_superuser
-        user.is_staff or user.is_superuser
+        allowed_roles = self.VIEW_ROLES if request.method in SAFE_METHODS else self.EDIT_ROLES
+        if user.is_staff or user.is_superuser or user.role in allowed_roles:
+            return True

@@ -47,7 +47,7 @@ class BranchAccountViewSet(ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        branch_account = serializer.save(company=company) #Add branch = self.request.user.branch
+        branch_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
         logger.bind(branch=branch_account.branch.name, account_number=branch_account.account.account_number).success(
             f"BranchAccount for branch '{branch_account.branch.name}' and account '{branch_account.account.name}' (Number: {branch_account.account.account_number}) created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."

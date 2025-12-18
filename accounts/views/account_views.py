@@ -43,7 +43,7 @@ class AccountViewSet(ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        account = serializer.save(company=company)
+        account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
         logger.bind(account_number=account.account_number).success(
             f"Account '{account.name}' (Number: {account.account_number}) created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
@@ -52,7 +52,7 @@ class AccountViewSet(ModelViewSet):
     def perform_update(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        account = serializer.save(company = company)
+        account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
         logger.bind(account_number=account.account_number).info(
             f"Account '{account.name}' (Number: {account.account_number}) updated by {actor}."

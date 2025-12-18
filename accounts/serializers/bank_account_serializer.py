@@ -72,6 +72,7 @@ class BankAccountSerializer(serializers.ModelSerializer):
 
     # ----------------------- CREATE / UPDATE -----------------------
     def create(self, validated_data):
+        logger.info(validated_data)
         request = self.context.get('request')
         user = getattr(request, 'user', None)
         company = get_expected_company(request)
@@ -112,6 +113,8 @@ class BankAccountSerializer(serializers.ModelSerializer):
             )
 
         try:
+            validated_data.pop('branch', None)
+            validated_data['branch'] = request.user.branch
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()

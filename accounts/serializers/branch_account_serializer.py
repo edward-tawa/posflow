@@ -79,16 +79,22 @@ class BranchAccountSerializer(serializers.ModelSerializer):
         actor = getattr(user, 'username', None) or getattr(company, 'name', None)
         logger.info(company)
         # Ensure company-awareness
-        if validated_data['company'] != company:
-            logger.error(
-                f"{actor} attempted to create a BranchAccount for company "
-                f"'{validated_data['company'].id}' which does not match their own."
-            )
-            raise serializers.ValidationError(
-                "You cannot create a BranchAccount for a different company's data."
-            )
+        # if validated_data['company'] != company:
+        #     logger.error(
+        #         f"{actor} attempted to create a BranchAccount for company "
+        #         f"'{validated_data['company'].id}' which does not match their own."
+        #     )
+        #     raise serializers.ValidationError(
+        #         "You cannot create a BranchAccount for a different company's data."
+        #     )
 
         try:
+            validated_data.pop('branch', None)
+            validated_data.pop('company', None)
+
+            validated_data['branch'] = request.user.branch
+            validated_data['company'] = company
+
             logger.info(validated_data)
             validated_data.pop('company', None)
             branch_account = BranchAccount.objects.create(**validated_data)
@@ -112,9 +118,10 @@ class BranchAccountSerializer(serializers.ModelSerializer):
         company = get_expected_company(request)
         actor = getattr(user, 'username', None) or getattr(company, 'name', None)
 
-        # Prevent changes to company
+        # Prevent changes to company and branch
         validated_data.pop('company', None)
-
+        validated_data.pop('branch', None)
+        
         if instance.account.company != company:
             logger.error(
                 f"{actor} attempted to update BranchAccount '{instance.branch_name}' "

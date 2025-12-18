@@ -78,20 +78,27 @@ class AccountSerializer(serializers.ModelSerializer):
         actor = getattr(user, 'username', None) or getattr(company, 'name', None)
 
         # Ensure company-awareness
-        if validated_data['company'] != company:
-            logger.warning(
-                f"{actor} attempted to create an Account for company "
-                f"'{validated_data['company'].name}' outside their company '{company.name}'."
-            )
-            raise serializers.ValidationError(
-                "You cannot create an account outside your company."
-            )
+        # if validated_data['company'] != company:
+        #     logger.warning(
+        #         f"{actor} attempted to create an Account for company "
+        #         f"'{validated_data['company'].name}' outside their company '{company.name}'."
+        #     )
+        #     raise serializers.ValidationError(
+        #         "You cannot create an account outside your company."
+        #     )
+            # ?
 
         # Remove read-only fields from creation
         validated_data.pop('account_number', None)
         validated_data.pop('balance', None)
 
         try:
+            validated_data.pop('branch', None)
+            validated_data.pop('company', None)
+
+            validated_data['branch'] = request.user.branch
+            validated_data['company'] = request.user.company
+
             account = Account.objects.create(**validated_data)
             logger.info(
                 f"{actor} created Account '{account.name}' (ID: {account.id}) "
