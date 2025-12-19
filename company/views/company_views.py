@@ -17,6 +17,10 @@ from company.permissions.company_create_or_is_admin import CompanyCreateOrAdminP
 from config.pagination.pagination import StandardResultsSetPagination
 from loguru import logger
 from config.utilities.check_company_existance import check_existance
+from company.services.company_service import CompanyService
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 
 
@@ -41,6 +45,100 @@ class CompanyViewSet(ReadOnlyModelViewSet):
             return Company.objects.filter(id=user.company.id)
         else:
             return Company.objects.none()
+        
+    
+
+
+    @action(detail=True, methods=["post"], url_path="activate")
+    def activate(self, request, pk=None):
+        company = self.get_object()
+        CompanyService.activate_company(company)
+        return Response({"detail": "Company activated."})
+
+    @action(detail=True, methods=["post"], url_path="deactivate")
+    def deactivate(self, request, pk=None):
+        company = self.get_object()
+        CompanyService.deactivate_company(company)
+        return Response({"detail": "Company deactivated."})
+
+    # -------------------------
+    # LOGO MANAGEMENT
+    # -------------------------
+    @action(detail=True, methods=["post"], url_path="set-logo")
+    def set_logo(self, request, pk=None):
+        company = self.get_object()
+        logo_path = request.data.get("logo")
+
+        if not logo_path:
+            return Response(
+                {"detail": "Logo path is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        CompanyService.set_company_logo(company, logo_path)
+        return Response({"detail": "Company logo updated."})
+
+    @action(detail=True, methods=["post"], url_path="remove-logo")
+    def remove_logo(self, request, pk=None):
+        company = self.get_object()
+        CompanyService.remove_company_logo(company)
+        return Response({"detail": "Company logo removed."})
+
+    @action(detail=True, methods=["get"], url_path="logo")
+    def get_logo(self, request, pk=None):
+        company = self.get_object()
+        return Response({"logo": company.logo})
+
+    # -------------------------
+    # LIST / FILTER
+    # -------------------------
+    @action(detail=False, methods=["get"], url_path="active")
+    def active_companies(self, request):
+        companies = CompanyService.list_active_companies()
+        serializer = self.get_serializer(companies, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], url_path="search")
+    def search(self, request):
+        query = request.query_params.get("q", "")
+        companies = CompanyService.search_companies_by_name(query)
+        serializer = self.get_serializer(companies, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], url_path="by-email-domain")
+    def by_email_domain(self, request):
+        domain = request.query_params.get("domain")
+        if not domain:
+            return Response(
+                {"detail": "domain query param is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        companies = CompanyService.get_companies_by_email_domain(domain)
+        serializer = self.get_serializer(companies, many=True)
+        return Response(serializer.data)
+
+    # -------------------------
+    # STATS / UTILITIES
+    # -------------------------
+    @action(detail=False, methods=["get"], url_path="count")
+    def count(self, request):
+        return Response({"count": CompanyService.count_companies()})
+
+    @action(detail=False, methods=["get"], url_path="count-active")
+    def count_active(self, request):
+        return Response({"count": CompanyService.count_active_companies()})
+
+    @action(detail=False, methods=["get"], url_path="exists")
+    def exists(self, request):
+        name = request.query_params.get("name")
+        if not name:
+            return Response(
+                {"detail": "name query param is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response({"exists": CompanyService.company_exists(name)})
 
 
 # Register a new company
