@@ -26,4 +26,4 @@ class CashAccount(CreateUpdateBaseModel):
         ]
 
     def __str__(self):
-        return f"CashAccount for {self.account.name} with balance {self.balance}"
+        return f"CashAccount for {self.account.name} with balance {self.account.balance}"

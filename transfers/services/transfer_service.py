@@ -40,13 +40,13 @@ class TransferService:
         transfer.status = new_status
         transfer.save(update_fields=["status"])
         logger.info(
-            f"Transfer '{transfer.transfer_number}' status updated to '{new_status}'."
+            f"Transfer '{transfer.reference_number}' status updated to '{new_status}'."
         )
         return transfer
 
     @staticmethod
     @db_transaction.atomic
     def delete_transfer(transfer: Transfer) -> None:
-        transfer_number = transfer.transfer_number
+        transfer_number = transfer.reference_number
         transfer.delete()
         logger.info(f"Transfer '{transfer_number}' deleted.")

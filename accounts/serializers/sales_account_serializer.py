@@ -45,8 +45,8 @@ class SalesAccountSerializer(serializers.ModelSerializer):
 
     def get_branch_summary(self, obj):
         return {
-            'id': obj.branch.id,
-            "name": obj.branch.name
+            'id': obj.branch.id if obj.branch else None,
+            "name": obj.branch.name if obj.branch else None
         }
     # ----------------------- VALIDATORS -----------------------
     def validate_company(self, company):
@@ -96,6 +96,7 @@ class SalesAccountSerializer(serializers.ModelSerializer):
             )
 
         try:
+            validated_data['branch'] = request.user.branch
             sales_account = SalesAccount.objects.create(**validated_data)
             logger.info(
                 f"{actor} created SalesAccount for '{sales_account.account.name}' (ID: {sales_account.id})."

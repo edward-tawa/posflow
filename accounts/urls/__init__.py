@@ -6,7 +6,7 @@ from .loan_account_urls import urlpatterns as loan_account_urls
 from .supplier_account_urls import urlpatterns as supplier_account_urls
 from .bank_account_urls import urlpatterns as bank_account_urls
 from .cash_account_urls import urlpatterns as cash_account_urls 
-# from .sales_account_urls import urlpatterns as sales_account_urls
+from .sales_account_urls import urlpatterns as sales_account_urls
 from .purchases_account_urls import urlpatterns as purchases_account_urls
 from .sales_returns_account_urls import urlpatterns as sales_returns_account_urls
 from .purchases_returns_account_urls import urlpatterns as purchases_returns_account_urls
@@ -23,7 +23,7 @@ urlpatterns = (
   account_urls +
   bank_account_urls +
   cash_account_urls +
-  # sales_account_urls +
+  sales_account_urls +
   purchases_account_urls + 
   sales_returns_account_urls +
   purchases_returns_account_urls +

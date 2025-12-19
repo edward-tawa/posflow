@@ -49,7 +49,8 @@ class CustomerAccountViewSet(ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        customer_account = serializer.save(company=company)#Add replace company with branch
+        logger.info(user.branch)
+        customer_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
         logger.bind(customer=customer_account.customer.first_name, account_number=customer_account.account.account_number).success(
             f"CustomerAccount for customer '{customer_account.customer.first_name}' and account '{customer_account.account.name}' (Number: {customer_account.account.account_number}) created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
@@ -68,8 +69,8 @@ class CustomerAccountViewSet(ModelViewSet):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(customer=instance.customer.name, account_number=instance.account.number).warning(
-            f"CustomerAccount for customer '{instance.customer.name}' and account '{instance.account.name}' (Number: {instance.account.number}) deleted by {actor}."
+        logger.bind(customer=instance.customer.first_name, account_number=instance.account.account_number).warning(
+            f"CustomerAccount for customer '{instance.customer.first_name}' and account '{instance.account.name}' (Number: {instance.account.account_number}) deleted by {actor}."
         )
         instance.delete()
 

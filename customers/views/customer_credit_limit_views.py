@@ -11,7 +11,7 @@ from config.auth.jwt_token_authentication import (
     CompanyCookieJWTAuthentication,
     UserCookieJWTAuthentication,
 )
-
+from drf_yasg.utils import swagger_auto_schema
 
 class CustomerCreditLimitView(APIView):
     authentication_classes = [
@@ -20,7 +20,7 @@ class CustomerCreditLimitView(APIView):
         JWTAuthentication,
     ]
     permission_classes = [ManageCustomersPermission]
-
+    @swagger_auto_schema(request_body=AmountSerializer)
     def post(self, request, customer_id, *args, **kwargs):
         """
         Set or create credit limit for a customer.

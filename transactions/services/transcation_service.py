@@ -5,12 +5,14 @@ from accounts.models.account_model import Account
 from accounts.services.accounts_service import AccountsService
 from rest_framework.response import Response
 from loguru import logger
+from decimal import Decimal
 from django.db import transaction as db_transaction
 from config.pagination.pagination import StandardResultsSetPagination
 
 class TransactionService:
     @staticmethod
     def validate_transaction(transaction):
+        logger.info(transaction)
         logger.debug(f"Validating transaction {transaction.transaction_number}")
         if transaction.total_amount <= 0:
             raise ValueError("Transaction amount must be greater than zero.")
@@ -27,9 +29,9 @@ class TransactionService:
                     credit_account,
                     transaction_type,
                     transaction_category,
-                    total_amount=0,
-                    customer=None,
-                    supplier=None
+                    total_amount,
+                    customer,
+                    supplier
                 ):
         """
         Create a transaction with auto-generated transaction_number, status, and date.
@@ -44,6 +46,7 @@ class TransactionService:
                 transaction_category=transaction_category,
                 customer=customer,
                 supplier=supplier,
+                total_amount = total_amount
                 # total_amount defaults to 0
                 # status defaults to 'DRAFT'
                 # transaction_number is auto-generated in save()
@@ -74,12 +77,14 @@ class TransactionService:
             amount = transaction.total_amount
 
             debit_balance = AccountsService.get_account_balance(debit_account)
-            debit_account.balance = debit_balance + amount
+            logger.info(f'debit_bal:{debit_balance} + amount:{amount}')
+            debit_account.balance = Decimal(debit_balance) + amount
             debit_account.save(update_fields=['balance'])
             logger.info(f"Debited Account {debit_account.id}: {debit_balance} → {debit_account.balance}")
 
             credit_balance = AccountsService.get_account_balance(credit_account)
-            credit_account.balance = credit_balance - amount
+            logger.info(f'debit_bal:{credit_balance} + amount:{amount}')
+            credit_account.balance = Decimal(credit_balance) - amount
             credit_account.save(update_fields=['balance'])
             logger.info(f"Credited Account {credit_account.id}: {credit_balance} → {credit_account.balance}")
 

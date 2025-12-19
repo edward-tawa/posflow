@@ -17,6 +17,7 @@ from config.utilities.get_company_or_user_company import get_expected_company
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_company_queryset
 from loguru import logger
+from drf_yasg.utils import swagger_auto_schema
 
 
 
@@ -27,7 +28,7 @@ class CreateCreditSaleView(APIView):
         JWTAuthentication
     ]
     permission_classes = [ManageCustomersPermission]
-
+    @swagger_auto_schema(request_body=AmountSerializer)
     def post(self, request, customer_id, *args, **kwargs):
         serializer = AmountSerializer(data=request.data)
         if not serializer.is_valid():

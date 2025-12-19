@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from loguru import logger
-
+from drf_yasg.utils import swagger_auto_schema
 from customers.services.customer_cash_service import CustomerCashService
 from customers.models.customer_model import Customer
 from customers.permissions.manage_customers_permission import ManageCustomersPermission
@@ -22,6 +22,7 @@ class CreateCashSaleView(APIView):
     ]
     permission_classes = [ManageCustomersPermission]
 
+    @swagger_auto_schema(request_body=AmountSerializer)
     def post(self, request, customer_id, *args, **kwargs):
         """
         Create a cash sale for a specific customer.
@@ -31,7 +32,8 @@ class CreateCashSaleView(APIView):
         amount = serializer.validated_data["amount"]
 
         try:
-            customer = Customer.objects.get(id=customer_id)
+            customer = Customer.objects.get(id=customer_id, company = request.user.company)
+            logger.info(customer)
         except Customer.DoesNotExist:
             return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
 

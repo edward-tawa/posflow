@@ -86,6 +86,7 @@ class CashAccountSerializer(serializers.ModelSerializer):
             )
 
         try:
+            validated_data['branch'] = request.user.branch
             cash_account = CashAccount.objects.create(**validated_data)
             logger.info(
                 f"{actor} created CashAccount for '{cash_account.account.name}' (ID: {cash_account.id})."
