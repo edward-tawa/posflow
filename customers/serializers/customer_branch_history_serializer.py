@@ -75,6 +75,7 @@ class CustomerBranchHistorySerializer(CompanyValidationMixin, serializers.ModelS
         actor = getattr(user, 'username', None) or 'Unknown'
 
         try:
+            validated_data['branch'] = request.user.branch
             history = CustomerBranchHistory.objects.create(**validated_data)
             logger.info(f"CustomerBranchHistory for customer '{history.customer.email}' at branch '{history.branch.name}' created by {actor}.")
             return history

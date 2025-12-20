@@ -86,17 +86,18 @@ class EmployeeAccountSerializer(serializers.ModelSerializer):
         actor = getattr(user, 'username', None) or getattr(company, 'name', None)
 
         # Ensure company-awareness
-        if validated_data['company'] != company:
-            logger.error(
-                f"{actor} attempted to create EmployeeAccount for a different company."
-            )
-            raise serializers.ValidationError(
-                "You cannot create an EmployeeAccount for a different company's data."
-            )
+        # if validated_data['company'] != company:
+        #     logger.error(
+        #         f"{actor} attempted to create EmployeeAccount for a different company."
+        #     )
+        #     raise serializers.ValidationError(
+        #         "You cannot create an EmployeeAccount for a different company's data."
+        #     )
 
         try:
             logger.info(validated_data)
             validated_data.pop('company', None)
+            validated_data['branch'] = request.user.branch
             employee_account = EmployeeAccount.objects.create(**validated_data)
             logger.info(
                 f"{actor} created EmployeeAccount '{employee_account.employee.first_name}' "
