@@ -8,15 +8,16 @@ class Product(CreateUpdateBaseModel):
     PREFIX = "PROD"
     # Product model representing items in inventory
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='products')
+    branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=255)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     product_category = models.ForeignKey('inventory.ProductCategory', on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
-    stock_quantity = models.IntegerField(default=0)
-    sku = models.CharField(max_length=100)
+    stock = models.IntegerField(default=0)
+    sku = models.CharField(max_length=100, unique=False, blank=True)  # SKU will be unique per company
 
     class Meta:
-        unique_together = ('company', 'sku')  # SKU unique per company
+        unique_together = ('company', 'branch', 'sku')  # SKU unique per company
         ordering = ['name']
 
     def generate_sku(self):
@@ -33,4 +34,4 @@ class Product(CreateUpdateBaseModel):
 
 
     def __str__(self):
-        return f"{self.name} ({self.company.name})"
+        return f"{self.name} ({self.company.name} - {self.branch.name})"

@@ -61,4 +61,24 @@ class SalesReturnService:
             raise
     
 
+    @staticmethod
+    @db_transaction.atomic
+    def restore_stock_for_return(sales_return: SalesReturn) -> None:
+        """
+        Restores stock for all products in a given sales return.
+        Useful if the return was voided or needs to be reversed.
+        """
+        try:
+            for item in sales_return.items.all():
+                product = item.product
+                product.stock += item.quantity
+                product.save(update_fields=['stock'])
+                logger.info(
+                    f"Restored {item.quantity} to stock of '{product.name}'."
+                    f"New stock: {product.stock}"
+                )
 
+            logger.info(f"Stock restored for all items in sales return '{sales_return.return_number}'")
+        except Exception as e:
+            logger.error(f"Error restoring stock for sales return '{sales_return.return_number}': {str(e)}")
+            raise

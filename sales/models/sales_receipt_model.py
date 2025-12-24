@@ -13,6 +13,7 @@ class SalesReceipt(CreateUpdateBaseModel):
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='sales_receipts')
     customer = models.ForeignKey('customers.Customer', on_delete=models.CASCADE, related_name='sales_receipts')
     sale = models.ForeignKey('sales.Sale', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_receipts')
+    sales_order = models.ForeignKey('sales.SalesOrder', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_receipts')
     receipt_number = models.CharField(max_length=20, unique=True)
     receipt_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)

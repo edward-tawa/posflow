@@ -18,6 +18,7 @@ class SalesInvoice(CreateUpdateBaseModel):
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='sales_invoices')
     customer = models.ForeignKey('customers.Customer', on_delete=models.CASCADE, related_name='sales_invoices')
     sale = models.ForeignKey('sales.Sale', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_invoices')
+    sales_order = models.ForeignKey('sales.SalesOrder', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_invoices')
     receipt = models.ForeignKey('sales.SalesReceipt', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_invoices')
     
     invoice_number = models.CharField(max_length=20, unique=True)

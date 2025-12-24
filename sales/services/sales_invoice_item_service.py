@@ -5,6 +5,9 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.utils import timezone
 from loguru import logger
 
+from sales.models.sales_order_model import SalesOrder
+from sales.services.sales_receipt_item_service import SalesReceiptItemService
+
 
 class SalesInvoiceItemService:
 
@@ -52,6 +55,14 @@ class SalesInvoiceItemService:
         except Exception as e:
             logger.error(f"Error deleting sales invoice item '{item.id}': {str(e)}")
             raise
+
+    @staticmethod
+    def get_total_quantity(invoice: SalesInvoice) -> int:
+        """
+        Returns the total quantity of all items in the invoice
+        """
+        return sum(item.quantity for item in invoice.items.all())
+
 
     @staticmethod
     @db_transaction.atomic
@@ -113,3 +124,21 @@ class SalesInvoiceItemService:
         except Exception as e:
             logger.error(f"Error bulk creating sales invoice items for invoice '{invoice.invoice_number}': {str(e)}")
             raise
+
+    
+    @staticmethod
+    @db_transaction.atomic
+    def add_order_items_to_invoice(sales_order: SalesOrder, sales_invoice: SalesInvoice):
+        for order_item in sales_order.items.all():
+            SalesInvoiceItemService.create_sales_invoice_item(
+                sales_invoice=sales_invoice,
+                product=order_item.product,
+                product_name=order_item.product_name,
+                quantity=order_item.quantity,
+                unit_price=order_item.unit_price,
+                tax_rate=order_item.tax_rate
+            )
+        logger.info(f"Added {sales_order.items.count()} items from Order '{sales_order.order_number}' to Invoice '{sales_invoice.invoice_number}'.")
+
+
+    

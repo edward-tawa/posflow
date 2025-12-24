@@ -10,15 +10,15 @@ class SalesAccount(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='sales_accounts'
     )
+
+    company = models.ForeignKey(
+        'company.Company',
+        on_delete=models.CASCADE,
+        related_name='sales_accounts'
+    )
+
     branch = models.ForeignKey(
         'branch.Branch',
-        on_delete=models.CASCADE,
-        related_name='sales_accounts',
-        null=True,
-        blank=True
-    )
-    customer = models.ForeignKey(
-        'customers.Customer',
         on_delete=models.CASCADE,
         related_name='sales_accounts',
         null=True,

@@ -13,13 +13,40 @@ class SalesOrderItemService:
     Includes detailed logging for key operations.
     """
 
+    from sales.models.sales_order_item_model import SalesOrderItem
+from sales.models.sales_order_model import SalesOrder
+from inventory.models import Product
+from django.db import transaction as db_transaction
+from loguru import logger
+
+
+class SalesOrderItemService:
+    """
+    Service class for managing sales order items.
+    Provides methods for creating, updating, and deleting sales order items.
+    """
+
     @staticmethod
     @db_transaction.atomic
-    def create_sales_order_item(**kwargs) -> SalesOrderItem:
+    def create_sales_order_item(
+        sales_order: SalesOrder,
+        product: Product,
+        product_name: str,
+        quantity: int,
+        unit_price: float,
+        tax_rate: float
+    ) -> SalesOrderItem:
         try:
-            item = SalesOrderItem.objects.create(**kwargs)
+            item = SalesOrderItem.objects.create(
+                sales_order=sales_order,
+                product=product,
+                product_name=product_name,
+                quantity=quantity,
+                unit_price=unit_price,
+                tax_rate=tax_rate
+            )
             logger.info(
-                f"Sales Order Item '{item.id}' created for order '{item.sales_order.order_number}'."
+                f"Sales Order Item '{item.id}' created for order '{sales_order.order_number}'."
             )
             return item
         except Exception as e:
@@ -28,11 +55,21 @@ class SalesOrderItemService:
 
     @staticmethod
     @db_transaction.atomic
-    def update_sales_order_item(item: SalesOrderItem, **kwargs) -> SalesOrderItem:
+    def update_sales_order_item(
+        item: SalesOrderItem,
+        quantity: int = None,
+        unit_price: float = None,
+        tax_rate: float = None
+    ) -> SalesOrderItem:
         try:
-            for key, value in kwargs.items():
-                setattr(item, key, value)
-            item.save(update_fields=kwargs.keys())
+            if quantity is not None:
+                item.quantity = quantity
+            if unit_price is not None:
+                item.unit_price = unit_price
+            if tax_rate is not None:
+                item.tax_rate = tax_rate
+
+            item.save(update_fields=[k for k in ['quantity', 'unit_price', 'tax_rate'] if k])
             logger.info(f"Sales Order Item '{item.id}' updated.")
             return item
         except Exception as e:
@@ -49,6 +86,7 @@ class SalesOrderItemService:
         except Exception as e:
             logger.error(f"Error deleting sales order item '{item.id}': {str(e)}")
             raise
+
     
 
     @staticmethod
@@ -86,6 +124,9 @@ class SalesOrderItemService:
                 f"Error attaching Sales Order Item '{item.id}' to Sales Order '{sales_order.order_number}': {str(e)}"
             )
             raise
+    
+
+    
 
     
     # @staticmethod

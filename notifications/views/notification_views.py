@@ -11,7 +11,7 @@ from django.db.models import Q
 
 from notifications.models.notification_model import Notification
 from notifications.serializers.notification_serializer import NotificationSerializer
-from notification.services.notification_service import NotificationService  # optional service layer
+from notifications.services.notification_service import NotificationService  # optional service layer
 from users.models import User
 from notifications.permissions.notification_permissions import NotificationPermission  # create as needed
 

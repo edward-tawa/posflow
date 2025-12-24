@@ -11,11 +11,17 @@ class SalesOrderService:
 
     @staticmethod
     @db_transaction.atomic
-    def create_sales_order(**kwargs) -> SalesOrder:
+    def create_sales_order(*,company,branch,customer,sales_person,notes: str | None = None) -> SalesOrder:
         try:
-            order = SalesOrder.objects.create(**kwargs)
-            logger.info(f"Sales Order '{order.order_number}' created for company '{order.company.name}'.")
-            return order
+            sales_order = SalesOrder.objects.create(
+                company=company,
+                branch=branch,
+                customer=customer,
+                sales_person=sales_person,
+                notes=notes
+            )
+            logger.info(f"Sales Order '{sales_order.order_number}' created for company '{sales_order.company.name}'.")
+            return sales_order
         except Exception as e:
             logger.error(f"Error creating sales order: {str(e)}")
             raise

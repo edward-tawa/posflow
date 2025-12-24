@@ -187,5 +187,5 @@ class NotificationService:
             .unread()
             .delete()
         )
-        logger.info(f"Deleted {deleted_count} unread notifications for user '{user_id}'.")
+        logger.info(f"Deleted {deleted_count} unread notifications for user'{user_id}'.")
         return deleted_count

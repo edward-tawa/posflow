@@ -1,6 +1,9 @@
+from inventory.models.product_model import Product
+from sales.models.sales_order_model import SalesOrder
 from sales.models.sales_receipt_item_model import SalesReceiptItem
 from sales.models.sales_receipt_model import SalesReceipt
 from django.db import transaction as db_transaction
+from sales.models.sales_invoice_model import SalesInvoice
 from loguru import logger
 
 
@@ -9,11 +12,25 @@ class SalesReceiptItemService:
 
     @staticmethod
     @db_transaction.atomic
-    def create_sales_receipt_item(**kwargs) -> SalesReceiptItem:
+    def create_sales_receipt_item(
+        sales_receipt: SalesReceipt,
+        product: Product,
+        product_name: str,
+        quantity: int,
+        unit_price: float,
+        tax_rate: float
+    ) -> SalesReceiptItem:
         try:
-            item = SalesReceiptItem.objects.create(**kwargs)
+            item = SalesReceiptItem.objects.create(
+                sales_receipt=sales_receipt,
+                product=product,
+                product_name=product_name,
+                quantity=quantity,
+                unit_price=unit_price,
+                tax_rate=tax_rate
+            )
             logger.info(
-                f"Sales Receipt Item '{item.id}' created for receipt '{item.sales_receipt.receipt_number}'."
+                f"Sales Receipt Item '{item.id}' created for receipt '{sales_receipt.receipt_number}'."
             )
             return item
         except Exception as e:
@@ -22,17 +39,26 @@ class SalesReceiptItemService:
 
     @staticmethod
     @db_transaction.atomic
-    def update_sales_receipt_item(item: SalesReceiptItem, **kwargs) -> SalesReceiptItem:
+    def update_sales_receipt_item(
+        item: SalesReceiptItem,
+        quantity: int = None,
+        unit_price: float = None,
+        tax_rate: float = None
+    ) -> SalesReceiptItem:
         try:
-            for key, value in kwargs.items():
-                setattr(item, key, value)
-            item.save(update_fields=kwargs.keys())
+            if quantity is not None:
+                item.quantity = quantity
+            if unit_price is not None:
+                item.unit_price = unit_price
+            if tax_rate is not None:
+                item.tax_rate = tax_rate
+
+            item.save(update_fields=[k for k in ['quantity', 'unit_price', 'tax_rate'] if k])
             logger.info(f"Sales Receipt Item '{item.id}' updated.")
             return item
         except Exception as e:
             logger.error(f"Error updating sales receipt item '{item.id}': {str(e)}")
             raise
-    
 
     @staticmethod
     @db_transaction.atomic
@@ -44,6 +70,7 @@ class SalesReceiptItemService:
         except Exception as e:
             logger.error(f"Error deleting sales receipt item '{item.id}': {str(e)}")
             raise
+
 
     
     @staticmethod
@@ -84,6 +111,54 @@ class SalesReceiptItemService:
 
 
 
+    @staticmethod
+    @db_transaction.atomic
+    def add_order_items_to_receipt(order: SalesOrder, receipt: SalesReceipt):
+        for order_item in order.items.all():
+            SalesReceiptItemService.create_sales_receipt_item(
+                sales_receipt=receipt,
+                product=order_item.product,
+                product_name=order_item.product_name,
+                quantity=order_item.quantity,
+                unit_price=order_item.unit_price,
+                tax_rate=order_item.tax_rate
+            )
+        logger.info(f"Added {order.items.count()} items from Order '{order.order_number}' to Receipt '{receipt.receipt_number}'.")
 
 
     
+    @staticmethod
+    @db_transaction.atomic
+    def add_invoice_items_to_receipt(invoice: SalesInvoice, receipt: SalesReceipt):
+        """
+        Copies all items from a SalesInvoice to a SalesReceipt.
+        
+        This ensures the receipt reflects exactly what was invoiced and paid for.
+        """
+        try:
+            items_created = []
+            for invoice_item in invoice.items.all():
+                item = SalesReceiptItem.objects.create(
+                    sales_receipt=receipt,
+                    product=invoice_item.product,
+                    product_name=invoice_item.product_name,
+                    quantity=invoice_item.quantity,
+                    unit_price=invoice_item.unit_price,
+                    tax_rate=invoice_item.tax_rate
+                )
+                items_created.append(item)
+
+            # Optionally update receipt total
+            total = sum(item.subtotal + item.tax_amount for item in items_created)
+            receipt.total_amount = total
+            receipt.save(update_fields=['total_amount'])
+
+            logger.info(
+                f"Added {len(items_created)} items from Invoice '{invoice.invoice_number}' to Receipt '{receipt.receipt_number}'."
+            )
+            return items_created
+        except Exception as e:
+            logger.error(
+                f"Error adding items from Invoice '{invoice.invoice_number}' to Receipt '{receipt.receipt_number}': {str(e)}"
+            )
+            raise

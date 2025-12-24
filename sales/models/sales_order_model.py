@@ -29,7 +29,7 @@ class SalesOrder(CreateUpdateBaseModel):
         default=Status.DRAFT
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    cashier = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, related_name='processed_sales_orders')
+    sales_person = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, related_name='processed_sales_orders')
     notes = models.TextField(blank=True, null=True)
 
     def generate_unique_order_number(self):

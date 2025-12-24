@@ -1,8 +1,12 @@
 from django.db import models
 from django.db.models import Q
 from transactions.models.transaction_model import Transaction
+from company.models.company_model import Company
+from branch.models.branch_model import Branch
 from accounts.models.account_model import Account
-from accounts.services.accounts_service import AccountsService
+from customers.models.customer_model import Customer
+from suppliers.models.supplier_model import Supplier
+from accounts.services.account_service import AccountsService
 from rest_framework.response import Response
 from loguru import logger
 from decimal import Decimal
@@ -23,15 +27,15 @@ class TransactionService:
         logger.debug(f"Transaction {transaction.transaction_number} passed validation")
         
     def create_transaction(
-                    company,
-                    branch,
-                    debit_account,
-                    credit_account,
-                    transaction_type,
-                    transaction_category,
-                    total_amount,
-                    customer,
-                    supplier
+                    company: Company,
+                    branch: Branch,
+                    debit_account: Account,
+                    credit_account: Account,
+                    transaction_type: str,
+                    transaction_category: str,
+                    total_amount: Decimal,
+                    customer: Customer = None,
+                    supplier: Supplier = None
                 ):
         """
         Create a transaction with auto-generated transaction_number, status, and date.

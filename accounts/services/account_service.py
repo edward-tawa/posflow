@@ -1,6 +1,7 @@
 from django.db import models, transaction as db_transaction
 from django.db.models import Q
 from accounts.models.account_model import Account
+from company.models.company_model import Company
 from transactions.models.transaction_model import Transaction
 from loguru import logger
 
@@ -10,6 +11,13 @@ class AccountsService:
     """
     Service class for account-related operations.
     """
+
+    @staticmethod
+    def create_account(name: str, company: Company, account_type: str, **extra_fields) -> Account:
+        logger.info(f"Creating account: {name}, Company: {company.name}, Type: {account_type}")
+        account = Account.objects.create(name=name, company=company, account_type=account_type, **extra_fields)
+        logger.info(f"Account {account.id} created successfully")
+        return account
 
     @staticmethod
     def get_account_balance(account: Account) -> float:
@@ -43,13 +51,6 @@ class AccountsService:
         logger.info(f"Deleting Account {account.id}")
         account.delete()
         logger.info(f"Account {account.id} deleted successfully")
-
-    @staticmethod
-    def create_account(**data):
-        logger.info(f"Creating account with data: {data}")
-        account = Account.objects.create(**data)
-        logger.info(f"Account {account.id} created successfully")
-        return account
     
     @staticmethod
     def get_account_by_id(account_id: int) -> Account:
@@ -133,3 +134,11 @@ class AccountsService:
             logger.error(f"Failed to unfreeze Account {account.id}: {e}")
             raise Exception(f"Could not unfreeze account {account.id}: {e}")
 
+
+    @staticmethod
+    def bulk_create_accounts(accounts_data: list) -> list:
+        logger.info(f"Creating {len(accounts_data)} accounts in bulk")
+        accounts = [Account(**data) for data in accounts_data]
+        created_accounts = Account.objects.bulk_create(accounts)
+        logger.info(f"Successfully created {len(created_accounts)} accounts")
+        return created_accounts

@@ -30,10 +30,10 @@ class Sale(CreateUpdateBaseModel):
     sales_invoice = models.ForeignKey(
         'sales.SalesInvoice', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales'
     )
-    sales_receipt = models.ForeignKey(
+    sale_receipt = models.ForeignKey(
         'sales.SalesReceipt', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales'
     )
-    sales_date = models.DateTimeField(auto_now_add=True)
+    sale_date = models.DateTimeField(auto_now_add=True)
     payment_status = models.CharField(
         max_length=15, choices=PAYMENT_STATUS, default='UNPAID'
     )

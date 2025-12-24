@@ -13,8 +13,12 @@ class SalesPayment(CreateUpdateBaseModel):
     sales_order = models.ForeignKey(
         'sales.SalesOrder', on_delete=models.CASCADE, related_name='payments'
     )
+    sale = models.ForeignKey(
+        'sales.Sale', on_delete=models.CASCADE, related_name='payments'
+    )
+
     sales_receipt = models.ForeignKey(
-        'sales.SalesReceipt', on_delete=models.CASCADE, related_name='payments'
+        'sales.SalesReceipt', on_delete=models.CASCADE, related_name='payments', null=True, blank=True
     )
     payment = models.ForeignKey(
         'payments.Payment', on_delete=models.CASCADE, related_name='sales_payments'

@@ -40,7 +40,8 @@ class Payment(CreateUpdateBaseModel):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     method = models.CharField(max_length=50)
-    reference = models.CharField(max_length=100, blank=True, null=True)
+    reference_model = models.CharField(max_length=50, null=True, blank=True) # reference the model that triggered the payment
+    reference_id = models.PositiveIntegerField(null=True, blank=True)
 
     def generate_payment_number(self):
         number = f"{self.PREFIX}-{uuid.uuid4().hex[:8].upper()}"

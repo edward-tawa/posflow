@@ -98,6 +98,8 @@ class Transaction(CreateUpdateBaseModel):
     payment_method = models.CharField(max_length=20, choices=TRANSACTION_PAYMENT_METHODS, default='CASH')
     reversal_applied = models.BooleanField(default=False, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
+    reference_model = models.CharField(max_length=50, null=True, blank=True)
+    reference_id = models.PositiveIntegerField(null=True, blank=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
