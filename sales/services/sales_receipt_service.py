@@ -3,6 +3,7 @@ from sales.models.sales_receipt_model import SalesReceipt
 from sales.services.sales_receipt_item_service import SalesReceiptItemService
 from transactions.services.transaction_service import TransactionService
 from accounts.services.cash_account_service import CashAccountService
+from inventory.services.product_stock_service import ProductStockService
 from customers.models.customer_model import Customer
 from sales.models.sale_model import Sale
 from django.db import transaction as db_transaction
@@ -53,7 +54,7 @@ class SalesReceiptService:
             SalesReceiptItemService.add_order_items_to_receipt(sales_order, receipt)
 
             # Deduct stock for the items in the receipt
-            SalesReceiptService.deduct_stock_from_receipt(receipt)
+            ProductStockService.decrease_stock_for_sale(receipt=receipt)
 
             # Prepare accounts and transaction
             debit_account = CashAccountService.get_or_create_cash_account(company=company, branch=branch)

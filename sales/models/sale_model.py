@@ -4,6 +4,7 @@ from loguru import logger
 import uuid
 
 
+
 class Sale(CreateUpdateBaseModel):
     PREFIX = 'SALE'
 

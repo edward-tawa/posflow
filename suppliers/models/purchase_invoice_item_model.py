@@ -9,6 +9,15 @@ class PurchaseInvoiceItem(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='items'
     )
+
+    purchase = models.ForeignKey(
+        'suppliers.Purchase',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoice_items'
+    )
+    
     product = models.ForeignKey(
         'inventory.Product',
         on_delete=models.CASCADE,

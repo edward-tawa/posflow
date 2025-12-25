@@ -12,11 +12,21 @@ class PurchaseInvoice(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='purchase_invoices'
     )
+    
     branch = models.ForeignKey(
         'branch.Branch',
         on_delete=models.CASCADE,
         related_name='purchase_invoices'
     )
+
+    purchase = models.ForeignKey(
+        'suppliers.Purchase',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='purchase_invoices'
+    )
+
     supplier = models.ForeignKey(
         'suppliers.Supplier',
         on_delete=models.CASCADE,
