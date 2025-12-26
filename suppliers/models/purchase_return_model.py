@@ -10,16 +10,35 @@ class PurchaseReturn(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='purchase_returns'
     )
+    
     branch = models.ForeignKey(
         'branch.Branch',
         on_delete=models.CASCADE,
         related_name='purchase_returns'
     )
+
+    supplier = models.ForeignKey(
+        'suppliers.Supplier',
+        on_delete=models.CASCADE,
+        related_name='purchase_returns',
+        null=True,
+        blank=True
+    )
+
     purchase_order = models.ForeignKey(
         'suppliers.PurchaseOrder',
         on_delete=models.CASCADE,
         related_name='purchase_returns'
     )
+
+    purchase = models.ForeignKey(
+        'suppliers.Purchase',
+        on_delete=models.CASCADE,
+        related_name='purchase_returns',
+        null=True,
+        blank=True
+    )
+
     purchase_return_number = models.CharField(max_length=20, unique=True, editable=False)
     return_date = models.DateTimeField(auto_now_add=True)
     issued_by = models.ForeignKey(
