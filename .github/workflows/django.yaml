@@ -26,4 +26,4 @@ jobs:
       - name: Migrate and Runserver
         run: | 
           python manage.py migrate
-          timeout 10s python manage.py runserver
+          python manage.py runserver
