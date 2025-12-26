@@ -7,19 +7,20 @@ import uuid
 
 class Account(CreateUpdateBaseModel):
     ACCOUNT_TYPES = [
-    ('BRANCH', 'Branch Account'),
-    ('CUSTOMER', 'Customer Account'),
-    ('SUPPLIER', 'Supplier Account'),
-    ('EMPLOYEE', 'Employee Account'),
-    ('LOAN', 'Loan Account'),
-    ('CASH', 'Cash Account'),
-    ('BANK', 'Bank Account'),
-    ('ECOCASH', 'Ecocash Account'),
-    ('MOBILE_MONEY', 'Mobile Money Account'),
-    ('PAYPAL', 'Paypal Account'),
-    ('EQUITY', 'Equity Account'),
-    ('INCOME', 'Income Account'),
-    ('EXPENSE', 'Expense Account'),
+        ('BRANCH', 'Branch Account'),
+        ('CUSTOMER', 'Customer Account'),
+        ('SUPPLIER', 'Supplier Account'),
+        ('EMPLOYEE', 'Employee Account'),
+        ('LOAN', 'Loan Account'),
+        ('CASH', 'Cash Account'),
+        ('BANK', 'Bank Account'),
+        ('ECOCASH', 'Ecocash Account'),
+        ('MOBILE_MONEY', 'Mobile Money Account'),
+        ('PAYPAL', 'Paypal Account'),
+        ('EQUITY', 'Equity Account'),
+        ('INCOME', 'Income Account'),
+        ('EXPENSE', 'Expense Account'),
+        ('SALE', 'Sale Account')
     ]
 
     name = models.CharField(max_length=255)

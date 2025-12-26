@@ -6,6 +6,7 @@ from company.models.company_model import Company
 from branch.models.branch_model import Branch
 from customers.models.customer_model import Customer
 from users.models import User
+from django.core.exceptions import ValidationError
 
 
 class CustomerSerializer(CompanyValidationMixin, serializers.ModelSerializer):
@@ -67,6 +68,11 @@ class CustomerSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         validated_data['company'] = expected_company  # enforce company
 
         try:
+            try:    
+                validated_data['branch'] = request.user.branch
+            except Exception as e:
+                logger.info(f'details: {e}')
+                raise ValidationError(message=e)
             customer = Customer.objects.create(**validated_data)
             actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')
             logger.info(f"Customer '{customer.email}' created for company '{expected_company.name}' by {actor}.")

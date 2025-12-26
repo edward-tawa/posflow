@@ -38,7 +38,7 @@ class CreateCreditSaleView(APIView):
             amount = serializer.validated_data['amount']
             customer = Customer.objects.get(id=customer_id)
 
-            CustomerCreditService.create_credit_sale(customer, amount)
+            CustomerCreditService.create_credit_sale(customer, amount, request= request.user)
 
             return Response(
                 {"message": f"Credit sale of {amount} created for customer {customer.first_name}."},

@@ -15,7 +15,7 @@ class CustomerCreditService:
 
     @staticmethod
     @db_transaction.atomic
-    def create_credit_sale(customer, amount):
+    def create_credit_sale(customer, amount, request):
         """
         Apply credit to a customer's account.
         Debit: Customer account
@@ -23,7 +23,7 @@ class CustomerCreditService:
         """
         try:
             customer_account = CustomerAccount.objects.get(customer=customer)
-            sales_account = SalesAccount.objects.get(customer=customer)
+            sales_account = SalesAccount.objects.get(account__account_type = 'SALE', branch = customer.branch, company = customer.company)
 
             debit_account = customer_account.account
             credit_account = sales_account.account

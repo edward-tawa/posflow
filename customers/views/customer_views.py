@@ -19,7 +19,7 @@ class CustomerViewSet(ModelViewSet):
    
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
-    authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication]
+    authentication_classes = [UserCookieJWTAuthentication, JWTAuthentication, CompanyCookieJWTAuthentication]
     permission_classes = [ManageCustomersPermission]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['first_name', 'last_name', 'email', 'phone_number']

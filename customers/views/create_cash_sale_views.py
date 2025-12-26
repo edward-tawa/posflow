@@ -16,9 +16,9 @@ from config.auth.jwt_token_authentication import (
 
 class CreateCashSaleView(APIView):
     authentication_classes = [
-        CompanyCookieJWTAuthentication,
         UserCookieJWTAuthentication,
         JWTAuthentication,
+        CompanyCookieJWTAuthentication
     ]
     permission_classes = [ManageCustomersPermission]
 
@@ -38,7 +38,7 @@ class CreateCashSaleView(APIView):
             return Response({"error": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            CustomerCashService.create_cash_sale(customer, amount)
+            CustomerCashService.create_cash_sale(customer, amount, request=request.user)
             return Response(
                 {"message": f"Cash sale of {amount} created for customer {customer.first_name}."},
                 status=status.HTTP_201_CREATED,
