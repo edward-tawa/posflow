@@ -16,7 +16,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'description',
             'sku',
             'price',
-            'stock_quantity',
+            'stock',
             'category',
             'created_at',
             'updated_at',

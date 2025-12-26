@@ -16,7 +16,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_account_company_queryset
 from accounts.permissions.account_permission import AccountPermissionAccess
-from accounts.services.accounts_service import AccountsService
+from accounts.services.account_service import AccountsService
 from company.models.company_model import Company
 from django.core.exceptions import ObjectDoesNotExist
 from loguru import logger

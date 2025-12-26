@@ -12,7 +12,7 @@ class ProductSummarySerializer(serializers.ModelSerializer):
             'name',
             'company',
             'price',
-            'stock_quantity',
+            'stock',
 
         ]
         read_only_fields = ['id']

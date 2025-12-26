@@ -1,5 +1,6 @@
 from .purchase_invoice_item_model import PurchaseInvoiceItem
 from .purchase_invoice_model import PurchaseInvoice
+from .purchase_model import Purchase
 from .purchase_order_item_model import PurchaseOrderItem
 from .purchase_order_model import PurchaseOrder
 from .purchase_payment_allocation_model import PurchasePaymentAllocation
@@ -11,3 +12,5 @@ from .supplier_credit_note_model import SupplierCreditNote
 from .supplier_debit_note_item_model import SupplierDebitNoteItem
 from .supplier_debit_note_model import SupplierDebitNote
 from .supplier_model import Supplier
+from .supplier_receipt_item_model import SupplierReceiptItem
+from .supplier_receipt_model import SupplierReceipt

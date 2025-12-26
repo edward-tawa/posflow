@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 from accounts.models.loan_account_model import LoanAccount
-from accounts.models.supplier_account import SupplierAccount
+from accounts.models.supplier_account_model import SupplierAccount
 from loans.permissions.loan_permissions import LoanPermissions
 from accounts.serializers.loan_account_serializer import LoanAccountSerializer
 from rest_framework.views import APIView
@@ -18,7 +18,7 @@ from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_account_company_queryset
 from accounts.permissions.account_permission import AccountPermissionAccess
 from suppliers.permissions.supplier_permissions import SupplierPermissions
-from accounts.services.accounts_service import AccountsService
+from accounts.services.account_service import AccountsService
 from company.models.company_model import Company
 from django.core.exceptions import ObjectDoesNotExist
 from loguru import logger

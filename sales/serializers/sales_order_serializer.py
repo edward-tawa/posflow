@@ -30,7 +30,7 @@ class SalesOrderSerializer(CompanyValidationMixin, serializers.ModelSerializer):
             'order_date',
             'status',
             'total_amount',
-            'cashier',
+            'sales_person',
             'notes',
             'created_at',
             'updated_at',

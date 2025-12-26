@@ -4,11 +4,11 @@ from decimal import Decimal
 from loguru import logger
 from customers.models.customer_model import Customer
 from accounts.models.sales_account_model import SalesAccount
-from accounts.models.customer_account import CustomerAccount
+from accounts.models.customer_account_model import CustomerAccount
 from accounts.models.cash_account_model import CashAccount
 from accounts.models.bank_account_model import BankAccount
 from transactions.models.transaction_model import Transaction
-from transactions.services.transcation_service import TransactionService
+from transactions.services.transaction_service import TransactionService
 
 
 class CustomerCashService:

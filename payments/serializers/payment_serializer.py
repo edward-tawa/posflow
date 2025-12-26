@@ -29,7 +29,7 @@ class PaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer):
             'amount',
             'status',
             'method',
-            'reference',
+            'reference_id',
             'created_at',
             'updated_at',
         ]

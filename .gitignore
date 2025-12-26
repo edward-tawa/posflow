@@ -141,26 +141,5 @@ pylint-report.txt
 pylint.log
 
 # Migration files
-accounts/migrations/*
-!accounts/migrations/__init__.py
-
-branch/migrations/*
-!branch/migrations/__init__.py
-
-customers/migrations/*
-!customers/migrations/__init__.py
-
-inventory/migrations/*
-!inventory/migrations/__init__.py
-
-loans/migrations/*
-!loans/migrations/__init__.py
-
-suppliers/migrations/*
-!suppliers/migrations/__init__.py
-
-users/migrations/*
-!users/migrations/__init__.py
-
-company/migrations/*
-!company/migrations/__init__.py
+*/migrations/*.py
+!*/migrations/__init__.py

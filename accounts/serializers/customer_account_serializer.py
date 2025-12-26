@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from loguru import logger
-from accounts.models.customer_account import CustomerAccount
+from accounts.models.customer_account_model import CustomerAccount
 from branch.models.branch_model import Branch
 from company.models.company_model import Company
 from config.utilities.get_company_or_user_company import get_expected_company

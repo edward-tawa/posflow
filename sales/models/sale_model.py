@@ -49,7 +49,7 @@ class Sale(CreateUpdateBaseModel):
 
     class Meta:
         indexes = [
-            models.Index(fields=["company", "branch", "sales_date"]),
+            models.Index(fields=["company", "branch", "sale_date"]),
             models.Index(fields=["customer"]),
         ]
 

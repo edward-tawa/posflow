@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from accounts.models import customer_account
+from accounts.models.customer_account_model import CustomerAccount
 from accounts.models.employee_account_model import EmployeeAccount
 from accounts.serializers.employee_account_serializer import EmployeeAccountSerializer
 from rest_framework.views import APIView
@@ -17,7 +17,7 @@ from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_account_company_queryset
 from accounts.permissions.account_permission import AccountPermissionAccess
 from users.permissions.user_permissions import UserPermissions
-from accounts.services.accounts_service import AccountsService
+from accounts.services.account_service import AccountsService
 from company.models.company_model import Company
 from users.models.user_model import User
 from django.core.exceptions import ObjectDoesNotExist
