@@ -8,7 +8,7 @@ class SupplierAccount(CreateUpdateBaseModel):
     supplier = models.ForeignKey(
         'suppliers.Supplier',
         on_delete=models.CASCADE,
-        related_name='customer_accounts'
+        related_name='supplier_accounts'
     )
     account = models.ForeignKey(
         'accounts.Account',
