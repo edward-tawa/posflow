@@ -25,7 +25,5 @@ jobs:
 
       - name: Run Tests
         run: |
-          python manage.py makemigrations
-          python manage.py migrate
           python manage.py runserver
           pytest --cov=.
