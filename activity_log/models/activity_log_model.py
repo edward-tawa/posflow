@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from config.models.create_update_base_model import CreateUpdateBaseModel
 from django.utils import timezone
 from loguru import logger
@@ -39,7 +40,7 @@ class ActivityLog(CreateUpdateBaseModel):
         blank=True,
         help_text='The ID of the object the action was performed on.'
     )
-    content_object = models.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
 
     description = models.TextField(
         help_text='Human-readable description of the activity.'

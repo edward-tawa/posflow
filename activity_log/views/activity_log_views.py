@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from activity_log.services.activity_log_service import ActivityLogService
 from activity_log.models.activity_log_model import ActivityLog
 from activity_log.serializers.activity_log_serializer import ActivityLogSerializer
-from activity_log.permissions.activity_log_permissions import ActivityLogPermissions
+from activity_log.permissions.activity_log_permissions import ActivityLogPermission
 
 
 class ActivityLogViewSet(ReadOnlyModelViewSet):
@@ -35,7 +35,7 @@ class ActivityLogViewSet(ReadOnlyModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication,
     ]
-    permission_classes = [ActivityLogPermissions]
+    permission_classes = [ActivityLogPermission]
 
     # Filtering, search & ordering
     filter_backends = [SearchFilter, OrderingFilter]
