@@ -14,9 +14,10 @@ from pathlib import Path
 from datetime import timedelta
 # Logging configuration
 from config.utilities.logger import setup_loguru
+from dotenv import load_dotenv
 import os
 
-
+load_dotenv()
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -34,9 +35,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
-
 DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -53,6 +52,8 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt",
     "corsheaders",
     "django_filters",
+    "drf_yasg",
+    "swagger"
 ]
 
 # Local / PosFlow apps
@@ -67,11 +68,11 @@ LOCAL_APPS = [
     "branch",
     "inventory",
     "promotions",
-    # "sales",
+    "sales",
     "loans",
-    # "taxes",
-    # 'transactions',
-    # 'transfers',
+    "taxes",
+    'transactions',
+    'transfers',
     "posflow",    # core project app (if you have one)
     "config",     # if your project config is treated as an app
 ]
@@ -117,11 +118,11 @@ WSGI_APPLICATION = 'posflow.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "posflow_db",      # The database name
-        "USER": "postgres",           # The db user you created
-        "PASSWORD": "5052",       # The user's password
-        "HOST": "localhost",       # Use "127.0.0.1" if needed
-        "PORT": "5432",            # Default PostgreSQL port
+        "NAME": os.getenv('DB_NAME'),      # The database name
+        "USER": os.getenv('DB_USER'),           # The db user you created
+        "PASSWORD": os.getenv('DB_PASSWORD'),       # The user's password
+        "HOST": os.getenv('DB_HOST'),       # Use "127.0.0.1" if needed
+        "PORT": os.getenv('DB_PORT'),            # Default PostgreSQL port
     }
 }
 
@@ -145,8 +146,6 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ],
 }
-
-
 
 
 SIMPLE_JWT = {
@@ -209,7 +208,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
-
-
 # logger = setup_loguru()
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    },
+    'USE_SESSION_AUTH': False,
+}
