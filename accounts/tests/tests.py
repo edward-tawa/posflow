@@ -1,3 +1,4 @@
-from django.test import TestCase
+import pytest
 
-# Create your tests here.
+def test_first():
+    assert 1+2 == 3

@@ -143,3 +143,8 @@ pylint.log
 # Migration files
 */migrations/*.py
 !*/migrations/__init__.py
+
+# Ignore pytest
+.htmlcov/
+.pytest_cache
+.coverage
