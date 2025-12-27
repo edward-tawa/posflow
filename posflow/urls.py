@@ -70,6 +70,9 @@ urlpatterns = [
 
     # Transfers app endpoints
     path('posflow/', include('transfers.urls')),
+
+    # activity app endpoints
+    path('posflow/', include('activity_log.urls')),
 ]
 
 if settings.DEBUG:

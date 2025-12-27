@@ -58,6 +58,7 @@ THIRD_PARTY_APPS = [
 
 # Local / PosFlow apps
 LOCAL_APPS = [
+    'activity_log',
     "company",
     "accounts",
     "customers",
