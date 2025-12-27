@@ -6,6 +6,7 @@ PASSWORD_HASHERS = [
 
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 
+# 3. Faster Database for Testing (SQLite in memory)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
