@@ -4,6 +4,7 @@ from loguru import logger
 import uuid
 from django.core.exceptions import ValidationError
 
+
 class Transfer(CreateUpdateBaseModel):
     PREFIX = "TR"
     TYPE_CHOICES = (
@@ -13,6 +14,7 @@ class Transfer(CreateUpdateBaseModel):
 
     
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='transfers')
+    branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='transfers')
     reference_number = models.CharField(max_length=100, unique=True)
     transferred_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_made')
     received_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_received')
@@ -40,6 +42,7 @@ class Transfer(CreateUpdateBaseModel):
         unique_code = uuid.uuid4().hex[:6].upper()
         logger.info(f"Unique code for Transfer: {unique_code} successfully generated.")
         return f"{self.PREFIX}-{unique_code}"
+
 
     def save(self, *args, **kwargs):
         if not self.reference_number:

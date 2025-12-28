@@ -2,59 +2,93 @@ from transfers.models.product_transfer_item_model import ProductTransferItem
 from transfers.models.transfer_model import Transfer
 from django.db import transaction as db_transaction
 from loguru import logger
+from company.models import Company
+from branch.models import Branch
+from inventory.models import Product
+from users.models import User
 
 class ProductTransferItemError(Exception):
     """Custom exception for ProductTransferItem domain errors."""
     pass
 
+
 class ProductTransferItemService:
 
-    ALLOWED_UPDATE_FIELDS = {"product_name", "quantity", "unit_price", "total_price", "notes"}
+    ALLOWED_UPDATE_FIELDS = {"quantity"}
 
+    # -------------------------
+    # CREATE
+    # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def create_product_transfer_item(**kwargs) -> ProductTransferItem:
-        item = ProductTransferItem.objects.create(**kwargs)
-        logger.info(
-            f"Product Transfer Item '{item.product_name}' created for transfer "
-            f"'{item.transfer.id if item.transfer else 'None'}'."
+    def create_product_transfer_item(
+        *,
+        transfer: Transfer,
+        product_transfer,
+        company: Company,
+        branch: Branch,
+        product: Product,
+        quantity: int
+    ) -> ProductTransferItem:
+        item = ProductTransferItem.objects.create(
+            transfer=transfer,
+            product_transfer=product_transfer,
+            company=company,
+            branch=branch,
+            product=product,
+            quantity=quantity
         )
+        logger.info(
+            f"Product Transfer Item '{item.product.name}' created for transfer '{transfer.id}'."
+        )
+
         if item.transfer:
             item.transfer.update_total_amount()
         return item
 
+    # -------------------------
+    # UPDATE
+    # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def update_product_transfer_item(item: ProductTransferItem, **kwargs) -> ProductTransferItem:
+    def update_product_transfer_item(
+        item: ProductTransferItem,
+        *,
+        quantity: int | None = None
+    ) -> ProductTransferItem:
+
         updated_fields = []
-        for key, value in kwargs.items():
-            if key in ProductTransferItemService.ALLOWED_UPDATE_FIELDS:
-                setattr(item, key, value)
-                updated_fields.append(key)
-            else:
-                raise ProductTransferItemError(f"Field '{key}' cannot be updated.")
 
-        if not updated_fields:
-            return item
+        if quantity is not None:
+            item.quantity = quantity
+            updated_fields.append("quantity")
 
-        item.save(update_fields=updated_fields)
-        logger.info(f"Product Transfer Item '{item.product_name}' updated: {', '.join(updated_fields)}")
-
-        if item.transfer:
-            item.transfer.update_total_amount()
+        if updated_fields:
+            item.save(update_fields=updated_fields)
+            logger.info(
+                f"Product Transfer Item '{item.product.name}' updated: {', '.join(updated_fields)}"
+            )
+            if item.transfer:
+                item.transfer.update_total_amount()
 
         return item
 
+    # -------------------------
+    # DELETE
+    # -------------------------
     @staticmethod
     @db_transaction.atomic
     def delete_product_transfer_item(item: ProductTransferItem) -> None:
         transfer = item.transfer
-        item_name = item.product_name
+        item_name = item.product.name
         item.delete()
         logger.info(f"Product Transfer Item '{item_name}' deleted.")
         if transfer:
             transfer.update_total_amount()
 
+    # -------------------------
+    # ATTACH / DETACH
+    # -------------------------
     @staticmethod
     @db_transaction.atomic
     def attach_to_transfer(item: ProductTransferItem, transfer: Transfer) -> ProductTransferItem:
@@ -62,7 +96,7 @@ class ProductTransferItemService:
         item.transfer = transfer
         item.save(update_fields=['transfer'])
         logger.info(
-            f"Product Transfer Item '{item.product_name}' attached to transfer "
+            f"Product Transfer Item '{item.product.name}' attached to transfer "
             f"'{transfer.id}' (previous transfer: '{previous_transfer.id if previous_transfer else 'None'}')."
         )
 
@@ -78,7 +112,7 @@ class ProductTransferItemService:
         item.transfer = None
         item.save(update_fields=['transfer'])
         logger.info(
-            f"Product Transfer Item '{item.product_name}' detached from transfer "
+            f"Product Transfer Item '{item.product.name}' detached from transfer "
             f"'{previous_transfer.id if previous_transfer else 'None'}'."
         )
 

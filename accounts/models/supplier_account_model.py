@@ -4,6 +4,7 @@ from config.models.create_update_base_model import CreateUpdateBaseModel
 from loguru import logger
 
 
+
 class SupplierAccount(CreateUpdateBaseModel):
     supplier = models.ForeignKey(
         'suppliers.Supplier',
@@ -14,6 +15,13 @@ class SupplierAccount(CreateUpdateBaseModel):
         'accounts.Account',
         on_delete=models.CASCADE,
         related_name='supplier_accounts'
+    )
+    company = models.ForeignKey(
+        'company.Company',
+        on_delete=models.CASCADE,
+        related_name='supplier_accounts',
+        null=True,
+        blank=True
     )
     branch = models.ForeignKey(
         'branch.Branch',
