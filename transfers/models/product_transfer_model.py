@@ -5,10 +5,31 @@ from config.models.create_update_base_model import CreateUpdateBaseModel
 
 class ProductTransfer(CreateUpdateBaseModel):
 
+    STATUS_HOLD = "HOLD"
+    STATUS_RELEASED = "RELEASED"
+    STATUS_CHOICES = [
+        (STATUS_HOLD, "On Hold"),
+        (STATUS_RELEASED, "Released"),
+    ]
+
+
     transfer = models.OneToOneField(
         'transfers.Transfer',
         on_delete=models.CASCADE,
         related_name='product_transfer'
+    )
+
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='product_transfers'
+    )
+    
+
+    branch = models.ForeignKey(
+        'branch.Branch',
+        on_delete=models.CASCADE,
+        related_name='product_transfers'
     )
 
     source_branch = models.ForeignKey(
@@ -22,7 +43,12 @@ class ProductTransfer(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='incoming_product_transfers', null=True
     )
-
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default=STATUS_RELEASED
+    )
     notes = models.TextField(blank=True, null=True)
 
     def __str__(self):

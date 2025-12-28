@@ -2,6 +2,7 @@ from django.db import transaction as db_transaction
 from django.db.models import Sum
 from loguru import logger
 from inventory.models.product_stock_model import ProductStock
+from inventory.services.stock_movement_service import StockMovementService
 
 
 class ProductStockService:
@@ -256,5 +257,58 @@ class ProductStockService:
         )
 
         
+    # ==========================================================
+    # TRANSFERS
+    # ==========================================================
+    @staticmethod
+    @db_transaction.atomic
+    def decrease_stock_for_transfer(branch, transfer):
+        """
+        Decrease stock from a branch for all items in a transfer.
+        """
+        for item in transfer.items.select_related("product"):
+            ProductStockService._adjust_stock(
+                product=item.product,
+                company=branch.company,
+                branch=branch,
+                quantity_change=-item.quantity
+            )
+            # Optionally record stock movement
+            StockMovementService.record_stock_movement(
+                product=item.product,
+                branch=branch,
+                quantity_change=-item.quantity,
+                movement_type="transfer_out",
+                reason=f"Transfer {transfer.id}"
+            )
+
+        logger.info(
+            f"Stock decreased for transfer | branch={branch.id} | transfer={transfer.id}"
+        )
 
 
+    @staticmethod
+    @db_transaction.atomic
+    def increase_stock_for_transfer(branch, transfer):
+        """
+        Increase stock in a branch for all items in a transfer.
+        """
+        for item in transfer.items.select_related("product"):
+            ProductStockService._adjust_stock(
+                product=item.product,
+                company=branch.company,
+                branch=branch,
+                quantity_change=item.quantity
+            )
+            # Optionally record stock movement
+            StockMovementService.record_stock_movement(
+                product=item.product,
+                branch=branch,
+                quantity_change=item.quantity,
+                movement_type="transfer_in",
+                reason=f"Transfer {transfer.id}"
+            )
+
+        logger.info(
+            f"Stock increased for transfer | branch={branch.id} | transfer={transfer.id}"
+        )

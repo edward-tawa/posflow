@@ -3,13 +3,37 @@ from company.models.company_model import Company
 from config.models.create_update_base_model import CreateUpdateBaseModel
 
 
-
 class CashTransfer(CreateUpdateBaseModel):
+
+
+    
+    STATUS_HOLD = "HOLD"
+    STATUS_RELEASED = "RELEASED"
+    STATUS_CHOICES = [
+        (STATUS_HOLD, "On Hold"),
+        (STATUS_RELEASED, "Released"),
+    ]
+
+    
 
     transfer = models.OneToOneField(
         'transfers.Transfer',
+        on_delete=models.SET_NULL,
+        related_name='cash_transfer',
+        null=True,
+        blank=True
+    )
+
+    company = models.ForeignKey(
+        'company.Company',
         on_delete=models.CASCADE,
-        related_name='cash_transfer'
+        related_name='cash_transfers'
+    )
+
+    branch = models.ForeignKey(
+        'branch.Branch',
+        on_delete=models.CASCADE,
+        related_name='cash_transfers'
     )
 
     source_branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='outgoing_cash_transfers')
@@ -19,7 +43,11 @@ class CashTransfer(CreateUpdateBaseModel):
     destination_branch_account = models.ForeignKey('accounts.BranchAccount', on_delete=models.CASCADE, related_name='cash_transfers_in')
 
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default=STATUS_RELEASED
+    )
     notes = models.TextField(blank=True, null=True)
     def __str__(self):
         ref = self.transfer.reference_number if self.transfer else "NO-TRANSFER"

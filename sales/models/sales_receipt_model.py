@@ -4,7 +4,6 @@ from loguru import logger
 import uuid
 
 
-
 class SalesReceipt(CreateUpdateBaseModel):
     PREFIX = 'RECEIPT'
     STATUS_CHOICES = [('DRAFT', 'Draft'), ('ISSUED', 'Issued'), ('VOIDED', 'Voided')]

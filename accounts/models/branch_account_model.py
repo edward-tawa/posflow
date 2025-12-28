@@ -4,6 +4,11 @@ from config.models.create_update_base_model import CreateUpdateBaseModel
 
 
 class BranchAccount(CreateUpdateBaseModel):
+    company = models.ForeignKey(
+        'company.Company',
+        on_delete=models.CASCADE,
+        related_name='branch_accounts'
+    )
     branch = models.ForeignKey(
         'branch.Branch',
         on_delete=models.CASCADE,
