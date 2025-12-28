@@ -40,7 +40,7 @@ class SalesOrderViewSet(ModelViewSet):
         'customer__name',
         'branch__name',
         'company__name',
-        'cashier__username'
+        'sales_person__username'
     ]
     ordering_fields = ['created_at', 'updated_at', 'order_date', 'total_amount']
     ordering = ['-created_at']
@@ -56,7 +56,7 @@ class SalesOrderViewSet(ModelViewSet):
             """
             return (
                 get_company_queryset(self.request, SalesOrder)
-                .select_related('company', 'branch', 'customer', 'cashier')
+                .select_related('company', 'branch', 'customer', 'sales_person')
             )
         except Exception as e:
             logger.error(f"Error: {e}")

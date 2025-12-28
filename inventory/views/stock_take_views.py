@@ -24,8 +24,8 @@ class StockTakeViewSet(ModelViewSet):
     authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication, JWTAuthentication]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['reference_number', 'performed_by__username', 'performed_by__first_name', 'performed_by__last_name', 'status']
-    ordering_fields = ['counted_at', 'created_at', 'updated_at', 'status']
-    ordering = ['-counted_at']
+    ordering_fields = ['stock_take_date', 'created_at', 'updated_at', 'status'] #removed `counted` at field doesnot exist replace with `stock_take_date`
+    ordering = ['stock_take_date']
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):

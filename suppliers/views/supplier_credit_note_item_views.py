@@ -30,7 +30,7 @@ class SupplierCreditNoteItemViewSet(ModelViewSet):
         UserCookieJWTAuthentication,
         JWTAuthentication
     ]
-    permission_classes = [SupplierCreditNoteItem]
+    permission_classes = [SupplierCreditNotePermissions]
 
     # Filtering & search
     filter_backends = [SearchFilter, OrderingFilter]

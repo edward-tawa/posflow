@@ -3,7 +3,7 @@ from django.db import transaction
 from django.db.models import QuerySet
 from loguru import logger
 
-
+#Replaced timestamp with created at because field doesnot exist
 class ActivityLogService:
     """
     Service layer for Activity Log domain operations.
@@ -50,7 +50,7 @@ class ActivityLogService:
         return (
             ActivityLog.objects
             .filter(user_id=user_id)
-            .order_by("-timestamp")
+            .order_by("-created_at")
         )
 
     @staticmethod
@@ -58,7 +58,7 @@ class ActivityLogService:
         return (
             ActivityLog.objects
             .filter(action=action)
-            .order_by("-timestamp")
+            .order_by("-created_at")
         )
 
     @staticmethod
@@ -69,7 +69,7 @@ class ActivityLogService:
         return (
             ActivityLog.objects
             .filter(object_type=object_type, object_id=object_id)
-            .order_by("-timestamp")
+            .order_by("-created_at")
         )
 
     @staticmethod
@@ -79,13 +79,13 @@ class ActivityLogService:
     ) -> QuerySet[ActivityLog]:
         return (
             ActivityLog.objects
-            .filter(timestamp__gte=start_date, timestamp__lte=end_date)
-            .order_by("-timestamp")
+            .filter(created_at__gte=start_date, created_at__lte=end_date)
+            .order_by("-created_at")
         )
 
     @staticmethod
     def list_all_activity_logs() -> QuerySet[ActivityLog]:
-        return ActivityLog.objects.all().order_by("-timestamp")
+        return ActivityLog.objects.all().order_by("-created_at")
 
     # -------------------------
     # FLEXIBLE FILTER
@@ -97,4 +97,4 @@ class ActivityLogService:
         Example:
             filter_activity_logs(user_id=1, action="CREATE")
         """
-        return ActivityLog.objects.filter(**filters).order_by("-timestamp")
+        return ActivityLog.objects.filter(**filters).order_by("-created_at")

@@ -95,7 +95,7 @@ class AccountSerializer(serializers.ModelSerializer):
         try:
             validated_data.pop('branch', None)
             validated_data.pop('company', None)
-
+            logger.info(request.user.branch)
             validated_data['branch'] = request.user.branch
             validated_data['company'] = request.user.company
 

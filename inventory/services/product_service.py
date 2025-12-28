@@ -10,9 +10,8 @@ from django.db.models import Q
 from loguru import logger
 
 
+#removed duplicate class 
 class ProductService:
-
-
     @staticmethod
     @db_transaction.atomic
     def create_product(company, name, description, price, product_category=None, stock_quantity=0):
@@ -79,7 +78,6 @@ class ProductService:
             logger.exception(f"Error retrieving product with ID {product_id}: {e}")
             raise e
     
-
     @staticmethod
     @db_transaction.atomic
     def adjust_product_quantity(product: Product, adjustment: int):
@@ -158,9 +156,6 @@ class ProductService:
             logger.exception(f"Error bulk updating products: {e}")
             raise e
     
-
-class ProductService:
-
     @staticmethod
     @db_transaction.atomic
     def bulk_import_products(company, csv_file):

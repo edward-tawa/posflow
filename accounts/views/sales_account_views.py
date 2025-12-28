@@ -29,7 +29,7 @@ class SalesAccountViewSet(ModelViewSet):
     def get_queryset(self):
         try:
             """Return SalesAccount queryset filtered by the logged-in company/user."""
-            return get_account_company_queryset(self.request, SalesAccount).select_related('account', 'branch', 'customer', 'sales_person')
+            return get_account_company_queryset(self.request, SalesAccount).select_related('account', 'branch', 'sales_person')
         except Exception as e:
             return self.queryset.none()
 
