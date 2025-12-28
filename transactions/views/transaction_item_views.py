@@ -55,7 +55,7 @@ class TransactionItemViewSet(ModelViewSet):
             )
         except Exception as e:
             logger.error(f"Error: {e}")
-            return f"Error: {e}"
+            return TransactionItem.objects.none()
 
     def perform_create(self, serializer):
         """

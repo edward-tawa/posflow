@@ -34,8 +34,8 @@ class BankAccountSerializer(serializers.ModelSerializer):
 
     def get_branch_summary(self, obj):
         return {
-            'id': obj.branch.id,
-            "name": obj.branch.name
+            'id': obj.branch.id if obj.branch else None,
+            "name": obj.branch.name if obj.branch else None
         }
 
     # ----------------------- VALIDATORS -----------------------

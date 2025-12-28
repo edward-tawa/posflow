@@ -32,15 +32,15 @@ class SalesAccountViewSet(ModelViewSet):
             return get_account_company_queryset(self.request, SalesAccount).select_related('account', 'branch', 'sales_person')
         except Exception as e:
             return self.queryset.none()
-
+    # replaced customer with sales person because customer field doesnot exist
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         sales_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(account_number=sales_account.account.account_number, customer=sales_account.customer_id).success(
+        logger.bind(account_number=sales_account.account.account_number, sales_person=sales_account.sales_person.username).success(
             f"SalesAccount for account '{sales_account.account.name}' (Number: {sales_account.account.account_number}) "
-            f"and customer ID '{sales_account.customer_id}' created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
+            f"and customer ID '{sales_account.sales_person.username}' created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
         )
 
     def perform_update(self, serializer):

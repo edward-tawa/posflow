@@ -34,7 +34,7 @@ class SupplierSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         return {
             None
         }
-
+    
     def validate(self, attrs):
         request = self.context['request']
         expected_company = get_expected_company(request)
@@ -43,14 +43,15 @@ class SupplierSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         # Determine actor for logging
         actor = getattr(user, "username", None) or getattr(expected_company, "name", "Unknown")
 
-        if attrs['company'].id != expected_company.id:
-            logger.error(
-                f"{actor} attempted to create/update Supplier "
-                f"for company {attrs['company'].id}."
-            )
-            raise serializers.ValidationError(
-                "You cannot create or update a supplier for a company other than your own."
-            )
+        #RAISES KEY ERROR BECAUSE CLIENT IS NOT SENDING COMPANY DATA
+        # if attrs['company'].id != expected_company.id:
+        #     logger.error(
+        #         f"{actor} attempted to create/update Supplier "
+        #         f"for company {attrs['company'].id}."
+        #     )
+        #     raise serializers.ValidationError(
+        #         "You cannot create or update a supplier for a company other than your own."
+        #     )
 
         return attrs
 
