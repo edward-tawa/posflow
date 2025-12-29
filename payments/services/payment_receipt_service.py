@@ -126,3 +126,7 @@ class PaymentReceiptService:
             f"PaymentReceipt '{receipt.id}' detached from {relation_field.capitalize()}."
         )
         return receipt
+    
+
+
+    

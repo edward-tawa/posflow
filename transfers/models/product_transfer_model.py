@@ -43,7 +43,6 @@ class ProductTransfer(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='incoming_product_transfers', null=True
     )
-    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,

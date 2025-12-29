@@ -95,3 +95,7 @@ class SupplierCreditNoteService:
             f"Credit note '{credit_note.id}' status updated to '{new_status}'."
         )
         return credit_note
+    
+
+
+    

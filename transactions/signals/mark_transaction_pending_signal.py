@@ -1,5 +1,5 @@
 from transactions.models.transaction_model import Transaction
-from transactions.services.transcation_service import TransactionService
+from transactions.services.transaction_service import TransactionService
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from loguru import logger

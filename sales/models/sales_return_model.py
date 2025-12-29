@@ -13,6 +13,7 @@ class SalesReturn(CreateUpdateBaseModel):
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='sales_returns')
     customer = models.ForeignKey('customers.Customer', on_delete=models.CASCADE, related_name='sales_returns')
     sale_order = models.ForeignKey('sales.SalesOrder', on_delete=models.CASCADE, related_name='sales_returns')  
+    sale = models.ForeignKey('sales.Sale', on_delete=models.CASCADE, related_name='sales_returns', null=True, blank=True)
     return_number = models.CharField(max_length=20, unique=True)
     return_date = models.DateField()
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)

@@ -10,7 +10,7 @@ class PurchaseReturn(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='purchase_returns'
     )
-    
+
     branch = models.ForeignKey(
         'branch.Branch',
         on_delete=models.CASCADE,
@@ -55,12 +55,15 @@ class PurchaseReturn(CreateUpdateBaseModel):
         return number
 
     def save(self, *args, **kwargs):
-        # Auto-generate purchase return number if not provided
+        # Auto-generate purchase return number
         if not self.purchase_return_number:
             self.purchase_return_number = self.generate_purchase_return_number()
+
+        # Update total amount before saving
+        total = sum(item.total_price for item in self.items.all())
+        self.total_amount = total
+
         super().save(*args, **kwargs)
-        # Update total amount based on items
-        self.update_total_amount()
 
     def update_total_amount(self):
         total = sum(item.total_price for item in self.items.all())
