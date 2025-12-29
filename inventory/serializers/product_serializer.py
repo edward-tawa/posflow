@@ -5,6 +5,7 @@ from inventory.serializers.category_field import CategoryField
 
 class ProductSerializer(serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only = True)
+    branch_summary = serializers.SerializerMethodField(read_only = True)
     category = CategoryField(required=False, allow_null=True)
 
     class Meta:
@@ -12,6 +13,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'company_summary',
+            'branch_summary',
             'name',
             'description',
             'sku',
@@ -27,6 +29,12 @@ class ProductSerializer(serializers.ModelSerializer):
         return {
             'id': obj.company.id,
             'name': obj.company.name
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            'id': obj.branch.id,
+            'name': obj.branch.name
         }
 
     def validate_price(self, value):
@@ -44,6 +52,7 @@ class ProductSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and hasattr(request, 'user'):
             validated_data['company'] = request.user.company
+            validated_data['branch'] = request.user.branch
             return super().create(validated_data)
         raise serializers.ValidationError("Company information is missing in the request context")
     

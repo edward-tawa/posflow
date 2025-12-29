@@ -25,8 +25,8 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
             'company_summary',
             'branch_summary',
             'purchase_order',
-            'product',          # client sends ID
-            'product_detail',   # client sees product summary
+            'product',
+            'product_detail',
             'product_category',
             'quantity',
             'unit_price',

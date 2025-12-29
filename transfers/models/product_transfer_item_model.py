@@ -7,8 +7,8 @@ class ProductTransferItem(CreateUpdateBaseModel):
     product_transfer = models.ForeignKey('transfers.ProductTransfer', on_delete=models.CASCADE, related_name='items')
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='product_transfer_items')
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='product_transfer_items') 
-    source_branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='outgoing_product_transfers')
-    destination_branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='incoming_product_transfers')
+    source_branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='outgoing_product_transfers_items') #changed because of duplicate related name in product transfer
+    destination_branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='incoming_product_transfers_items') ##changed because of duplicate related name in product transfer
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='transfer_items')
     quantity = models.PositiveIntegerField()
 

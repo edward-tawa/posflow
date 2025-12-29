@@ -43,7 +43,7 @@ class StockTakeSerializer(serializers.ModelSerializer):
     def get_performed_by_summary(self, obj):
         return {
             'id': obj.performed_by.id,
-            'name': obj.performed_by.name
+            'name': obj.performed_by.first_name
         }
 
     def create(self, validated_data):

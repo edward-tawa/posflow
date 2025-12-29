@@ -61,7 +61,8 @@ class SalesQuotationSerializer(serializers.ModelSerializer):
         user = getattr(request, 'user', None)
         company = get_expected_company(request)
         validated_data['company'] = company
-
+        validated_data['branch'] = request.user.branch
+        actor = None
         try:
             quotation = SalesQuotation.objects.create(**validated_data)
             actor = getattr(user, 'username', 'Unknown')

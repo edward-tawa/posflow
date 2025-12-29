@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from inventory.models import Product
 from sales.models.sales_return_item_model import SalesReturnItem
+from sales.models.sales_return_model import SalesReturn
 from loguru import logger
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -10,6 +11,7 @@ class SalesReturnItemSerializer(serializers.ModelSerializer):
     branch_summary = serializers.SerializerMethodField(read_only=True)
     product_summary = serializers.SerializerMethodField(read_only=True)
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    sales_return = serializers.PrimaryKeyRelatedField(queryset=SalesReturn.objects.all())
 
     class Meta:
         model = SalesReturnItem
@@ -18,11 +20,13 @@ class SalesReturnItemSerializer(serializers.ModelSerializer):
             'company_summary',
             'branch_summary',
             'product',
+            'sales_return',
             'product_summary',
             'quantity',
             'unit_price',
             'created_at',
             'updated_at',
+            'tax_rate'
         ]
         read_only_fields = [
             'id', 'subtotal', 'tax_amount', 'total_price',
@@ -68,7 +72,7 @@ class SalesReturnItemSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = getattr(request, 'user', None)
         product = validated_data.get('product')
-
+        logger.info(validated_data)
         try:
             logger.info(validated_data)
             item = SalesReturnItem.objects.create(**validated_data)

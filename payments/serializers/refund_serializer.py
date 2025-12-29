@@ -19,9 +19,7 @@ class RefundSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         model = Refund
         fields = [
             'id',
-            'company',
             'company_summary',
-            'branch',
             'branch_summary',
             'payment',
             'payment_summary',
@@ -92,6 +90,7 @@ class RefundSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
+        validated_data['branch'] = request.user.branch
 
         try:
             refund = Refund.objects.create(**validated_data)

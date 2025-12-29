@@ -20,7 +20,6 @@ class SalesReturnSerializer(CompanyValidationMixin, serializers.ModelSerializer)
             'id',
             'company_summary',
             'branch_summary',
-            'branch',
             'customer',
             'sale_order',
             'return_number',
@@ -72,6 +71,7 @@ class SalesReturnSerializer(CompanyValidationMixin, serializers.ModelSerializer)
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # Force company
+        validated_data['branch'] = request.user.branch
 
         actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')
 

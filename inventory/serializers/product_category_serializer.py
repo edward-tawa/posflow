@@ -19,8 +19,6 @@ class ProductCategorySerializer(serializers.ModelSerializer):
     
     def get_company_summary(self, obj):
         return {
-            'id': obj.customer.id,
-            'first_name': obj.customer.first_name,
-            'last_name': obj.customer.last_name,
-            'email': obj.customer.email
+            'id': obj.company.id,
+            'first_name': obj.company.name,
         }

@@ -3,5 +3,5 @@ from inventory.views.stock_take_item import StockTakeItemViewSet
 from django.urls import path, include
 
 router = DefaultRouter()
-router.register(r'stocktake-item', StockTakeItemViewSet, basename='product-category')
+router.register(r'stocktake-item', StockTakeItemViewSet, basename='stocktake-item')
 urlpatterns = router.urls

@@ -11,14 +11,12 @@ from users.models import User
 class PaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
     paid_by_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Payment
         fields = [
             'id',
-            'company',
             'company_summary',
             'branch_summary',
             'paid_by',
@@ -83,7 +81,8 @@ class PaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
-
+        validated_data['branch'] = request.user.branch
+        actor = None
         try:
             payment = Payment.objects.create(**validated_data)
             actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')

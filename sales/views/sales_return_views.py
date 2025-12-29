@@ -33,7 +33,7 @@ class SalesReturnViewSet(ModelViewSet):
 
     # Filtering, search & ordering
     filter_backends = [SearchFilter, OrderingFilter]
-    search_fields = ['return_number', 'sale_order__order_number', 'customer__name', 'company__name']
+    search_fields = ['return_number', 'sale_order__order_number', 'customer__first_name', 'company__name']
     ordering_fields = ['created_at', 'updated_at', 'return_date', 'total_amount']
     ordering = ['-created_at']
     pagination_class = StandardResultsSetPagination

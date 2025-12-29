@@ -21,7 +21,7 @@ class SalesOrder(CreateUpdateBaseModel):
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='sales_orders')
     customer = models.ForeignKey('customers.Customer', on_delete=models.CASCADE, related_name='sales_orders')
     order_number = models.CharField(max_length=20, unique=True)
-    customer_name = models.CharField(max_length=100)
+    customer_name = models.CharField(max_length=100)#?
     order_date = models.DateField(auto_now_add=True)
     status = models.CharField(
         max_length=20,

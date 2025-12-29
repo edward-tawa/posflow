@@ -12,16 +12,13 @@ from users.models import User
 class SalesInvoiceSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
 
     class Meta:
         model = SalesInvoice
         fields = [
             'id',
-            'company',
             'company_summary',
             'branch_summary',
-            'branch',
             'customer',
             'invoice_number',
             'invoice_date',
@@ -67,6 +64,7 @@ class SalesInvoiceSerializer(CompanyValidationMixin, serializers.ModelSerializer
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
+        validated_data['branch'] = request.user.branch
 
         try:
             invoice = SalesInvoice.objects.create(**validated_data)

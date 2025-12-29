@@ -42,7 +42,7 @@ class SalesReturn(CreateUpdateBaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Return {self.return_number} - {self.customer.name}"
+        return f"Return {self.return_number} - {self.customer.first_name}"
     
 
     class Meta:

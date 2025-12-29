@@ -12,19 +12,13 @@ from sales.models.sales_order_model import SalesOrder
 class SalesOrderSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(
-        queryset=Company.objects.all(),
-        required=True
-    )
 
     class Meta:
         model = SalesOrder
         fields = [
             'id',
-            'company',
             'company_summary',
             'branch_summary',
-            'branch',
             'customer',
             'order_number',
             'order_date',
@@ -70,6 +64,7 @@ class SalesOrderSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # Force company
+        validated_data['branch'] = request.user.branch
 
         try:
             order = SalesOrder.objects.create(**validated_data)

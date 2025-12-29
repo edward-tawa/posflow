@@ -13,16 +13,13 @@ from users.models import User
 class DeliveryNoteSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
-
+    
     class Meta:
         model = DeliveryNote
         fields = [
             'id',
-            'company',
             'company_summary',
             'branch_summary',
-            'branch',
             'customer',
             'sales_order',
             'delivery_number',
@@ -70,6 +67,7 @@ class DeliveryNoteSerializer(CompanyValidationMixin, serializers.ModelSerializer
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
+        validated_data['branch'] = request.user.branch
 
         try:
             delivery_note = DeliveryNote.objects.create(**validated_data)

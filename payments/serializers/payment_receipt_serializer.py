@@ -18,9 +18,7 @@ class PaymentReceiptSerializer(CompanyValidationMixin, serializers.ModelSerializ
         model = PaymentReceipt
         fields = [
             'id',
-            'company',
             'company_summary',
-            'branch',
             'branch_summary',
             'payment',
             'payment_summary',
@@ -89,6 +87,7 @@ class PaymentReceiptSerializer(CompanyValidationMixin, serializers.ModelSerializ
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
+        validated_data['branch'] = request.user.branch
         actor = None
         try:
             receipt = PaymentReceipt.objects.create(**validated_data)

@@ -43,10 +43,9 @@ class SalesReturnItemViewSet(ModelViewSet):
     # Filtering & search
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = [
-        'product_name',
         'product__name',
         'sales_return__return_number',
-        'sales_return__customer__name'
+        'sales_return__customer__first_name'
     ]
     ordering_fields = [
         'created_at',
@@ -94,7 +93,7 @@ class SalesReturnItemViewSet(ModelViewSet):
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
 
         logger.success(
-            f"SalesReturnItem '{item.product.name}' added to SalesReturn '{item.sales_receipt.receipt_number}' "
+            f"SalesReturnItem '{item.product.name}' added to SalesReturn '{item.sales_return.return_number}' "
             f"by '{actor}'."
         )
 
