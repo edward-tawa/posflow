@@ -12,17 +12,13 @@ class FiscalDocumentSerializer(CompanyValidationMixin, serializers.ModelSerializ
     company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
     device_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
-    branch = serializers.PrimaryKeyRelatedField(queryset=Branch.objects.all(), required=True)
     device = serializers.PrimaryKeyRelatedField(queryset=FiscalDevice.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = FiscalDocument
         fields = [
             'id',
-            'company',
             'company_summary',
-            'branch',
             'branch_summary',
             'device',
             'device_summary',
@@ -85,7 +81,7 @@ class FiscalDocumentSerializer(CompanyValidationMixin, serializers.ModelSerializ
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
-
+        validated_data['branch'] = request.user.branch
         try:
             fiscal_doc = FiscalDocument.objects.create(**validated_data)
             actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')

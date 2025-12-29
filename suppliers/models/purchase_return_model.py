@@ -60,8 +60,8 @@ class PurchaseReturn(CreateUpdateBaseModel):
             self.purchase_return_number = self.generate_purchase_return_number()
 
         # Update total amount before saving
-        total = sum(item.total_price for item in self.items.all())
-        self.total_amount = total
+        # total = sum(item.total_price for item in self.items.all())
+        # self.total_amount = total
 
         super().save(*args, **kwargs)
 

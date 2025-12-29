@@ -1,188 +1,53 @@
-from transactions.models.transaction_item_model import TransactionItem
-from transactions.services.transaction_service import TransactionService
-from transactions.models.transaction_model import Transaction
-from inventory.models.product_model import Product
-from django.db import transaction
-from django.db import QuerySet
+from django.db import models
+from django.core.exceptions import ValidationError
+from config.models.create_update_base_model import CreateUpdateBaseModel
 from loguru import logger
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
+import uuid
 
 
-class TransactionItemService:
-    """
-    Service layer for Transaction Item domain operations.
-    """
 
-    # -------------------------
-    # CREATE
-    # -------------------------
-    @staticmethod
-    @transaction.atomic
-    def create_transaction_item(
-        transaction: "Transaction",
-        product: Product = None,
-        product_name: str = "",
-        quantity: int = 1,
-        unit_price: Decimal = Decimal("0.00"),
-        tax_rate: Decimal = Decimal("0.00")
-    ) -> TransactionItem:
-        item = TransactionItem.objects.create(
-            transaction=transaction,
-            product=product,
-            product_name=product_name,
-            quantity=quantity,
-            unit_price=unit_price,
-            tax_rate=tax_rate
-        )
-        logger.info(f"Transaction item created | id={item.id}")
-        TransactionService.recalculate_totals(transaction)
-        return item
+class TransactionItem(CreateUpdateBaseModel):
+    transaction = models.ForeignKey(
+        'transactions.Transaction',
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+    product = models.ForeignKey(
+        'inventory.Product',
+        on_delete=models.CASCADE,
+        related_name='transaction_items'
+    )
+    product_name = models.CharField(max_length=100)
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2)  # percentage
 
-    # -------------------------
-    # UPDATE
-    # -------------------------
-    @staticmethod
-    @transaction.atomic
-    def update_transaction_item(
-        item: TransactionItem,
-        product: Product = None,
-        product_name: str = None,
-        quantity: int = None,
-        unit_price: Decimal = None,
-        tax_rate: Decimal = None
-    ) -> TransactionItem:
+    @property
+    def subtotal(self):
+        return self.quantity * self.unit_price
 
-        if product is not None:
-            item.product = product
-        if product_name is not None:
-            item.product_name = product_name
-        if quantity is not None:
-            item.quantity = quantity
-        if unit_price is not None:
-            item.unit_price = unit_price
-        if tax_rate is not None:
-            item.tax_rate = tax_rate
-
-        item.save()
-        logger.info(f"Transaction item updated | id={item.id}")
-        TransactionService.recalculate_totals(item.transaction)
-        return item
-
-    # -------------------------
-    # DELETE
-    # -------------------------
-    @staticmethod
-    @transaction.atomic
-    def delete_transaction_item(item: TransactionItem) -> None:
-        transaction_ref = item.transaction
-        item_id = item.id
-        item.delete()
-        logger.info(f"Transaction item deleted | id={item_id}")
-        TransactionService.recalculate_totals(transaction_ref)
-
+    @property
+    def tax_amount(self):
+        return (self.subtotal * (self.tax_rate / 100)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
     
-    @staticmethod
-    @transaction.atomic
-    def attach_to_transaction(
-        item: TransactionItem,
-        transaction: Transaction
-    ) -> TransactionItem:
-        item.transaction = transaction
-        item.save(update_fields=['transaction'])
-        logger.info(
-            f"Transaction item '{item.id}' attached to transaction '{transaction.id}'."
-        )
-        TransactionService.recalculate_totals(transaction)
-        return item
+    @property
+    def total_price(self):
+        return (self.subtotal + self.tax_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    def clean(self):
+        if self.quantity <= 0:
+            raise ValidationError("Quantity must be greater than zero.")
+        if self.unit_price < 0:
+            raise ValidationError("Unit price cannot be negative.")
+        if not (0 <= self.tax_rate <= 100):
+            raise ValidationError("Tax rate must be between 0 and 100.")
+
+    def __str__(self):
+        return f"{self.product_name} (x{self.quantity}) - {self.unit_price}"
     
-
-
-    @staticmethod
-    @transaction.atomic
-    def detach_from_transaction(item: TransactionItem) -> TransactionItem:
-        transaction_ref = item.transaction
-        item.transaction = None
-        item.save(update_fields=['transaction'])
-        logger.info(f"Transaction item '{item.id}' detached from transaction.")
-        if transaction_ref:
-            TransactionService.recalculate_totals(transaction_ref)
-        return item
-    
-
-    @staticmethod
-    @transaction.atomic
-    def update_transaction_item_status(
-        item: TransactionItem,
-        new_status: str
-    ) -> TransactionItem:
-        ALLOWED_STATUSES = {"pending", "completed", "canceled"}
-
-        if new_status not in ALLOWED_STATUSES:
-            logger.error(
-                f"Attempted to set invalid status '{new_status}' for transaction item '{item.id}'."
-            )
-            raise ValueError(f"Invalid status: {new_status}")
-
-        item.status = new_status
-        item.save(update_fields=['status'])
-        logger.info(
-            f"Transaction item '{item.id}' status updated to '{new_status}'."
-        )
-        return item
-    
-
-
-
-
-    @staticmethod
-    @transaction.atomic
-    def recalculate_transaction_item_totals(
-        item: TransactionItem
-    ) -> TransactionItem:
-        total_price = item.unit_price * item.quantity
-        tax_amount = total_price * (item.tax_rate / Decimal("100.00"))
-        item.total_price = total_price + tax_amount
-        item.save(update_fields=['total_price'])
-        logger.info(
-            f"Transaction item '{item.id}' totals recalculated."
-        )
-        return item
-
-
-    @staticmethod
-    def get_transaction_item_by_id(
-        item_id: int
-    ) -> TransactionItem:
-        try:
-            item = TransactionItem.objects.get(id=item_id)
-            return item
-        except TransactionItem.DoesNotExist:
-            logger.error(f"Transaction item with id '{item_id}' does not exist.")
-            raise
-    
-    @staticmethod
-    def get_transaction_items_by_transaction(
-        transaction: Transaction
-    ) -> QuerySet[TransactionItem]:
-        items = TransactionItem.objects.filter(transaction=transaction)
-        return items
-    
-
-    @staticmethod
-    def list_all_transaction_items() -> QuerySet[TransactionItem]:
-        items = TransactionItem.objects.all()
-        return items
-    
-
-    @staticmethod
-    def list_transaction_items_by_status(
-        status: str
-    ) -> QuerySet[TransactionItem]:
-        items = TransactionItem.objects.filter(status=status)
-        return items
-    
-
-    @staticmethod
-    def count_transaction_items() -> int:
-        count = TransactionItem.objects.count()
-        return count
+    class Meta:
+        indexes = [
+            models.Index(fields=['transaction']),
+            models.Index(fields=['product']),
+        ]

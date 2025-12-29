@@ -30,7 +30,7 @@ class PurchaseReturnItemSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = [
-            'id', 'purchase_return', 'subtotal', 'tax_amount', 'total_price',
+            'id', 'subtotal', 'tax_amount', 'total_price',
             'created_at', 'updated_at'
         ]
 

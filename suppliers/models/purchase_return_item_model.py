@@ -2,6 +2,7 @@ from django.db import models
 from config.models.create_update_base_model import CreateUpdateBaseModel
 from loguru import logger
 import uuid
+from decimal import Decimal
 
 
 class PurchaseReturnItem(CreateUpdateBaseModel):
@@ -21,11 +22,11 @@ class PurchaseReturnItem(CreateUpdateBaseModel):
 
     @property
     def subtotal(self):
-        return self.quantity * self.unit_price
+        return Decimal(self.quantity * self.unit_price)
 
     @property
     def tax_amount(self):
-        return self.subtotal * (self.tax_rate / 100)
+        return self.subtotal * Decimal(self.tax_rate / 100)
 
     @property
     def total_price(self):

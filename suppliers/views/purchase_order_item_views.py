@@ -60,7 +60,6 @@ class PurchaseOrderItemViewSet(ModelViewSet):
         purchase_order_item = serializer.save()
 
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-
         logger.success(
             f"PurchaseOrderItem for product '{purchase_order_item.product.name}' created by '{actor}'."
         )

@@ -13,9 +13,6 @@ class FiscalInvoiceSerializer(CompanyValidationMixin, serializers.ModelSerialize
     branch_summary = serializers.SerializerMethodField(read_only=True)
     device_summary = serializers.SerializerMethodField(read_only=True)
     sales_invoice_summary = serializers.SerializerMethodField(read_only=True)
-
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
-    branch = serializers.PrimaryKeyRelatedField(queryset=Branch.objects.all(), required=True)
     device = serializers.PrimaryKeyRelatedField(queryset=FiscalDevice.objects.all(), required=False, allow_null=True)
     sale = serializers.PrimaryKeyRelatedField(queryset=SalesInvoice.objects.all(), required=True)  # link to actual POS sale
 
@@ -23,9 +20,7 @@ class FiscalInvoiceSerializer(CompanyValidationMixin, serializers.ModelSerialize
         model = FiscalInvoice
         fields = [
             'id',
-            'company',
             'company_summary',
-            'branch',
             'branch_summary',
             'device',
             'device_summary',
@@ -89,7 +84,7 @@ class FiscalInvoiceSerializer(CompanyValidationMixin, serializers.ModelSerialize
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
-
+        validated_data['branch'] = request.user.branch
         try:
             invoice = FiscalInvoice.objects.create(**validated_data)
             actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')

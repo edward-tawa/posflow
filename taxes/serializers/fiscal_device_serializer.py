@@ -7,13 +7,11 @@ from taxes.models.fiscal_device_model import FiscalDevice
 
 class FiscalDeviceSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
 
     class Meta:
         model = FiscalDevice
         fields = [
             'id',
-            'company',
             'company_summary',
             'device_name',
             'device_serial_number',

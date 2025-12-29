@@ -22,7 +22,6 @@ class PurchasePaymentAllocationSerializer(CompanyValidationMixin, serializers.Mo
         model = PurchasePaymentAllocation
         fields = [
             'id',
-            'company',
             'company_summary',
             'branch_summary',
             'supplier',
@@ -111,7 +110,8 @@ class PurchasePaymentAllocationSerializer(CompanyValidationMixin, serializers.Mo
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # Force company
-
+        validated_data['branch'] = request.user.branch
+        
         actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')
         supplier = validated_data.get('supplier')
         invoice = validated_data.get('purchase_invoice')

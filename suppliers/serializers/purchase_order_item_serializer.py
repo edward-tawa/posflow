@@ -12,9 +12,6 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
     product_detail = ProductSummarySerializer(source='product', read_only=True)
     product_category = ProductCategorySerializer(read_only=True)
-    purchase_order = serializers.PrimaryKeyRelatedField(
-        queryset=PurchaseOrderItem.objects.all()
-    )
     company_summary = CompanySummarySerializer(source='company', read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
 
@@ -85,13 +82,7 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
         actor = getattr(user, 'username', None) or getattr(company, 'name', 'Unknown')
         # validated_data['total_price'] = validated_data['quantity'] * validated_data['unit_price']
         try:
-            purchase_order_item = PurchaseOrderItem.objects.create(
-                **validated_data
-                # purchase_order = validated_data['purchase_order'],
-                # product = validated_data['product'],
-                # quantity = validated_data['quantity'],
-                # unit_price = validated_data['unit_price']
-            )
+            purchase_order_item = PurchaseOrderItem.objects.create(**validated_data)
             logger.info(
                 f"{actor} created PurchaseOrderItem {purchase_order_item.id} "
                 f"for PurchaseOrder {purchase_order_item.purchase_order.id}."
