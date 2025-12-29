@@ -14,7 +14,7 @@ from accounts.models.account_model import Account
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from transactions.services.transcation_service import TransactionService
+from transactions.services.transaction_service import TransactionService
 from loguru import logger
 
 

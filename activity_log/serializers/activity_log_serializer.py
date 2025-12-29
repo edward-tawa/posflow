@@ -64,6 +64,7 @@ class ActivityLogSerializer(serializers.ModelSerializer):
             logger.error(f"Error logging activity by {actor}: {str(e)}")
             raise serializers.ValidationError("An error occurred while logging the activity.")
 
+    
     def update(self, instance, validated_data):
         # Normally activity logs are immutable; optionally raise error
         raise serializers.ValidationError("Activity logs cannot be updated once created.")

@@ -261,6 +261,16 @@ class TransactionService:
         ).order_by('-transaction_date')
         logger.info(f"Found {transactions.count()} transactions for branch {branch.id}")
         return transactions
+    
+    @staticmethod
+    def get_transactions_by_id(company, branch, id: int):
+        transactions = Transaction.objects.fitler(
+            company=company,
+            branch=branch,
+            id=id,
+        ).order_by('-transaction_date')
+        logger.info(f"Found {transactions.count()} transactions for id {id} in branch {branch.id}")
+        return transactions
 
     @staticmethod
     def get_transactions(account=None, company=None):

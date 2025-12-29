@@ -1,4 +1,4 @@
-from accounts.services.accounts_service import AccountsService
+from accounts.services.account_service import AccountsService
 from loguru import logger
 from django.db import transaction as db_transaction
 

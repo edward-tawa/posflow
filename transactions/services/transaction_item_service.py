@@ -4,6 +4,7 @@ from transactions.models.transaction_model import Transaction
 from inventory.models.product_model import Product
 from django.db import transaction
 from django.db import QuerySet
+from django.core.exceptions import ValidationError
 from loguru import logger
 from decimal import Decimal
 
@@ -19,13 +20,17 @@ class TransactionItemService:
     @staticmethod
     @transaction.atomic
     def create_transaction_item(
-        transaction: "Transaction",
+        transaction: Transaction,
         product: Product = None,
         product_name: str = "",
         quantity: int = 1,
         unit_price: Decimal = Decimal("0.00"),
         tax_rate: Decimal = Decimal("0.00")
     ) -> TransactionItem:
+
+        if transaction.transaction_type == Transaction.CASH_TRANSFER and product is not None:
+            raise ValidationError("Cannot attach a product item to a cash transfer transaction.")
+
         item = TransactionItem.objects.create(
             transaction=transaction,
             product=product,
@@ -80,109 +85,80 @@ class TransactionItemService:
         logger.info(f"Transaction item deleted | id={item_id}")
         TransactionService.recalculate_totals(transaction_ref)
 
-    
+    # -------------------------
+    # ATTACH / DETACH
+    # -------------------------
     @staticmethod
     @transaction.atomic
     def attach_to_transaction(
         item: TransactionItem,
         transaction: Transaction
     ) -> TransactionItem:
+
+        old_transaction = item.transaction
+
+        if transaction.transaction_type == Transaction.CASH_TRANSFER and item.product is not None:
+            raise ValidationError("Cannot attach a product item to a cash transfer transaction.")
+
         item.transaction = transaction
         item.save(update_fields=['transaction'])
-        logger.info(
-            f"Transaction item '{item.id}' attached to transaction '{transaction.id}'."
-        )
-        TransactionService.recalculate_totals(transaction)
-        return item
-    
+        logger.info(f"Transaction item '{item.id}' attached to transaction '{transaction.id}'.")
 
+        TransactionService.recalculate_totals(transaction)
+        if old_transaction:
+            TransactionService.recalculate_totals(old_transaction)
+        return item
 
     @staticmethod
     @transaction.atomic
     def detach_from_transaction(item: TransactionItem) -> TransactionItem:
-        transaction_ref = item.transaction
-        item.transaction = None
-        item.save(update_fields=['transaction'])
-        logger.info(f"Transaction item '{item.id}' detached from transaction.")
-        if transaction_ref:
-            TransactionService.recalculate_totals(transaction_ref)
-        return item
+        # If transaction FK is non-nullable, raise an error instead of setting None
+        raise ValidationError("Cannot detach item from transaction because transaction field is non-nullable.")
     
-
+    # -------------------------
+    # STATUS
+    # -------------------------
     @staticmethod
     @transaction.atomic
     def update_transaction_item_status(
         item: TransactionItem,
         new_status: str
     ) -> TransactionItem:
+
         ALLOWED_STATUSES = {"pending", "completed", "canceled"}
 
         if new_status not in ALLOWED_STATUSES:
-            logger.error(
-                f"Attempted to set invalid status '{new_status}' for transaction item '{item.id}'."
-            )
+            logger.error(f"Attempted to set invalid status '{new_status}' for transaction item '{item.id}'.")
             raise ValueError(f"Invalid status: {new_status}")
 
         item.status = new_status
         item.save(update_fields=['status'])
-        logger.info(
-            f"Transaction item '{item.id}' status updated to '{new_status}'."
-        )
-        return item
-    
-
-
-
-
-    @staticmethod
-    @transaction.atomic
-    def recalculate_transaction_item_totals(
-        item: TransactionItem
-    ) -> TransactionItem:
-        total_price = item.unit_price * item.quantity
-        tax_amount = total_price * (item.tax_rate / Decimal("100.00"))
-        item.total_price = total_price + tax_amount
-        item.save(update_fields=['total_price'])
-        logger.info(
-            f"Transaction item '{item.id}' totals recalculated."
-        )
+        logger.info(f"Transaction item '{item.id}' status updated to '{new_status}'.")
         return item
 
-
+    # -------------------------
+    # GETTERS
+    # -------------------------
     @staticmethod
-    def get_transaction_item_by_id(
-        item_id: int
-    ) -> TransactionItem:
+    def get_transaction_item_by_id(item_id: int) -> TransactionItem:
         try:
-            item = TransactionItem.objects.get(id=item_id)
-            return item
+            return TransactionItem.objects.get(id=item_id)
         except TransactionItem.DoesNotExist:
             logger.error(f"Transaction item with id '{item_id}' does not exist.")
             raise
-    
+
     @staticmethod
-    def get_transaction_items_by_transaction(
-        transaction: Transaction
-    ) -> QuerySet[TransactionItem]:
-        items = TransactionItem.objects.filter(transaction=transaction)
-        return items
-    
+    def get_transaction_items_by_transaction(transaction: Transaction) -> QuerySet[TransactionItem]:
+        return TransactionItem.objects.filter(transaction=transaction).order_by('created_at')
 
     @staticmethod
     def list_all_transaction_items() -> QuerySet[TransactionItem]:
-        items = TransactionItem.objects.all()
-        return items
-    
+        return TransactionItem.objects.all().order_by('created_at')
 
     @staticmethod
-    def list_transaction_items_by_status(
-        status: str
-    ) -> QuerySet[TransactionItem]:
-        items = TransactionItem.objects.filter(status=status)
-        return items
-    
+    def list_transaction_items_by_status(status: str) -> QuerySet[TransactionItem]:
+        return TransactionItem.objects.filter(status=status).order_by('created_at')
 
     @staticmethod
     def count_transaction_items() -> int:
-        count = TransactionItem.objects.count()
-        return count
+        return TransactionItem.objects.count()

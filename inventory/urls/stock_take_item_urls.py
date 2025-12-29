@@ -1,5 +1,5 @@
 from rest_framework.routers import DefaultRouter
-from inventory.views.stock_take_item import StockTakeItemViewSet
+from inventory.views.stock_take_item_views import StockTakeItemViewSet
 from django.urls import path, include
 
 router = DefaultRouter()

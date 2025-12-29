@@ -30,8 +30,6 @@ class Transaction(CreateUpdateBaseModel):
         ('INCOMING', 'Incoming'),
         ('OUTGOING', 'Outgoing'),
         ('TRANSFER', 'Transfer'),
-        ('CREDIT', 'Credit'),
-        ('DEBIT', 'Debit'),
     ]
 
     TRANSACTION_PAYMENT_METHODS = [

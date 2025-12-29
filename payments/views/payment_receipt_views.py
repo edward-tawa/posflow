@@ -131,3 +131,6 @@ class PaymentReceiptViewSet(ModelViewSet):
         relation_field = request.data.get("relation_field")
         PaymentReceiptService.detach_relation(receipt, relation_field)
         return Response({f"{relation_field}_detached": True}, status=status.HTTP_200_OK)
+    
+
+    
