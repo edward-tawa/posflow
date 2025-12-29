@@ -24,8 +24,14 @@ class StockMovement(CreateUpdateBaseModel):
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='stock_movements')
     sales_order = models.ForeignKey('sales.SalesOrder', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
     sales_return = models.ForeignKey('sales.SalesReturn', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
+    sales_invoice = models.ForeignKey('sales.SalesInvoice', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
     purchase_order = models.ForeignKey('suppliers.PurchaseOrder', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
     purchase_return = models.ForeignKey('suppliers.PurchaseReturn', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
+    purchase_invoice = models.ForeignKey('suppliers.PurchaseInvoice', on_delete=models.CASCADE, related_name='stock_movements', null=True, blank=True)
+    quantity_before = models.IntegerField(null=True, blank=True)
+    quantity_after = models.IntegerField(null=True, blank=True)
+    unit_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    total_cost = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     movement_date = models.DateTimeField(auto_now_add=True)
     quantity = models.IntegerField()  # Positive for stock in, negative for stock out
     movement_type = models.CharField(max_length=50, choices=MOVEMENT_TYPE_CHOICE, help_text="Type of stock movement")  # e.g., 'purchase', 'sale', 'adjustment'
@@ -38,11 +44,17 @@ class StockMovement(CreateUpdateBaseModel):
         return reference_number
     
 
+    def calculate_total_cost(self):
+        if self.unit_cost is not None and self.quantity is not None:
+            self.total_cost = self.unit_cost * abs(self.quantity)
+        else:
+            self.total_cost = None
+
     def save(self, *args, **kwargs):
         # Auto-generate reference number once on creation
         if not self.reference_number:
             self.reference_number = self.generate_reference_number()
-
+        self.calculate_total_cost()
         super().save(*args, **kwargs)
 
 
