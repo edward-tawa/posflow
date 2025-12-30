@@ -127,6 +127,13 @@ WSGI_APPLICATION = 'posflow.wsgi.application'
 #     }
 # }
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+}
+
 AUTHENTICATION_BACKENDS = [
     'company.auth.backends.company_backend.CompanyBackend',
     'users.auth.backends.user_backend.UserBackend',
