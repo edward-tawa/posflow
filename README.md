@@ -30,5 +30,5 @@ PosFlow provides a robust architecture for managing sales, inventory, customer a
 ## Setup
 1. Clone the repository:
    ```bash
-   git clone git@github.com:yourusername/posflow.git
+   git clone git@github.com:edward-tawa/posflow.git
    cd posflow
