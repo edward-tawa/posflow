@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, CompanyCookieJWTAuthentication
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_company_queryset
+from transfers.models.transfer_model import Transfer
 from transfers.models.product_transfer_item_model import ProductTransferItem
 from transfers.serializers.product_transfer_item_serializer import ProductTransferItemSerializer
 from config.permissions.company_role_base_permission import CompanyRolePermission

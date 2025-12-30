@@ -53,7 +53,7 @@ class StockTakeSerializer(serializers.ModelSerializer):
             logger.info(
                 {
                     "company": request.user.company,
-                    "user":  request.user.branch
+                    "user": request.user.branch
                 }
             )
             # validated_data['company'] = request.user.company

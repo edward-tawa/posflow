@@ -7,5 +7,5 @@ class TransactionsConfig(AppConfig):
 
 
     def ready(self):
-            # Import signal handlers to ensure they are registered
+        # Import signal handlers to ensure they are registered
         import transactions.signals.apply_transaction_signal

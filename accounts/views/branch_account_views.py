@@ -86,7 +86,7 @@ class GetBranchAccountTransactions(APIView):
             logger.warning(f"Account with ID {account_id} does not exist.")
             return Response({"detail": "Account not found."}, status=status.HTTP_404_NOT_FOUND)
         
-         # Check permissions
+        # Check permissions
         if not AccountPermissionAccess().has_object_permission(request, self, account):
             logger.warning(f"Unauthorized access attempt to Account ID {account_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)

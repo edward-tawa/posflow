@@ -169,9 +169,6 @@ class UserViewSet(ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
-
-
-
 # Register a new user (by company admin)
 class UserRegisterView(APIView):
     permission_classes = [UserPermissions]
@@ -204,8 +201,6 @@ class UserRegisterView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.save(company = self.request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
 
 # Update an existing user
 class UserUpdateView(APIView):
@@ -270,7 +265,7 @@ class UserLoginView(APIView):
                 'access_token': access_token,
                 'refresh_token': refresh_token,
                 'user_data': serializer.data
-            }, 
+            },
             status=200
         )
 
@@ -294,9 +289,7 @@ class UserLoginView(APIView):
             samesite="Lax",
             max_age=60 * 60 * 24 * 7  # 7 days
         )
-
-        return response
-    
+        return response    
 
 class UserLogoutView(APIView):
     """
@@ -307,11 +300,8 @@ class UserLogoutView(APIView):
 
         # Clear cookies by setting empty value and max_age=0
         response.delete_cookie("user_access_token")
-        response.delete_cookie("user_refresh_token")
-        
+        response.delete_cookie("user_refresh_token")        
         return response
-    
-
 
 class UserTokenRefreshView(APIView):
     """
@@ -336,9 +326,9 @@ class UserTokenRefreshView(APIView):
             secure_flag = not settings.DEBUG
             response = Response(
                 {
-                    "message": "Token refreshed", 
+                    "message": "Token refreshed",
                     "access": new_access_token
-                }, 
+                },
                 status=200
             )
 

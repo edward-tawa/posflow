@@ -266,56 +266,56 @@ class TransferService:
 
 
 
-    @staticmethod
-    @db_transaction.atomic
-    def perform_product_transfer(transfer: Transfer):
-        """
-        Perform a product transfer: record transaction, update stock,
-        then mark transfer completed.
-        """
+    # @staticmethod
+    # @db_transaction.atomic
+    # def perform_product_transfer(transfer: Transfer):
+    #     """
+    #     Perform a product transfer: record transaction, update stock,
+    #     then mark transfer completed.
+    #     """
 
-        # Guards by checking transfer status and items
-        if transfer.status != "pending":
-            raise ValueError("Only pending transfers can be performed")
+    #     # Guards by checking transfer status and items
+    #     if transfer.status != "pending":
+    #         raise ValueError("Only pending transfers can be performed")
 
-        if not transfer.items.exists():
-            raise ValueError("Cannot perform product transfer without attached product items")
+    #     if not transfer.items.exists():
+    #         raise ValueError("Cannot perform product transfer without attached product items")
 
-        # Recalculate totals
-        TransferService.recalculate_total(transfer)
+    #     # Recalculate totals
+    #     TransferService.recalculate_total(transfer)
 
-        if transfer.amount <= 0:
-            raise ValueError("Product transfer amount must be greater than zero")
+    #     if transfer.amount <= 0:
+    #         raise ValueError("Product transfer amount must be greater than zero")
 
-        # Record transaction
-        source_branch_account = BranchService.create_or_get_branch_account(
-            branch=transfer.source_branch,
-            company=transfer.company
-        )
-        dest_branch_account = BranchService.create_or_get_branch_account(
-            branch=transfer.destination_branch,
-            company=transfer.company
-        )
+    #     # Record transaction
+    #     source_branch_account = BranchService.create_or_get_branch_account(
+    #         branch=transfer.source_branch,
+    #         company=transfer.company
+    #     )
+    #     dest_branch_account = BranchService.create_or_get_branch_account(
+    #         branch=transfer.destination_branch,
+    #         company=transfer.company
+    #     )
 
-        transaction = TransactionService.create_transaction(
-            company=transfer.company,
-            branch=transfer.branch,
-            debit_account=dest_branch_account,
-            credit_account=source_branch_account,
-            transaction_type='PRODUCT_TRANSFER',
-            transaction_category='PRODUCT_TRANSFER',
-            total_amount=transfer.amount,
-            supplier=None,
-            customer=None,
-        )
-        TransactionService.apply_transaction_to_accounts(transaction)
+    #     transaction = TransactionService.create_transaction(
+    #         company=transfer.company,
+    #         branch=transfer.branch,
+    #         debit_account=dest_branch_account,
+    #         credit_account=source_branch_account,
+    #         transaction_type='PRODUCT_TRANSFER',
+    #         transaction_category='PRODUCT_TRANSFER',
+    #         total_amount=transfer.amount,
+    #         supplier=None,
+    #         customer=None,
+    #     )
+    #     TransactionService.apply_transaction_to_accounts(transaction)
 
-        # Move stock
-        TransferService.decrease_stock_for_transfer(transfer)
-        TransferService.increase_stock_for_transfer(transfer)
+    #     # Move stock
+    #     TransferService.decrease_stock_for_transfer(transfer)
+    #     TransferService.increase_stock_for_transfer(transfer)
 
-        # Mark completed
-        transfer.status = 'completed'
-        transfer.save(update_fields=['status'])
+    #     # Mark completed
+    #     transfer.status = 'completed'
+    #     transfer.save(update_fields=['status'])
 
-        logger.info(f"Product Transfer '{transfer.reference_number}' performed successfully.")
+    #     logger.info(f"Product Transfer '{transfer.reference_number}' performed successfully.")

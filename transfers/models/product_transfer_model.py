@@ -52,4 +52,4 @@ class ProductTransfer(CreateUpdateBaseModel):
 
     def __str__(self):
         ref = self.transfer.reference_number if self.transfer else "NO-TRANSFER"
-        return  f"ProductTransfer {ref}: {self.source_branch} -> {self.destination_branch}"
+        return f"ProductTransfer {ref}: {self.source_branch} -> {self.destination_branch}"

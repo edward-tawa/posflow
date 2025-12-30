@@ -151,7 +151,7 @@ class PurchasesReturnsService:
         filtered_ids = [
             pra.id for pra in qs
             if (min_balance is None or AccountsService.get_account_balance(pra.account) >= min_balance) and
-               (max_balance is None or AccountsService.get_account_balance(pra.account) <= max_balance)
+            (max_balance is None or AccountsService.get_account_balance(pra.account) <= max_balance)
         ]
 
         if not filtered_ids:

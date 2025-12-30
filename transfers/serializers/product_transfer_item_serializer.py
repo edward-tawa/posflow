@@ -31,7 +31,7 @@ class ProductTransferItemSerializer(serializers.ModelSerializer):
 
     
 
-    def  validate_quantity(self, value):
+    def validate_quantity(self, value):
         if value <= 0:
             
             raise serializers.ValidationError("Quantity must be greater than zero.")

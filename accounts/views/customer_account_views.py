@@ -93,7 +93,7 @@ class GetCustomerAccountTransactions(APIView):
             logger.warning(f"Customer with ID {customer_id} does not exist.")
             return Response({"detail": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
         
-         # Check permissions
+        # Check permissions
         if not ManageCustomersPermission().has_object_permission(request, self, customer):
             logger.warning(f"Unauthorized access attempt to Account ID {customer_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)

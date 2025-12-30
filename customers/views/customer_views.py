@@ -38,7 +38,7 @@ class CustomerViewSet(ModelViewSet):
             return Customer.objects.none()
         
         if isinstance(current, User):
-            if current.is_staff or current.is_superuser or current.role in staff_roles :
+            if current.is_staff or current.is_superuser or current.role in staff_roles:
                 return Customer.objects.filter(company=current.company)
         elif isinstance(current, Company):
             return Customer.objects.filter(company=current)

@@ -93,7 +93,7 @@ class GetEmployeeAccountTransactions(APIView):
             logger.warning(f"Employee with ID {user_id} does not exist.")
             return Response({"detail": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
         
-         # Check permissions
+        # Check permissions
         if not UserPermissions().has_object_permission(request, self, employee):
             logger.warning(f"Unauthorized access attempt to Account ID {user_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)

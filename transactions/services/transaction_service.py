@@ -92,7 +92,7 @@ class TransactionService:
             credit_account.save(update_fields=['balance'])
             logger.info(f"Credited Account {credit_account.id}: {credit_balance} → {credit_account.balance}")
 
-             # Mark transaction as completed
+            #Mark transaction as completed
             transaction.status = "COMPLETED"
             transaction.save(update_fields=["status"])
             logger.info(f"Transaction {transaction.transaction_number} marked as COMPLETED")

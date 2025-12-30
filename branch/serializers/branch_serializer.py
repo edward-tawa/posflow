@@ -39,7 +39,7 @@ class BranchSerializer(serializers.ModelSerializer):
         validated_data['company'] = None
         try:
             if user.role in ['Admin', 'Manager']:
-                validated_data['company'] = Company.objects.get(Q(id = user.company.id)|Q(name = user.company.name))
+                validated_data['company'] = Company.objects.get(Q(id = user.company.id) | Q(name = user.company.name))
         except Exception as e:
             validated_data['company'] = Company.objects.get(name = user.name)
             logger.info(validated_data)

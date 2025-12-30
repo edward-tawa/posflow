@@ -159,7 +159,7 @@ def test_product_category_fixture(create_branch, test_company_fixture):
 #=========================================
 @pytest.fixture()
 def test_product_fixture(create_branch, test_company_fixture, test_product_category_fixture):
-    product =  Product(
+    product = Product(
         company = test_company_fixture,
         branch = create_branch,
         name = 'HP Omen',
@@ -169,7 +169,7 @@ def test_product_fixture(create_branch, test_company_fixture, test_product_categ
         stock = 25
     )
 
-    product.sku =  sku = Product.generate_sku(product)
+    product.sku = Product.generate_sku(product)
     product.save()
     return product
 

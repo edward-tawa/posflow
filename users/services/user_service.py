@@ -187,12 +187,12 @@ class UserService:
 
 
 
-    @staticmethod
-    @db_transaction.atomic
-    def activate_users(users: list[User]) -> None:
-        """Activate multiple users at once."""
-        User.objects.filter(id__in=[u.id for u in users]).update(is_active=True)
-        logger.info(f"Activated {len(users)} users.")
+    # @staticmethod
+    # @db_transaction.atomic
+    # def activate_users(users: list[User]) -> None:
+    #     """Activate multiple users at once."""
+    #     User.objects.filter(id__in=[u.id for u in users]).update(is_active=True)
+    #     logger.info(f"Activated {len(users)} users.")
 
 
 

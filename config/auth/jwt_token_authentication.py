@@ -55,7 +55,7 @@ class BaseCookieJWTAuthentication(JWTAuthentication):
         try:
             refresh = RefreshToken(refresh_token)
             new_access = str(refresh.access_token)
-            logger.info(f"[CookieJWT] Refresh token validated. New access token generated.")
+            logger.info(f"[CookieJWT] Refresh token validated. New access token generated:{new_access}.")
             return new_access
         except TokenError as e:
             logger.warning(f"[CookieJWT] Invalid refresh token in cookie: {e}")

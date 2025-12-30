@@ -5,6 +5,7 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.utilities.get_queryset import get_company_queryset
 from config.pagination.pagination import StandardResultsSetPagination
+from suppliers.models.supplier_credit_note_model import SupplierCreditNote
 from suppliers.models.supplier_credit_note_item_model import SupplierCreditNoteItem
 from suppliers.serializers.supplier_credit_note_item_serializer import SupplierCreditNoteItemSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions
