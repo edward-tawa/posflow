@@ -29,6 +29,6 @@ jobs:
 
       - name: Run Tests
         run: |
-          echo "y" | python manage.py makemigrations
+          python manage.py makemigrations
           python manage.py migrate
           pytest -s
