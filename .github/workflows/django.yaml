@@ -13,9 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Remove sqlite3 db
+      - name: Remove sqlite3 db and migrations files
         run: |
           find . -name "*.sqlite3" -type f -delete
+          find . -path "*/migrations/*.py" -name "*.py" ! -name "__init__.py" -type f -delete
 
       - name: Install python
         uses: actions/setup-python@v5
