@@ -498,3 +498,7 @@ def test_transaction_fixture(test_company_fixture, create_branch, test_dc_fixtur
         total_amount = 1000.00,
         transaction_number = Transaction.generate_transaction_number(Transaction)
     )
+
+@pytest.fixture()
+def test_write_off_account_fixture():
+    pass
