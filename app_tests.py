@@ -1790,7 +1790,7 @@ def test_sales_return_urls(client, test_user_token, test_customer_fixture, test_
     Test Sales Return endpoints.
     """
     url = reverse('sales-return-list')
-    
+     
     # Test GET
     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
     logger.info(response.json())
