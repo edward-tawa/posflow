@@ -25,4 +25,6 @@ jobs:
 
       - name: Run Tests
         run: |
+          py manage.py makemigrations
+          py manage.py migrate
           pytest -s
