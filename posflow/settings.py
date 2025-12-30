@@ -116,16 +116,16 @@ WSGI_APPLICATION = 'posflow.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 # settings.py
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv('DB_NAME'),      # The database name
-        "USER": os.getenv('DB_USER'),           # The db user you created
-        "PASSWORD": os.getenv('DB_PASSWORD'),       # The user's password
-        "HOST": os.getenv('DB_HOST'),       # Use "127.0.0.1" if needed
-        "PORT": os.getenv('DB_PORT'),            # Default PostgreSQL port
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.getenv('DB_NAME'),      # The database name
+#         "USER": os.getenv('DB_USER'),           # The db user you created
+#         "PASSWORD": os.getenv('DB_PASSWORD'),       # The user's password
+#         "HOST": os.getenv('DB_HOST'),       # Use "127.0.0.1" if needed
+#         "PORT": os.getenv('DB_PORT'),            # Default PostgreSQL port
+#     }
+# }
 
 AUTHENTICATION_BACKENDS = [
     'company.auth.backends.company_backend.CompanyBackend',
