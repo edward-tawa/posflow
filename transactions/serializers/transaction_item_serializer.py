@@ -12,8 +12,6 @@ class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSeriali
     transaction_company_summary = serializers.SerializerMethodField(read_only=True)
     transaction_branch_summary = serializers.SerializerMethodField(read_only=True)
     product_name = serializers.CharField(read_only=True)  # optional if stored
-    transaction = serializers.PrimaryKeyRelatedField(queryset=Transaction.objects.all(), required=True)
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), required=True)
  
     class Meta:
         model = TransactionItem
@@ -85,7 +83,7 @@ class TransactionItemSerializer(CompanyValidationMixin, serializers.ModelSeriali
         try:
             item = TransactionItem.objects.create(**validated_data)
             # update transaction total
-            item.transaction.update_total_amount()
+            # item.transaction.update_total_amount()
             actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')
             logger.info(f"TransactionItem '{item.id}' created for transaction '{transaction.transaction_number}' by {actor}.")
             return item

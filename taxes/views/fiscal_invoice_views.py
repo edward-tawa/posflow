@@ -50,8 +50,8 @@ class FiscalInvoiceViewSet(ModelViewSet):
                 .select_related(
                     'company',
                     'branch',
-                    'device'
-                    # 'sale'
+                    'device',
+                    'sale'
                 )
             )
         except Exception as e:

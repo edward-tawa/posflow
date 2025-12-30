@@ -14,7 +14,6 @@ class FiscalInvoiceSerializer(CompanyValidationMixin, serializers.ModelSerialize
     device_summary = serializers.SerializerMethodField(read_only=True)
     sales_invoice_summary = serializers.SerializerMethodField(read_only=True)
     device = serializers.PrimaryKeyRelatedField(queryset=FiscalDevice.objects.all(), required=False, allow_null=True)
-    sale = serializers.PrimaryKeyRelatedField(queryset=SalesInvoice.objects.all(), required=True)  # link to actual POS sale
 
     class Meta:
         model = FiscalInvoice

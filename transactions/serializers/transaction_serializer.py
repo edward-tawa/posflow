@@ -11,17 +11,13 @@ from branch.models.branch_model import Branch
 class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
-    company = serializers.PrimaryKeyRelatedField(queryset=Company.objects.all(), required=True)
-    customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all(), required=False, allow_null=True)
 
     class Meta:
         model = Transaction
         fields = [
             'id',
-            'company',
             'company_summary',
             'branch_summary',
-            'branch',
             'customer',
             'transaction_type',
             'payment_method',
@@ -30,6 +26,9 @@ class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer)
             'total_amount',
             'created_at',
             'updated_at',
+            'debit_account',
+            'credit_account',
+            'transaction_category'
         ]
         read_only_fields = [
             'id',
@@ -72,7 +71,9 @@ class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer)
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
+        validated_data['branch'] = request.user.branch
 
+        actor = None
         try:
             transaction = Transaction.objects.create(**validated_data)
             actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')
