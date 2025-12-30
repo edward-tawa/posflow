@@ -15,6 +15,7 @@ jobs:
 
       - name: Remove sqlite3 db and migrations files
         run: |
+          find . - name ".env" -type f -delete
           find . -name "*.sqlite3" -type f -delete
           find . -path "*/migrations/*.py" -name "*.py" ! -name "__init__.py" -type f -delete
 
