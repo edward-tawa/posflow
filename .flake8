@@ -1,6 +1,6 @@
 [flake8]
 # Exclude standard junk folders
-exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,tenv,venv,*/__init__.py
+exclude = .git,__pycache__,docs/source/conf.py,old,build,dist,tenv,venv,*/__init__.py,*/settings.py
 
 # Set the max line length to something reasonable (Django/DRF often needs 120+)
 max-line-length = 120
