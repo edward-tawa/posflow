@@ -4,6 +4,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from config.utilities.get_company_or_user_company import get_expected_company
 from suppliers.models.supplier_credit_note_model import SupplierCreditNote
+from suppliers.models.supplier_model import Supplier
+from suppliers.services.supplier_credit_note_service import SupplierCreditNoteService
 from suppliers.serializers.supplier_credit_note_serializer import SupplierCreditNoteSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response

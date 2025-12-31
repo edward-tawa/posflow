@@ -29,7 +29,7 @@ class SalesQuotation(CreateUpdateBaseModel):
 
 
     def generate_quotation_number(self):
-        quotation_number =  f"{self.Prefix}-{uuid.uuid4().hex[:6].upper()}"
+        quotation_number = f"{self.Prefix}-{uuid.uuid4().hex[:6].upper()}"
         logger.info(f"Generated quotation number successfully: {quotation_number}")
         return quotation_number
     

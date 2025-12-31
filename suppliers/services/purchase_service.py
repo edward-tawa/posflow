@@ -57,7 +57,7 @@ class PurchaseService:
             company=company,
             branch=branch,
             supplier=supplier,
-             purchase_type=purchase_type,
+            purchase_type=purchase_type,
             issued_by=issued_by,
             notes=notes,
             total_amount=total_amount,
@@ -110,7 +110,7 @@ class PurchaseService:
         logger.info(f"Purchase transaction recorded | purchase_id={purchase.id} | transaction_id={transaction.id}")
         return purchase
 
-   # -------------------------
+    # -------------------------
     # UPDATE
     # -------------------------
     @staticmethod

@@ -10,6 +10,7 @@ from sales.models.sales_order_model import SalesOrder
 from sales.serializers.sales_order_serializer import SalesOrderSerializer
 from sales.services.sales_order_service import SalesOrderService
 from sales.serializers.sales_order_item_serializer import SalesOrderItemSerializer
+from sales.models.sales_invoice_model import SalesInvoice
 from rest_framework import status
 from rest_framework.response import Response
 from django.db.models import Q

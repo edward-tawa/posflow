@@ -5,6 +5,7 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from config.utilities.get_company_or_user_company import get_expected_company
 from suppliers.models.purchase_payment_allocation_model import PurchasePaymentAllocation
 from suppliers.serializers.purchase_payment_allocation_serializer import PurchasePaymentAllocationSerializer
+from suppliers.services.purchase_payment_allocation_service import PurchasePaymentAllocationService
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
