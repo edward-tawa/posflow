@@ -90,6 +90,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'config.middleware.get_current_user_middleware.CurrentUserMiddleware',
 ]
 
 ROOT_URLCONF = 'posflow.urls'

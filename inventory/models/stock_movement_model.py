@@ -7,18 +7,23 @@ import uuid
 class StockMovement(CreateUpdateBaseModel):
     # Model to track stock movements of products in inventory
     PREFIX = 'SM'
-    MOVEMENT_TYPE_CHOICE = [
-        ('purchase', 'Purchase'),
-        ('sale', 'Sale'),
-        ('adjustment', 'Adjustment'),
-        ('transfer', 'Transfer'),
-        ('sales_return', 'Sales Return'),
-        ('purchase_return', 'Purchase Return'),
-        ('shrinkage', 'Shrinkage'),
-        ('damage', 'Damage'),
-        ('write_off', 'Write Off'),
-        ('other', 'Other'),
-    ]
+    class MovementType(models.TextChoices):
+        PURCHASE = "PURCHASE", "Purchase"
+        SALE = "SALE", "Sale"
+
+        TRANSFER_IN = "TRANSFER_IN", "Transfer In"
+        TRANSFER_OUT = "TRANSFER_OUT", "Transfer Out"
+
+        SALE_RETURN = "SALE_RETURN", "Sales Return"
+        PURCHASE_RETURN = "PURCHASE_RETURN", "Purchase Return"
+
+        MANUAL_INCREASE = "MANUAL_INCREASE", "Manual Increase"
+        MANUAL_DECREASE = "MANUAL_DECREASE", "Manual Decrease"
+
+        DAMAGE = "DAMAGE", "Damage"
+        SHRINKAGE = "SHRINKAGE", "Shrinkage"
+        WRITE_OFF = "WRITE_OFF", "Write Off"
+
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='stock_movements')
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='stock_movements')
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='stock_movements')
@@ -32,9 +37,13 @@ class StockMovement(CreateUpdateBaseModel):
     quantity_after = models.IntegerField(null=True, blank=True)
     unit_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     total_cost = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
-    movement_date = models.DateTimeField(auto_now_add=True)
+    movement_type = models.CharField(
+        max_length=32,
+        choices=MovementType.choices,
+        db_index=True,
+        help_text="Type of stock movement"
+    )
     quantity = models.IntegerField()  # Positive for stock in, negative for stock out
-    movement_type = models.CharField(max_length=50, choices=MOVEMENT_TYPE_CHOICE, help_text="Type of stock movement")  # e.g., 'purchase', 'sale', 'adjustment'
     reason = models.TextField(blank=True, null=True, help_text="Reason for the stock movement, if applicable")
     reference_number = models.CharField(max_length=100, editable=False, unique=True)
 

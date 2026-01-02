@@ -8,6 +8,7 @@ class SalesReceiptItem(CreateUpdateBaseModel):
     sales_receipt = models.ForeignKey('sales.SalesReceipt', on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='sales_receipt_items')
     sale = models.ForeignKey('sales.Sale', on_delete=models.CASCADE, null=True, blank=True, related_name='sales_receipt_items')
+    sales_order = models.ForeignKey('sales.SalesOrder', on_delete=models.CASCADE, null=True, blank=True, related_name='sales_receipt_items')
     product_name = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
