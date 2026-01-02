@@ -8,4 +8,5 @@ class TransactionsConfig(AppConfig):
 
     def ready(self):
         # Import signal handlers to ensure they are registered
-        import transactions.signals.apply_transaction_signal
+        import transactions.signals.transaction_activity_logs_signal
+        import transactions.signals.transaction_item_activity_logs_signal
