@@ -11,4 +11,4 @@ max-line-length = 120
 # E501: Line too long (we handle this with max-line-length, but ignoring it strictly suppresses it)
 # F401: Module imported but unused (clean these up later, but ignore for now)
 # W291: Trailing whitespace
-ignore = E101,E121,E122,E123,E124,E125,E126,E127,E128,E225,E231,E251,E261,E262,E265,E266,E275,E301,E302,E303,E305,E306,E402,E501,F401,F403,F405,F811,F841,W291,W292,W293,W391,W503,W504
+ignore = E101,E121,E122,E123,E124,E125,E126,E127,E128,E225,E231,E203,E251,E261,E262,E265,E266,E275,E301,E302,E303,E305,E306,E402,E501,F401,F403,F405,F811,F841,W291,W292,W293,W391,W503,W504
