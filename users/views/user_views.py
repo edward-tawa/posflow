@@ -19,6 +19,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from django.db.models import Q
 from users.services.user_service import UserService
+from activity_log.services.activity_log_service import ActivityLogService
 from loguru import logger
 
 class UserViewSet(ModelViewSet):
@@ -269,6 +270,12 @@ class UserLoginView(APIView):
             status=200
         )
 
+        user_login_activity_log = ActivityLogService.create_activity_log(
+            user_id=user.id,
+            action=f"Log in",
+            description = "User logged in to the system successfully.",
+        )
+
         # Development vs production cookie flags
         secure_flag = not settings.DEBUG  # True if production, False if development
 
@@ -299,8 +306,14 @@ class UserLogoutView(APIView):
         response = Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
 
         # Clear cookies by setting empty value and max_age=0
+        user = request.user
         response.delete_cookie("user_access_token")
-        response.delete_cookie("user_refresh_token")        
+        response.delete_cookie("user_refresh_token")   
+        user_logout_activity_log = ActivityLogService.create_activity_log(
+            user_id=user.id,
+            action=f"Log out",
+            description = "User logged out of the system successfully.",
+        )     
         return response
 
 class UserTokenRefreshView(APIView):
