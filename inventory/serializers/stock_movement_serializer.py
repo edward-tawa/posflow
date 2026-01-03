@@ -37,13 +37,13 @@ class StockMovementSerializer(serializers.ModelSerializer):
             'sales_return',
             'purchase_order',
             'purchase_return',
-            'movement_date',
+            'movement_type',
             'quantity',
             'movement_type',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'reference_number', 'movement_date', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'reference_number', 'created_at', 'updated_at']
 
     def validate(self, attrs):
         request = self.context.get('request')
