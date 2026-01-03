@@ -21,6 +21,7 @@ class BranchSerializer(serializers.ModelSerializer):
             'phone_number',
             'manager',
             'is_active',
+            'disable',
             'opening_date',
             'notes',
             'full_address',

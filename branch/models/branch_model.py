@@ -12,6 +12,7 @@ class Branch(CreateUpdateBaseModel):
     phone_number = models.CharField(max_length=15)
     manager = models.ForeignKey('users.User', on_delete=models.SET_NULL, related_name='managed_branches', null=True)
     is_active = models.BooleanField(default=True)
+    disable = models.BooleanField(default=False)
     opening_date = models.DateField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
 
