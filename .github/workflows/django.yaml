@@ -34,7 +34,7 @@ jobs:
           python manage.py migrate
   
   run_tests: 
-    needs: run_migrations_tests
+    needs: run_migrations
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
