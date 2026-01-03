@@ -113,6 +113,30 @@ def test_account_fixture(test_company_fixture, create_branch):
     )
     return account
 
+#=========================================
+# Account 1 fixture
+#=========================================
+@pytest.fixture()
+def test_account_one_fixture(test_company_fixture, create_branch):
+    # CREATE
+    account_one = Account.objects.create(
+        name = 'Test 1 Account',
+        company = test_company_fixture,
+        branch = create_branch,
+        account_number = Account.generate_account_number(self='account'),
+        account_type = 'BANK',
+    )
+    account_two = Account.objects.create(
+        name = 'Test Account',
+        company = test_company_fixture,
+        branch = create_branch,
+        account_number = Account.generate_account_number(self='account'),
+        account_type = 'CASH',
+    )
+    return {
+        "acc1": account_one,
+        "acc2": account_two
+    }
 
 #=========================================
 # Debit&Credit Account fixture
@@ -502,3 +526,114 @@ def test_transaction_fixture(test_company_fixture, create_branch, test_dc_fixtur
 @pytest.fixture()
 def test_write_off_account_fixture():
     pass
+
+
+#=============================================
+# Company Login Fixture
+#=============================================
+
+@pytest.fixture()
+def test_company_token_fixture(client):
+    url = reverse('company-register')
+    data = {
+        "name": "TechCity",
+        "email": "techcity@gmail.com",
+        "password": "techcity",
+        "address": "63 Speke",
+        "phone_number": "078467231"
+    }
+
+    response = client.post(url, data)
+    logger.info(response.status_code)
+
+    if response.status_code == 201:
+        url = reverse('company-login')
+        data = {
+            'email': "techcity@gmail.com",
+            "password": "techcity"
+        }
+        response = client.post(url, data)
+        logger.info(response.json())
+
+        return response.json().get('access_token')
+    
+#==============================================
+# Transfer Fixture
+#==============================================
+@pytest.fixture()
+def test_transfer_fixture(test_company_fixture, create_branch):
+    return Transfer.objects.create(
+        company = test_company_fixture,
+        branch = create_branch,
+        reference_number = Transfer.generate_reference_number(Transfer)
+    )
+
+#==============================================
+# Branch Account
+#==============================================
+@pytest.fixture()
+def test_branch_account_fixture(test_company_fixture, create_branch, test_account_one_fixture):
+    branch_account_one = BranchAccount.objects.create(
+        company = test_company_fixture,
+        branch = create_branch,
+        account = test_account_one_fixture.get('acc1')
+    )
+
+    branch_account_two = BranchAccount.objects.create(
+        company = test_company_fixture,
+        branch = create_branch,
+        account = test_account_one_fixture.get('acc2')
+    )
+
+    return {
+        "branch_account_one": branch_account_one,
+        "branch_account_two": branch_account_two
+    }
+
+
+
+@pytest.fixture()
+def test_company_get_fixture(client, test_company_token_fixture):
+    url = reverse('company-detail', args=[1])
+    
+    response = client.get(url, HTTP_AUTHORIZATION = f'Bearer: {test_company_token_fixture}')
+    logger.info(response.json())
+    return response.json()
+
+
+#=========================================
+# Branch Fixture
+#=========================================
+@pytest.fixture
+def create_branch_fixture(test_company_get_fixture):
+
+    company = Company.objects.get(id = test_company_get_fixture['id'])
+
+    branch_one =  Branch.objects.create(
+        name = "Harare Main",
+        company = company,
+        code = "HRE-002",
+        address = "123 Samora Machel Ave",
+        city = "Harare",
+        country = "Zimbabwe",
+        phone_number = "+263777000000",
+        is_active = True,
+        manager = None
+    )
+
+    branch_two =  Branch.objects.create(
+        name = "HMain",
+        company = company,
+        code = "HRE-003",
+        address = "123 Samora Machel",
+        city = "Harare",
+        country = "Zimbabwe",
+        phone_number = "+263777000",
+        is_active = True,
+        manager = None
+    )
+
+    return {
+        "one" : branch_one,
+        "two" : branch_two
+    }

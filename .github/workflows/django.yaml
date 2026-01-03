@@ -33,7 +33,7 @@ jobs:
           python manage.py makemigrations
           python manage.py migrate
           pytest -s
-          
+
   lint_python_code:
     runs-on: ubuntu-latest
     needs: [run_migrations_tests]
@@ -43,6 +43,9 @@ jobs:
       
       - name: Setup python
         uses: actions/setup-python@v5
+        with:
+          python-version: 
+            3.14, 3.12
       
       - name: Install requirements
         run: |

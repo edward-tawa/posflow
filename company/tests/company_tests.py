@@ -1,14 +1,16 @@
 from fixture_tests import *
 
 @pytest.mark.django_db
-def test_company_urls(client, test_user_token):
+def test_company_urls(client, test_company_token_fixture):
     """
     Test Company endpoints: List, Create, Register.
     """
     # 1. Test List
     url_list = reverse('company-list')
-    response = client.get(url_list, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
-    assert response.status_code == 403 #Will come back
+    response = client.get(url_list, HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(test_company_token_fixture)
+    logger.info(response.json())
+    assert response.status_code == 200
 
     # 2. Test Register (Public endpoint usually, but checking payload structure)
     url_register = reverse('company-register')
@@ -25,47 +27,55 @@ def test_company_urls(client, test_user_token):
     assert response.status_code in [200, 201]
 
 @pytest.mark.django_db
-def test_company_search_exists(client, test_user_token):
+def test_company_search_exists(client, test_company_token_fixture):
     """
     Test Company Search and Existence checks.
     """
     # 1. Search
     url_search = reverse('company-search')
-    response = client.get(f"{url_search}?q=Test", HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
-    assert response.status_code == 403 #will comeback
+    response = client.get(f"{url_search}?q=Test", HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code == 200
 
     # 2. Exists
     url_exists = reverse('company-exists')
-    response = client.get(f"{url_exists}?name=TestCompany", HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
-    assert response.status_code == 403 #will comeback
+    response = client.get(f"{url_exists}?name=TestCompany", HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code == 200
 
     # 3. Count
     url_count = reverse('company-count')
-    response = client.get(url_count, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
-    assert response.status_code == 403 #will comeback
+    response = client.get(url_count, HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db
-def test_authentication_endpoints(client, test_user_token):
+def test_authentication_endpoints(client, test_company_token_fixture):
     """
     Test dedicated authentication endpoints for Users and Companies.
     """
     # 1. Company Login
     url_co_login = reverse('company-login')
-    client.post(url_co_login, {"email": "test@co.com", "password": "pass"}, content_type='application/json')
+    response = client.post(url_co_login, {"email": "techcity@gmail.com", "password": "techcity"}, content_type='application/json')
+    logger.info(response.json())
+    assert response.status_code == 200
 
     # 2. Company Logout
     url_co_logout = reverse('company-logout')
-    client.post(url_co_logout, {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    client.post(url_co_logout, {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code == 200
 
     # 3. Company Token Refresh
     url_co_refresh = reverse('company-token-refresh')
     client.post(url_co_refresh, {"refresh": "token"}, content_type='application/json')
-
+    logger.info(response.json())
+    assert response.status_code == 200
     
 
 @pytest.mark.django_db
-def test_company_assets_and_status(client, test_user_token):
+def test_company_assets_and_status(client, test_company_token_fixture):
     """
     Test Company Logo management and status actions.
     """
@@ -74,32 +84,48 @@ def test_company_assets_and_status(client, test_user_token):
     
     # 1. Active Companies (List variant)
     url_active = reverse('company-active-companies')
-    client.get(url_active, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    response = client.get(url_active, HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code == 200
 
     # 2. By Email Domain
     url_domain = reverse('company-by-email-domain')
-    client.get(f"{url_domain}?domain=example.com", HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    response = client.get(f"{url_domain}?domain=example.com", HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code == 200
 
     # 3. Activate/Deactivate
-    client.post(reverse('company-activate', args=[co_id]), {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
-    client.post(reverse('company-deactivate', args=[co_id]), {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    response = client.post(reverse('company-activate', args=[co_id]), {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code == 200
+    
+    response = client.post(reverse('company-deactivate', args=[co_id]), {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code == 200
 
     # 4. Logo Management
     # Set Logo (Multipart usually, but checking endpoint)
-    client.post(reverse('company-set-logo', args=[co_id]), {}, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    response = client.post(reverse('company-set-logo', args=[co_id]), {}, HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code == 400
+    
     # Get Logo
-    client.get(reverse('company-get-logo', args=[co_id]), HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
-    # Remove Logo
-    client.post(reverse('company-remove-logo', args=[co_id]), {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
-
+    # response = client.get(reverse('company-get-logo', args=[co_id]), HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    # logger.info(response.json())
+    # assert response.status_code == 200
+    
+    # # Remove Logo
+    # response = client.post(reverse('company-remove-logo', args=[co_id]), {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    # logger.info(response.json())
+    # assert response.status_code == 200
 
 
 @pytest.mark.django_db
-def test_company_by_domain_not_found(client, test_user_token):
+def test_company_by_domain_not_found(client, test_company_token_fixture):
     """
     Test Company lookup by non-existent domain.
     """
     url_domain = reverse('company-by-email-domain')
-    response = client.get(f"{url_domain}?domain=nonexistent.com", HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
-    # Should probably be 404 or empty list 200 depending on implementation
-    assert response.status_code in [200, 404, 403] #will comeback
+    response = client.get(f"{url_domain}?domain=nonexistent.com", HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+    logger.info(response.json())
+    assert response.status_code in [200, 404]
