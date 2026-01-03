@@ -3,6 +3,7 @@ from config.models.create_update_base_model import CreateUpdateBaseModel
 
 
 class CustomerBranchHistory(CreateUpdateBaseModel):
+    # CustomerBranchHistory model to track customer visits to branches
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='customer_branch_history')
     customer = models.ForeignKey('customers.Customer', on_delete=models.CASCADE, related_name='branch_history'
     )

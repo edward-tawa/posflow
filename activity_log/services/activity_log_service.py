@@ -3,7 +3,7 @@ from django.db import transaction
 from django.db.models import QuerySet
 from loguru import logger
 
-#Replaced timestamp with created at because field doesnot exist
+
 class ActivityLogService:
     """
     Service layer for Activity Log domain operations.
@@ -18,12 +18,25 @@ class ActivityLogService:
     # -------------------------
     @staticmethod
     @transaction.atomic
-    def create_activity_log(**kwargs) -> ActivityLog:
-        missing_fields = ActivityLogService.REQUIRED_FIELDS - kwargs.keys()
-        if missing_fields:
-            raise ValueError(f"Missing required fields: {missing_fields}")
+    def create_activity_log(
+        user_id: int,
+        action: str,
+        description: str = "",
+        content_type=None,
+        object_id=None,
+        metadata: dict | None = None
+    ) -> ActivityLog:
+        if metadata is None:
+            metadata = {}
 
-        activity_log = ActivityLog.objects.create(**kwargs)
+        activity_log = ActivityLog.objects.create(
+            user_id=user_id,
+            action=action,
+            description=description,
+            content_type=content_type,
+            object_id=object_id,
+            metadata=metadata
+        )
 
         logger.info(
             "Activity log created | id={} | action={} | user_id={}",
@@ -47,54 +60,27 @@ class ActivityLogService:
 
     @staticmethod
     def list_activity_logs_by_user(user_id: int) -> QuerySet[ActivityLog]:
-        return (
-            ActivityLog.objects
-            .filter(user_id=user_id)
-            .order_by("-created_at")
-        )
+        return ActivityLog.objects.filter(user_id=user_id).order_by("-created_at")
 
     @staticmethod
     def list_activity_logs_by_action(action: str) -> QuerySet[ActivityLog]:
-        return (
-            ActivityLog.objects
-            .filter(action=action)
-            .order_by("-created_at")
-        )
+        return ActivityLog.objects.filter(action=action).order_by("-created_at")
 
     @staticmethod
     def list_activity_logs_by_object(
-        object_type: str,
-        object_id: int
+        object_type,
+        object_id
     ) -> QuerySet[ActivityLog]:
-        return (
-            ActivityLog.objects
-            .filter(object_type=object_type, object_id=object_id)
-            .order_by("-created_at")
-        )
+        return ActivityLog.objects.filter(
+            content_type=object_type, object_id=object_id
+        ).order_by("-created_at")
 
     @staticmethod
-    def list_activity_logs_by_date_range(
-        start_date,
-        end_date
-    ) -> QuerySet[ActivityLog]:
-        return (
-            ActivityLog.objects
-            .filter(created_at__gte=start_date, created_at__lte=end_date)
-            .order_by("-created_at")
-        )
+    def list_activity_logs_by_date_range(start_date, end_date) -> QuerySet[ActivityLog]:
+        return ActivityLog.objects.filter(
+            created_at__gte=start_date, created_at__lte=end_date
+        ).order_by("-created_at")
 
     @staticmethod
     def list_all_activity_logs() -> QuerySet[ActivityLog]:
         return ActivityLog.objects.all().order_by("-created_at")
-
-    # -------------------------
-    # FLEXIBLE FILTER
-    # -------------------------
-    @staticmethod
-    def filter_activity_logs(**filters) -> QuerySet[ActivityLog]:
-        """
-        Generic filter method for advanced querying.
-        Example:
-            filter_activity_logs(user_id=1, action="CREATE")
-        """
-        return ActivityLog.objects.filter(**filters).order_by("-created_at")

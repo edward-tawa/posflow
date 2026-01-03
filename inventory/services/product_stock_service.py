@@ -3,6 +3,7 @@ from django.db.models import Sum
 from loguru import logger
 from inventory.models.product_stock_model import ProductStock
 from inventory.services.stock_movement_service import StockMovementService
+from inventory.models.stock_movement_model import StockMovement
 
 
 class ProductStockService:
@@ -75,9 +76,22 @@ class ProductStockService:
                 branch=receipt.branch,
                 quantity_change=-item.quantity
             )
+            # Record the stock movement of every product on the receipt
+            StockMovementService.create_stock_movement(
+                company = receipt.company,
+                branch = receipt.branch,
+                product = item.product,
+                quantity = item.quantity,
+                movement_type= StockMovement.MovementType.SALE,
+                sales_order=item.sales_order,
+                sales_invoice=item.sales_invoice,
+                reason='SALES'
 
+            )
         receipt.is_stock_posted = True
         receipt.save(update_fields=["is_stock_posted"])
+
+        
 
         logger.info(f"Stock decreased for sales receipt | receipt={receipt.id}")
 
@@ -100,6 +114,17 @@ class ProductStockService:
                 company=purchase_invoice.company,
                 branch=purchase_invoice.branch,
                 quantity_change=item.quantity
+            )
+
+            StockMovementService.create_stock_movement(
+                company = purchase_invoice.company,
+                branch = purchase_invoice.branch,
+                product = item.product,
+                quantity = item.quantity,
+                movement_type= StockMovement.MovementType.PURCHASE,
+                purchase_order=item.purchase_order,
+                purchase_invoice=item.purchase_invoice,
+                reason='PURCHASE'
             )
 
         purchase_invoice.is_stock_posted = True
@@ -129,6 +154,16 @@ class ProductStockService:
                 company=receipt.company,
                 branch=receipt.branch,
                 quantity_change=item.quantity
+            )
+
+            StockMovementService.create_stock_movement(
+                company = receipt.company,
+                branch = receipt.branch,
+                product = item.product,
+                quantity = item.quantity,
+                movement_type= StockMovement.MovementType.VOIDED_SALE,
+                sales_receipt=item.sales_receipt,
+                reason=reason
             )
 
         receipt.is_stock_reversed = True
@@ -163,6 +198,18 @@ class ProductStockService:
             company=company,
             branch=branch,
             quantity_change=quantity_change
+        )
+
+        StockMovementService.create_stock_movement(
+            company=company,
+            branch=branch,
+            product=product,
+            quantity=abs(quantity_change),
+            movement_type=(
+                StockMovement.MovementType.MANUAL_INCREASE
+                if quantity_change > 0 else StockMovement.MovementType.MANUAL_DECREASE
+            ),
+            reason=reason,
         )
 
         logger.info(
@@ -208,6 +255,15 @@ class ProductStockService:
                 quantity_change=-item.quantity
             )
 
+            StockMovementService.create_stock_movement(
+                company=purchase_return.company,
+                branch=purchase_return.branch,
+                product=item.product,
+                quantity=item.quantity,
+                movement_type=StockMovement.MovementType.PURCHASE_RETURN,
+                reason='PURCHASE_RETURN'
+            )
+
         purchase_return.is_stock_posted = True
         purchase_return.save(update_fields=["is_stock_posted"])
 
@@ -228,17 +284,82 @@ class ProductStockService:
                 branch=sales_return.branch,
                 quantity_change=item.quantity
             )
-
+            StockMovementService.create_stock_movement(
+                company=sales_return.company,
+                branch=sales_return.branch,
+                product=item.product,
+                quantity=item.quantity,
+                movement_type=StockMovement.MovementType.SALE_RETURN,
+                unit_cost=item.unit_price,
+                reason='SALE_RETURN'
+            )
         sales_return.is_stock_posted = True
         sales_return.save(update_fields=["is_stock_posted"])
 
         logger.info(f"Stock increased for sales return | return={sales_return.id}")
 
+    
+
+    @staticmethod
+    @db_transaction.atomic
+    def write_off_stock(
+        *,
+        product,
+        company,
+        branch,
+        quantity: float,
+        reason: str,
+        performed_by
+    ) -> None:
+        """
+        Write off damaged, expired, or lost stock.
+        Always decreases stock.
+        """
+
+        if quantity <= 0:
+            raise ValueError("Write-off quantity must be positive.")
+
+        ProductStockService._adjust_stock(
+            product=product,
+            company=company,
+            branch=branch,
+            quantity_change=-quantity
+        )
+
+        StockMovementService.create_stock_movement(
+            company=company,
+            branch=branch,
+            product=product,
+            quantity=quantity,
+            movement_type=StockMovement.MovementType.WRITE_OFF,
+            reason=reason,
+        )
+
+        logger.warning(
+            f"Stock written off | product={product.id} | branch={branch.id} "
+            f"| quantity={quantity} | reason={reason}"
+        )
+
+
 
     
     @staticmethod
     @db_transaction.atomic
-    def transfer_stock(source_branch, target_branch, product, quantity) -> None:
+    def transfer_stock(source_branch, target_branch, product, quantity, reason: str) -> None:
+        """
+        Docstring for transfer_stock
+        
+        :param source_branch: Description
+        :param target_branch: Description
+        :param product: Description
+        :param quantity: Description
+
+         Transfers stock from one branch to the other.
+        """
+
+        if source_branch.company_id != target_branch.company_id:
+            raise ValueError("Cannot transfer stock across companies.")
+
         ProductStockService._adjust_stock(
             product=product,
             company=source_branch.company,
@@ -251,13 +372,33 @@ class ProductStockService:
             branch=target_branch,
             quantity_change=quantity
         )
+
+        StockMovementService.create_stock_movement(
+            company=source_branch.company,
+            branch=source_branch,
+            product=product,
+            quantity=quantity,
+            movement_type=StockMovement.MovementType.TRANSFER_OUT,
+            reason=reason
+        )
+
+        StockMovementService.create_stock_movement(
+            company=target_branch.company,
+            branch=target_branch,
+            product=product,
+            quantity=quantity,
+            movement_type=StockMovement.MovementType.TRANSFER_IN,
+            reason=reason
+        )
         logger.info(
             f"Stock transferred | product={product.id} | from_branch={source_branch.id} "
             f"| to_branch={target_branch.id} | quantity={quantity}"
         )
 
         
-    # ==========================================================
-    # TRANSFERS
-    # ==========================================================
+    @staticmethod
+    def get_current_product_stock(*, company, branch, product) -> dict:
+        stocks = ProductStock.objects.filter(company=company, branch=branch, product=product)
+        stock_dict = {stock.product.id: stock.quantity for stock in stocks}
+        return stock_dict
     
