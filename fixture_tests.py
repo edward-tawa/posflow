@@ -42,7 +42,9 @@ def test_company_fixture():
 #=========================================
 @pytest.fixture
 def create_branch(test_company_fixture):
-    
+    """
+    Creates and returns a Branch instance for testing.
+    """
     return Branch.objects.create(
         name = "Harare Main",
         company = test_company_fixture,
@@ -61,6 +63,9 @@ def create_branch(test_company_fixture):
 #=========================================
 @pytest.fixture
 def create_user(db,test_company_fixture, create_branch):
+    """
+    Creates and returns a User instance for testing.
+    """
     User = get_user_model()
     user = User.objects.create_user(
         username = "testuser",
@@ -82,6 +87,9 @@ def create_user(db,test_company_fixture, create_branch):
 #=========================================
 @pytest.fixture
 def test_user_token(client, create_user):
+    """
+    Creates and returns a user token for testing.
+    """
     logger.info(
         {
             'email': create_user
@@ -103,6 +111,9 @@ def test_user_token(client, create_user):
 #=========================================
 @pytest.fixture()
 def test_account_fixture(test_company_fixture, create_branch):
+    """
+    Creates and returns an Account instance for testing.
+    """
     # CREATE
     account = Account.objects.create(
         name = 'Test Account',
@@ -118,6 +129,9 @@ def test_account_fixture(test_company_fixture, create_branch):
 #=========================================
 @pytest.fixture()
 def test_account_one_fixture(test_company_fixture, create_branch):
+    """
+    Creates and returns two Account instances for testing.
+    """
     # CREATE
     account_one = Account.objects.create(
         name = 'Test 1 Account',
@@ -143,6 +157,9 @@ def test_account_one_fixture(test_company_fixture, create_branch):
 #=========================================
 @pytest.fixture()
 def test_dc_fixture(test_company_fixture, create_branch):
+    """
+    Creates and returns debit and credit Account instances for testing.
+    """
     # CREATE
     debit_account = Account.objects.create(
         name = 'Test Debit Account',
@@ -170,6 +187,9 @@ def test_dc_fixture(test_company_fixture, create_branch):
 #=========================================
 @pytest.fixture()
 def test_product_category_fixture(create_branch, test_company_fixture):
+    """
+    Creates and returns a ProductCategory instance for testing.
+    """
     return ProductCategory.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -183,6 +203,9 @@ def test_product_category_fixture(create_branch, test_company_fixture):
 #=========================================
 @pytest.fixture()
 def test_product_fixture(create_branch, test_company_fixture, test_product_category_fixture):
+    """
+    Creates and returns a Product instance for testing.
+    """
     product = Product(
         company = test_company_fixture,
         branch = create_branch,
@@ -203,6 +226,9 @@ def test_product_fixture(create_branch, test_company_fixture, test_product_categ
 #=========================================
 @pytest.fixture()
 def test_stocktake_fixture(create_branch, test_company_fixture, create_user):
+    """
+    Creates and returns a StockTake instance for testing.
+    """
     return StockTake.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -219,6 +245,9 @@ def test_stocktake_fixture(create_branch, test_company_fixture, create_user):
 #=========================================
 @pytest.fixture()
 def test_payment_fixture(create_branch, test_company_fixture, create_user):
+    """
+    Creates and returns a Payment instance for testing.
+    """
     return Payment.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -236,6 +265,9 @@ def test_payment_fixture(create_branch, test_company_fixture, create_user):
 #=========================================
 @pytest.fixture()
 def test_customer_fixture(create_branch, test_company_fixture, create_user):
+    """
+    Creates and returns a Customer instance for testing.
+    """
     return Customer.objects.create(
         first_name = 'Magiv',
         last_name = 'Kasikna',
@@ -253,6 +285,9 @@ def test_customer_fixture(create_branch, test_company_fixture, create_user):
 #=========================================
 @pytest.fixture()
 def test_sale_order_fixture(create_branch, test_company_fixture, create_user, test_customer_fixture):
+    """
+    Creates and returns a SalesOrder instance for testing.
+    """
     return SalesOrder.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -270,6 +305,9 @@ def test_sale_order_fixture(create_branch, test_company_fixture, create_user, te
 #=========================================
 @pytest.fixture()
 def test_sale_return_fixture(create_branch, test_company_fixture, create_user, test_customer_fixture, test_sale_order_fixture):
+    """
+    Creates and returns a SalesReturn instance for testing.
+    """
     return SalesReturn.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -287,6 +325,9 @@ def test_sale_return_fixture(create_branch, test_company_fixture, create_user, t
 
 @pytest.fixture()
 def test_sale_receipt_fixture(create_branch, test_company_fixture, create_user, test_customer_fixture, test_sale_order_fixture):
+    """
+    Creates and returns a SalesReceipt instance for testing.
+    """
     return SalesReceipt.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -303,6 +344,9 @@ def test_sale_receipt_fixture(create_branch, test_company_fixture, create_user, 
 #=========================================
 @pytest.fixture()
 def test_sale_payment_fixture(test_sale_order_fixture, test_sale_fixture, test_sale_receipt_fixture, test_payment_fixture):
+    """
+    Creates and returns a SalesPayment instance for testing.
+    """
     return SalesPayment.objects.create(
         sales_order = test_sale_order_fixture,
         sale = test_sale_fixture,
@@ -317,6 +361,9 @@ def test_sale_payment_fixture(test_sale_order_fixture, test_sale_fixture, test_s
 #=========================================
 @pytest.fixture()
 def test_sale_fixture(create_branch, test_company_fixture, create_user, test_customer_fixture):
+    """
+    Creates and returns a Sale instance for testing.
+    """
     return Sale.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -333,6 +380,9 @@ def test_sale_fixture(create_branch, test_company_fixture, create_user, test_cus
 #=========================================
 @pytest.fixture()
 def test_sale_quotation_fixture(create_branch, test_company_fixture, create_user, test_customer_fixture):
+    """
+    Creates and returns a SalesQuotation instance for testing.
+    """
     return SalesQuotation.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -349,6 +399,9 @@ def test_sale_quotation_fixture(create_branch, test_company_fixture, create_user
 #=========================================
 @pytest.fixture()
 def test_delivery_note_fixture(create_branch, test_company_fixture, create_user, test_customer_fixture, test_sale_order_fixture):
+    """
+    Creates and returns a DeliveryNote instance for testing.
+    """
     return DeliveryNote.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -365,6 +418,9 @@ def test_delivery_note_fixture(create_branch, test_company_fixture, create_user,
 #=========================================
 @pytest.fixture()
 def test_supplier_fixture(create_branch, test_company_fixture):
+    """
+    Creates and returns a Supplier instance for testing.
+    """
     return Supplier.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -380,6 +436,9 @@ def test_supplier_fixture(create_branch, test_company_fixture):
 #=========================================
 @pytest.fixture()
 def test_purchase_order_fixture(test_company_fixture, test_supplier_fixture):
+    """
+    Creates and returns a PurchaseOrder instance for testing.
+    """
     return PurchaseOrder.objects.create(
         company = test_company_fixture,
         supplier = test_supplier_fixture,
@@ -395,6 +454,9 @@ def test_purchase_order_fixture(test_company_fixture, test_supplier_fixture):
 #=========================================
 @pytest.fixture()
 def test_supplier_debit_note_fixture(test_company_fixture, test_supplier_fixture):
+    """
+    Creates and returns a SupplierDebitNote instance for testing.
+    """
     return SupplierDebitNote.objects.create(
         company = test_company_fixture,
         supplier = test_supplier_fixture,
@@ -408,6 +470,9 @@ def test_supplier_debit_note_fixture(test_company_fixture, test_supplier_fixture
 #=========================================
 @pytest.fixture()
 def test_supplier_credit_note_fixture(test_company_fixture, test_supplier_fixture):
+    """
+    Creates and returns a SupplierCreditNote instance for testing.
+    """
     return SupplierCreditNote.objects.create(
         company = test_company_fixture,
         supplier = test_supplier_fixture,
@@ -421,6 +486,9 @@ def test_supplier_credit_note_fixture(test_company_fixture, test_supplier_fixtur
 #=========================================
 @pytest.fixture()
 def test_purchase_invoice_fixture(test_company_fixture, test_supplier_fixture, create_branch, test_purchase_order_fixture, test_purchase_fixture):
+    """
+    Creates and returns a PurchaseInvoice instance for testing.
+    """
     return PurchaseInvoice.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -436,6 +504,9 @@ def test_purchase_invoice_fixture(test_company_fixture, test_supplier_fixture, c
 #=========================================
 @pytest.fixture()
 def test_purchase_fixture(test_company_fixture, test_supplier_fixture, create_branch):
+    """
+    Creates and returns a Purchase instance for testing.
+    """
     return Purchase.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -449,6 +520,9 @@ def test_purchase_fixture(test_company_fixture, test_supplier_fixture, create_br
 #=========================================
 @pytest.fixture()
 def test_purchase_return_fixture(test_company_fixture, test_supplier_fixture, create_branch, test_purchase_order_fixture):
+    """
+    Creates and returns a PurchaseReturn instance for testing.
+    """
     return PurchaseReturn.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -463,6 +537,9 @@ def test_purchase_return_fixture(test_company_fixture, test_supplier_fixture, cr
 #=========================================
 @pytest.fixture()
 def test_purchase_payment_fixture(test_supplier_fixture, test_purchase_invoice_fixture, test_payment_fixture):
+    """
+    Creates and returns a PurchasePayment instance for testing.
+    """
     return PurchasePayment.objects.create(
         supplier = test_supplier_fixture,
         payment = test_payment_fixture,
@@ -476,6 +553,9 @@ def test_purchase_payment_fixture(test_supplier_fixture, test_purchase_invoice_f
 #=========================================
 @pytest.fixture()
 def test_content_type_fixture():
+    """
+    Creates and returns a ContentType instance for testing.
+    """
     return ContentType.objects.create(
         app_label = "taxes",
         model = "FiscalDocument"
@@ -488,6 +568,9 @@ def test_content_type_fixture():
 from uuid import uuid4
 @pytest.fixture()
 def test_object_id_fixture():
+    """
+    Creates and returns a UUID instance for testing.
+    """
     return uuid4()
 
 
@@ -496,6 +579,9 @@ def test_object_id_fixture():
 #=========================================
 @pytest.fixture()
 def test_fiscal_invoice_fixture(test_company_fixture, create_branch, test_sale_fixture, test_object_id_fixture):
+    """
+    Creates and returns a FiscalInvoice instance for testing.
+    """
     return FiscalInvoice.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -511,6 +597,9 @@ def test_fiscal_invoice_fixture(test_company_fixture, create_branch, test_sale_f
 #=========================================
 @pytest.fixture()
 def test_transaction_fixture(test_company_fixture, create_branch, test_dc_fixture, test_customer_fixture):
+    """
+    Creates and returns a Transaction instance for testing.
+    """
     return Transaction.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -525,6 +614,9 @@ def test_transaction_fixture(test_company_fixture, create_branch, test_dc_fixtur
 
 @pytest.fixture()
 def test_write_off_account_fixture():
+    """
+    Creates and returns a WriteOffAccount instance for testing.
+    """
     pass
 
 
@@ -534,6 +626,9 @@ def test_write_off_account_fixture():
 
 @pytest.fixture()
 def test_company_token_fixture(client):
+    """
+    Creates and returns a company token for testing.
+    """
     url = reverse('company-register')
     data = {
         "name": "TechCity",
@@ -562,6 +657,9 @@ def test_company_token_fixture(client):
 #==============================================
 @pytest.fixture()
 def test_transfer_fixture(test_company_fixture, create_branch):
+    """
+    Creates and returns a Transfer instance for testing.
+    """
     return Transfer.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -573,6 +671,9 @@ def test_transfer_fixture(test_company_fixture, create_branch):
 #==============================================
 @pytest.fixture()
 def test_branch_account_fixture(test_company_fixture, create_branch, test_account_one_fixture):
+    """
+    Creates and returns BranchAccount instances for testing.
+    """
     branch_account_one = BranchAccount.objects.create(
         company = test_company_fixture,
         branch = create_branch,
@@ -594,6 +695,9 @@ def test_branch_account_fixture(test_company_fixture, create_branch, test_accoun
 
 @pytest.fixture()
 def test_company_get_fixture(client, test_company_token_fixture):
+    """
+    Creates and returns a company detail for testing.
+    """
     url = reverse('company-detail', args=[1])
     
     response = client.get(url, HTTP_AUTHORIZATION = f'Bearer: {test_company_token_fixture}')
@@ -606,7 +710,9 @@ def test_company_get_fixture(client, test_company_token_fixture):
 #=========================================
 @pytest.fixture
 def create_branch_fixture(test_company_get_fixture):
-
+    """
+    Creates and returns Branch instances for testing.
+    """
     company = Company.objects.get(id = test_company_get_fixture['id'])
 
     branch_one =  Branch.objects.create(
