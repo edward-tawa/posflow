@@ -3,6 +3,7 @@ from config.models.create_update_base_model import CreateUpdateBaseModel
 from loguru import logger
 import uuid
 from django.core.exceptions import ValidationError
+from django.db.models import F, Sum, FloatField
 
 
 class Transfer(CreateUpdateBaseModel):
@@ -20,6 +21,7 @@ class Transfer(CreateUpdateBaseModel):
     received_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_received')
     sent_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_sent')
     transfer_date = models.DateField(auto_now_add=True)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     notes = models.TextField(blank=True, null=True)
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     status = models.CharField(
@@ -33,6 +35,23 @@ class Transfer(CreateUpdateBaseModel):
         ],
         default='pending'
     )
+
+    def update_total_amount(self):
+        """
+        Automatically update total_amount based on the type of transfer.
+        """
+        if self.type == "product" and hasattr(self, "product_transfer") and self.product_transfer:
+            # sum up all items
+            total = self.items.aggregate(
+                total_amount=Sum(F('quantity') * F('unit_price'), output_field=FloatField())
+            ).get('total_amount') or 0
+            self.total_amount = total
+            self.save(update_fields=['total_amount'])
+
+        elif self.type == "cash" and hasattr(self, "cash_transfer") and self.cash_transfer:
+            self.total_amount = self.cash_transfer.total_amount
+            self.save(update_fields=['total_amount'])
+
 
     class Meta:
         unique_together = ('company', 'reference_number')

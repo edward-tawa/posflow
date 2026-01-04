@@ -1,8 +1,9 @@
 from payments.models.payment_model import Payment
 from django.db import transaction
 from loguru import logger
-
-
+from users.models import User
+from company.models import Company
+from branch.models import Branch
 
 class PaymentService:
     """
@@ -14,8 +15,26 @@ class PaymentService:
     # -------------------------
     @staticmethod
     @transaction.atomic
-    def create_payment(**kwargs) -> Payment:
-        payment = Payment.objects.create(**kwargs)
+    def create_payment(
+        company: Company,
+        branch: Branch,
+        paid_by: User | None,
+        amount: float,
+        method: str,
+        payment_type: str = "incoming",
+        reference_model: str | None = None,
+        reference_id: int | None = None,
+    ) -> Payment:
+        payment = Payment.objects.create(
+            company=company,
+            branch=branch,
+            paid_by=paid_by,
+            amount=amount,
+            method=method,
+            payment_type=payment_type,
+            reference_model=reference_model,
+            reference_id=reference_id,
+        )
         logger.info(f"Payment created | id={payment.id}")
         return payment
 
@@ -26,15 +45,18 @@ class PaymentService:
     @transaction.atomic
     def update_payment(
         payment: Payment,
-        **kwargs
+        amount: float | None = None,
+        method: str | None = None,
+        status: str | None = None,
     ) -> Payment:
-        # Optional: restrict to allowed fields
-        ALLOWED_UPDATE_FIELDS = {"amount", "method", "status"}
-        for field, value in kwargs.items():
-            if field in ALLOWED_UPDATE_FIELDS:
-                setattr(payment, field, value)
+        if amount is not None:
+            payment.amount = amount
+        if method is not None:
+            payment.method = method
+        if status is not None:
+            payment.status = status
 
-        payment.save()
+        payment.save(update_fields=[f for f in ["amount", "method", "status"] if getattr(payment, f) is not None])
         logger.info(f"Payment updated | id={payment.id}")
         return payment
 
@@ -48,86 +70,78 @@ class PaymentService:
         payment.delete()
         logger.info(f"Payment deleted | id={payment_id}")
 
-    
+    # -------------------------
+    # STATUS MANAGEMENT
+    # -------------------------
     @staticmethod
     @transaction.atomic
     def mark_payment_as_completed(payment: Payment) -> Payment:
-        payment.status = "COMPLETED"
+        payment.status = "completed"
         payment.save(update_fields=["status"])
         logger.info(f"Payment marked as completed | id={payment.id}")
         return payment
-    
 
     @staticmethod
     @transaction.atomic
     def mark_payment_as_failed(payment: Payment) -> Payment:
-        payment.status = "FAILED"
+        payment.status = "failed"
         payment.save(update_fields=["status"])
         logger.info(f"Payment marked as failed | id={payment.id}")
         return payment
-    
 
+    # -------------------------
+    # RELATIONS
+    # -------------------------
     @staticmethod
     @transaction.atomic
-    def attach_payment_to_order(
-        payment: Payment,
-        order_id: int
-    ) -> Payment:
-        payment.order_id = order_id
-        payment.save(update_fields=["order_id"])
+    def attach_payment_to_order(payment: Payment, order_id: int) -> Payment:
+        payment.reference_model = "Order"
+        payment.reference_id = order_id
+        payment.save(update_fields=["reference_model", "reference_id"])
         logger.info(f"Payment '{payment.id}' attached to Order '{order_id}'.")
         return payment
-    
-
 
     @staticmethod
     @transaction.atomic
     def detach_payment_from_order(payment: Payment) -> Payment:
-        payment.order = None
-        payment.save(update_fields=["order"])
+        payment.reference_model = None
+        payment.reference_id = None
+        payment.save(update_fields=["reference_model", "reference_id"])
         logger.info(f"Payment '{payment.id}' detached from Order.")
         return payment
-    
 
     @staticmethod
     @transaction.atomic
-    def attach_payment_to_customer(
-        payment: Payment,
-        customer_id: int
-    ) -> Payment:
-        payment.customer_id = customer_id
-        payment.save(update_fields=["customer_id"])
+    def attach_payment_to_customer(payment: Payment, customer_id: int) -> Payment:
+        payment.reference_model = "Customer"
+        payment.reference_id = customer_id
+        payment.save(update_fields=["reference_model", "reference_id"])
         logger.info(f"Payment '{payment.id}' attached to Customer '{customer_id}'.")
         return payment
-    
-
 
     @staticmethod
     @transaction.atomic
     def detach_payment_from_customer(payment: Payment) -> Payment:
-        payment.customer = None
-        payment.save(update_fields=["customer"])
+        payment.reference_model = None
+        payment.reference_id = None
+        payment.save(update_fields=["reference_model", "reference_id"])
         logger.info(f"Payment '{payment.id}' detached from Customer.")
         return payment
-    
 
     @staticmethod
     @transaction.atomic
-    def attach_payment_to_invoice(
-        payment: Payment,
-        invoice_id: int
-    ) -> Payment:
-        payment.invoice_id = invoice_id
-        payment.save(update_fields=["invoice_id"])
+    def attach_payment_to_invoice(payment: Payment, invoice_id: int) -> Payment:
+        payment.reference_model = "Invoice"
+        payment.reference_id = invoice_id
+        payment.save(update_fields=["reference_model", "reference_id"])
         logger.info(f"Payment '{payment.id}' attached to Invoice '{invoice_id}'.")
         return payment
-    
-
 
     @staticmethod
     @transaction.atomic
     def detach_payment_from_invoice(payment: Payment) -> Payment:
-        payment.invoice = None
-        payment.save(update_fields=["invoice"])
+        payment.reference_model = None
+        payment.reference_id = None
+        payment.save(update_fields=["reference_model", "reference_id"])
         logger.info(f"Payment '{payment.id}' detached from Invoice.")
         return payment

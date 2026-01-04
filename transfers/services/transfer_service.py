@@ -8,7 +8,6 @@ from company.models import Company
 from branch.models import Branch
 from django.db.models import F, Sum, FloatField
 from inventory.services.product_stock_service import ProductStockService
-from inventory.services.stock_movement_service import StockMovementService
 from datetime import date
 
 
@@ -117,17 +116,32 @@ class TransferService:
     # RECALCULATE TOTAL
     # -------------------------
 
+    
+
     @staticmethod
     @db_transaction.atomic
     def recalculate_total(transfer: Transfer):
-        total = (
-            getattr(transfer, 'product_transfers', transfer.producttransfer_set)
-            .aggregate(total_amount=Sum(F('quantity') * F('unit_price'), output_field=FloatField()))
-            .get('total_amount') or 0
-        )
-        transfer.amount = total
-        transfer.save(update_fields=['amount'])
-        logger.info(f"Transfer '{transfer.reference_number}' total updated: {total}")
+        """
+        Recalculate the total_amount for a transfer based on its type:
+        - For product transfers: sum(quantity * unit_price) of all items.
+        - For cash transfers: use the cash_transfer.amount.
+        """
+        if transfer.type == "product":
+            # Ensure a ProductTransfer exists
+            if hasattr(transfer, "product_transfer") and transfer.product_transfer:
+                total = transfer.product_transfer.items.aggregate(
+                    total_amount=Sum(F('quantity') * F('unit_price'), output_field=FloatField())
+                ).get('total_amount') or 0
+                transfer.total_amount = total
+                transfer.save(update_fields=['total_amount'])
+                logger.info(f"Product Transfer '{transfer.reference_number}' total recalculated: {total}")
+
+        elif transfer.type == "cash":
+            # Ensure a CashTransfer exists
+            if hasattr(transfer, "cash_transfer") and transfer.cash_transfer:
+                transfer.total_amount = transfer.cash_transfer.total_amount
+                transfer.save(update_fields=['total_amount'])
+                logger.info(f"Cash Transfer '{transfer.reference_number}' total updated: {transfer.total_amount}")
     
 
     # -------------------------
@@ -156,58 +170,6 @@ class TransferService:
         logger.info(f"Transfer '{transfer.reference_number}' has been released from hold.")
         return transfer
 
-    
-    @staticmethod
-    @db_transaction.atomic
-    def decrease_stock_for_transfer(transfer: Transfer):
-        """
-        Decrease stock from the source branch for all items in a transfer.
-        """
-        source_branch = transfer.source_branch
-        for item in transfer.items.select_related("product"):
-            ProductStockService._adjust_stock(
-                product=item.product,
-                company=transfer.company,
-                branch=source_branch,
-                quantity_change=-item.quantity
-            )
-            StockMovementService.record_stock_movement(
-                product=item.product,
-                branch=source_branch,
-                quantity_change=-item.quantity,
-                movement_type="transfer_out",
-                reason=f"Transfer {transfer.id} from {source_branch.id} to {transfer.destination_branch.id}"
-            )
-
-        logger.info(f"Stock decreased for transfer | branch={source_branch.id} | transfer={transfer.id}")
-
-
-    @staticmethod
-    @db_transaction.atomic
-    def increase_stock_for_transfer(transfer: Transfer):
-        """
-        Increase stock in the destination branch for all items in a transfer.
-        """
-        dest_branch = transfer.destination_branch
-        for item in transfer.items.select_related("product"):
-            ProductStockService._adjust_stock(
-                product=item.product,
-                company=transfer.company,
-                branch=dest_branch,
-                quantity_change=item.quantity
-            )
-            StockMovementService.record_stock_movement(
-                product=item.product,
-                branch=dest_branch,
-                quantity_change=item.quantity,
-                movement_type="transfer_in",
-                reason=f"Transfer {transfer.id} from {transfer.source_branch.id} to {dest_branch.id}"
-            )
-
-        logger.info(f"Stock increased for transfer | branch={dest_branch.id} | transfer={transfer.id}")
-
-
-
 
     @staticmethod
     @db_transaction.atomic
@@ -227,7 +189,7 @@ class TransferService:
         # Recalculate totals
         TransferService.recalculate_total(transfer)
 
-        if transfer.amount <= 0:
+        if transfer.total_amount <= 0:
             raise ValueError("Product transfer amount must be greater than zero")
 
         # Record transaction
@@ -240,6 +202,11 @@ class TransferService:
             company=transfer.company
         )
 
+        # Move Stock
+        ProductStockService.decrease_stock_for_transfer(transfer)
+        ProductStockService.increase_stock_for_transfer(transfer)
+
+        # Record Transaction
         transaction = TransactionService.create_transaction(
             company=transfer.company,
             branch=transfer.branch,
@@ -247,15 +214,12 @@ class TransferService:
             credit_account=source_branch_account,
             transaction_type='PRODUCT_TRANSFER',
             transaction_category='PRODUCT_TRANSFER',
-            total_amount=transfer.amount,
+            total_amount=transfer.total_amount,
             supplier=None,
             customer=None,
         )
         TransactionService.apply_transaction_to_accounts(transaction)
 
-        # Move stock
-        TransferService.decrease_stock_for_transfer(transfer)
-        TransferService.increase_stock_for_transfer(transfer)
 
         # Mark completed
         transfer.status = 'completed'
@@ -266,56 +230,4 @@ class TransferService:
 
 
 
-    # @staticmethod
-    # @db_transaction.atomic
-    # def perform_product_transfer(transfer: Transfer):
-    #     """
-    #     Perform a product transfer: record transaction, update stock,
-    #     then mark transfer completed.
-    #     """
-
-    #     # Guards by checking transfer status and items
-    #     if transfer.status != "pending":
-    #         raise ValueError("Only pending transfers can be performed")
-
-    #     if not transfer.items.exists():
-    #         raise ValueError("Cannot perform product transfer without attached product items")
-
-    #     # Recalculate totals
-    #     TransferService.recalculate_total(transfer)
-
-    #     if transfer.amount <= 0:
-    #         raise ValueError("Product transfer amount must be greater than zero")
-
-    #     # Record transaction
-    #     source_branch_account = BranchService.create_or_get_branch_account(
-    #         branch=transfer.source_branch,
-    #         company=transfer.company
-    #     )
-    #     dest_branch_account = BranchService.create_or_get_branch_account(
-    #         branch=transfer.destination_branch,
-    #         company=transfer.company
-    #     )
-
-    #     transaction = TransactionService.create_transaction(
-    #         company=transfer.company,
-    #         branch=transfer.branch,
-    #         debit_account=dest_branch_account,
-    #         credit_account=source_branch_account,
-    #         transaction_type='PRODUCT_TRANSFER',
-    #         transaction_category='PRODUCT_TRANSFER',
-    #         total_amount=transfer.amount,
-    #         supplier=None,
-    #         customer=None,
-    #     )
-    #     TransactionService.apply_transaction_to_accounts(transaction)
-
-    #     # Move stock
-    #     TransferService.decrease_stock_for_transfer(transfer)
-    #     TransferService.increase_stock_for_transfer(transfer)
-
-    #     # Mark completed
-    #     transfer.status = 'completed'
-    #     transfer.save(update_fields=['status'])
-
-    #     logger.info(f"Product Transfer '{transfer.reference_number}' performed successfully.")
+    

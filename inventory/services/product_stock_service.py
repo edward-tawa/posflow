@@ -4,6 +4,7 @@ from loguru import logger
 from inventory.models.product_stock_model import ProductStock
 from inventory.services.stock_movement_service import StockMovementService
 from inventory.models.stock_movement_model import StockMovement
+from transfers.models.transfer_model import Transfer
 
 
 class ProductStockService:
@@ -172,6 +173,62 @@ class ProductStockService:
         logger.warning(
             f"Stock restored for voided sales receipt | receipt={receipt.id} | reason={reason}"
         )
+
+    # ==========================================================
+    # TRANSFERS
+    # ==========================================================
+    @staticmethod
+    @db_transaction.atomic
+    def decrease_stock_for_transfer(transfer: "Transfer"):
+        """
+        Decrease stock from the source branch for all items in a transfer.
+        """
+        source_branch = transfer.source_branch
+        for item in transfer.items.select_related("product"):
+            ProductStockService._adjust_stock(
+                product=item.product,
+                company=transfer.company,
+                branch=source_branch,
+                quantity_change=-item.quantity
+            )
+            StockMovementService.create_stock_movement(
+                company=transfer.company,
+                branch=source_branch,
+                product=item.product,
+                quantity=item.quantity,
+                movement_type=StockMovement.MovementType.TRANSFER_OUT,
+                reason=f"Transfer {transfer.reference_number} from {source_branch.id} to {transfer.destination_branch.id}"
+            )
+
+        logger.info(f"Stock decreased for transfer | branch={source_branch.id} | transfer={transfer.id}")
+
+
+
+    @staticmethod
+    @db_transaction.atomic
+    def increase_stock_for_transfer(transfer: "Transfer"):
+        """
+        Increase stock in the destination branch for all items in a transfer.
+        """
+        dest_branch = transfer.destination_branch
+        for item in transfer.items.select_related("product"):
+            ProductStockService._adjust_stock(
+                product=item.product,
+                company=transfer.company,
+                branch=dest_branch,
+                quantity_change=item.quantity
+            )
+            StockMovementService.create_stock_movement(
+                company=transfer.company,
+                branch=dest_branch,
+                product=item.product,
+                quantity=item.quantity,
+                movement_type=StockMovement.MovementType.TRANSFER_IN,
+                reason=f"Transfer {transfer.reference_number} from {transfer.source_branch.id} to {dest_branch.id}"
+            )
+
+        logger.info(f"Stock increased for transfer | branch={dest_branch.id} | transfer={transfer.id}")
+
 
     # ==========================================================
     # MANUAL ADJUSTMENTS

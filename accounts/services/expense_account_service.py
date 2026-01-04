@@ -36,7 +36,7 @@ class ExpenseAccountService:
     
     @staticmethod
     @db_transaction.atomic
-    def get_or_create_expense_account(company: Company, branch: Branch, expense_name: str) -> ExpenseAccount:
+    def get_or_create_expense_account(company: Company, branch: Branch, expense_name='General') -> ExpenseAccount:
         """
         Retrieve the expense account for a branch and expense name.
         Create it if it does not exist.

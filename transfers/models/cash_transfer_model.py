@@ -42,13 +42,20 @@ class CashTransfer(CreateUpdateBaseModel):
     source_branch_account = models.ForeignKey('accounts.BranchAccount', on_delete=models.CASCADE, related_name='cash_transfers_out')
     destination_branch_account = models.ForeignKey('accounts.BranchAccount', on_delete=models.CASCADE, related_name='cash_transfers_in')
 
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
         default=STATUS_RELEASED
     )
     notes = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # update total on the transfer immediately
+        if self.transfer:
+            self.transfer.update_total_for_cash_transfer()
+
     def __str__(self):
         ref = self.transfer.reference_number if self.transfer else "NO-TRANSFER"
-        return f"CashTransfer {ref}: {self.source_branch} -> {self.destination_branch} ({self.amount})"
+        return f"CashTransfer {ref}: {self.source_branch} -> {self.destination_branch} ({self.total_amount})"
