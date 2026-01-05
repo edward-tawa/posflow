@@ -11,12 +11,12 @@ register_crud_signals(
         'delete': 'transfer_deleted'
     },
     get_description=lambda instance, created=False, deleted=False: (
-        f"Transfer '{instance.name}' has been"
+        f"Transfer '{instance.reference_number}' has been"
         f"{'created' if created else 'updated' if not deleted else 'deleted'}."
     ),
     get_metadata=lambda instance, created=False, deleted=False: {
         'transfer_id': instance.id,
-        'transfer_name': instance.name,
+        'transfer_reference': instance.reference_number,
         'created': created,
     }
 )

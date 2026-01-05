@@ -66,13 +66,15 @@ class ProductTransferSerializer(serializers.ModelSerializer):
                 logger.info(
                     f"Company {company.name} is creating a ProductTransfer."
                 )
+                validated_data['branch'] = request.user.branch
                 return ProductTransfer.objects.create(**validated_data)
         else:
+            # ?
             # Log the creation attempt by normal user
             logger.info(
                 f"User {getattr(request.user, 'username', None)} from company {getattr(request.user.company, 'name', None)} is creating a ProductTransfer."
             )
-
+            validated_data['branch'] = request.user.branch
             return ProductTransfer.objects.create(**validated_data)
             
 

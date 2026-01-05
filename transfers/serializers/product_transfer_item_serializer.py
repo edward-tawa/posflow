@@ -10,18 +10,24 @@ from transfers.models.transfer_model import Transfer
 
 class ProductTransferItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(
-        queryset=Product.objects.all(),
-        
+        queryset=Product.objects.all(),   
     )
     transfer = serializers.PrimaryKeyRelatedField(
         queryset=Transfer.objects.all(),
     )
+    transfer_data = serializers.SerializerMethodField(read_only=True)
+    company_summary = serializers.SerializerMethodField(read_only=True)
+    branch_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = ProductTransferItem
         fields = [
             'id',
+            'company_summary',
+            'branch_summary',
             'transfer',
+            'transfer_data',
+            'product_transfer',
             'product',
             'quantity',
             'created_at',
@@ -29,8 +35,32 @@ class ProductTransferItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-    
+    def get_transfer_data(self, obj):
+        return {
+            "transfer_date": obj.transfer.created_at if obj.transfer else None,
+            "from_location": obj.product_transfer.source_branch.id if obj.product_transfer else None,
+            "to_location": [obj.product_transfer.destination_branch.id if obj.product_transfer else None],
+            "reference_code": obj.transfer.reference_number if obj.transfer else None,
+            "total_value": obj.transfer.total_amount if obj.transfer else None,
+            "status": obj.transfer.status if obj.transfer else None,
+            "sent_by": obj.transfer.transferred_by.username if obj.transfer and obj.transfer.transferred_by else None,
+            "sent_by_user_id": obj.transfer.transferred_by.id if obj.transfer and obj.transfer.transferred_by else None,
+            "notes": obj.transfer.notes if obj.transfer else None,
+            "local_id": obj.transfer.id if obj.transfer else None,
+        }
 
+    def get_company_summary(self, obj):
+        return {
+            "id": obj.product_transfer.company.id if obj.product_transfer and obj.product_transfer.company else None,
+            "name": obj.product_transfer.company.name if obj.product_transfer and obj.product_transfer.company else None,
+        }
+    
+    def get_branch_summary(self, obj):
+        return {
+            "id": obj.product_transfer.branch.id if obj.product_transfer and obj.product_transfer.branch else None,
+            "name": obj.product_transfer.branch.name if obj.product_transfer and obj.product_transfer.branch else None,
+        }
+    
     def validate_quantity(self, value):
         if value <= 0:
             
@@ -59,6 +89,7 @@ class ProductTransferItemSerializer(serializers.ModelSerializer):
             logger.info(
                 f"Company {company.name} is creating a ProductTransferItem."
             )
+            validated_data['branch'] = request.user.branch
             return ProductTransferItem.objects.create(**validated_data)
 
         else:
@@ -66,7 +97,8 @@ class ProductTransferItemSerializer(serializers.ModelSerializer):
             logger.info(
                 f"User {getattr(request.user, 'username', None)} from company {getattr(request.user, 'company', None)} is creating a ProductTransferItem."
             )
-
+            validated_data['company'] = request.user.company
+            validated_data['branch'] = request.user.branch
             return ProductTransferItem.objects.create(**validated_data)
         
     def update(self, instance, validated_data):

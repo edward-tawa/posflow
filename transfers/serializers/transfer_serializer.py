@@ -58,7 +58,7 @@ class TransferSerializer(serializers.ModelSerializer):
             logger.info(f"Company {company.name} is creating a Transfer.")
         else:
             logger.info(f"User {getattr(request.user, 'username', None)} is creating a Transfer.")
-
+        validated_data['branch'] = request.user.branch
         return Transfer.objects.create(**validated_data)
 
     def update(self, instance, validated_data):

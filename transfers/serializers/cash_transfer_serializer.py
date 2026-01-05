@@ -59,7 +59,7 @@ class CashTransferSerializer(serializers.ModelSerializer):
             'destination_branch_detail',
             'destination_branch_account',
             'destination_branch_account_id',
-            'amount',
+            'total_amount',
             'notes',
             'created_at',
             'updated_at',

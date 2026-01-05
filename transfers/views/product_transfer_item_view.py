@@ -30,7 +30,7 @@ class ProductTransferItemViewSet(ModelViewSet):
 
     def get_queryset(self):
         try:
-            return get_company_queryset(self.request, ProductTransferItem).selected_related(
+            return get_company_queryset(self.request, ProductTransferItem).select_related(
                 'product',
                 'transfer',
             ).all()
