@@ -100,13 +100,8 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
                 "You cannot create a purchase order for a company other than your own."
             )
         try:
-            purchase_order = PurchaseOrder.objects.create(
-                # **validated_data
-                company = company,
-                supplier = validated_data['supplier'],
-                quantity_ordered = validated_data['quantity_ordered'],
-                total_amount = validated_data['total_amount']
-            )
+            validated_data['company'] = request.user.company
+            purchase_order = PurchaseOrder.objects.create(**validated_data)
             logger.info(
                 f"{actor} created PurchaseOrder {purchase_order.reference_number} "
                 f"for company {company.name}."
