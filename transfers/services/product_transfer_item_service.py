@@ -28,7 +28,8 @@ class ProductTransferItemService:
         company: Company,
         branch: Branch,
         product: Product,
-        quantity: int
+        quantity: int,
+        unit_price: float,
     ) -> ProductTransferItem:
         item = ProductTransferItem.objects.create(
             transfer=transfer,
@@ -36,7 +37,8 @@ class ProductTransferItemService:
             company=company,
             branch=branch,
             product=product,
-            quantity=quantity
+            quantity=quantity,
+            unit_price=unit_price
         )
         logger.info(
             f"Product Transfer Item '{item.product.name}' created for transfer '{transfer.id}'."
@@ -134,7 +136,6 @@ class ProductTransferItemService:
             f"'{product_transfer.id}' (previous product transfer: "
             f"'{previous_product_transfer.id if previous_product_transfer else 'None'}')."
         )
-
         return item
     
     @staticmethod
