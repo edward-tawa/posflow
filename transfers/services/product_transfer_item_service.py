@@ -130,7 +130,7 @@ class ProductTransferItemService:
         item.product_transfer = product_transfer
         item.save(update_fields=['product_transfer'])
         logger.info(
-            f"Product Transfer Item '{item.product.name}' attached to product transfer "
+            f"Product Transfer Item '{item.product.name}' attached to product transfer"
             f"'{product_transfer.id}' (previous product transfer: "
             f"'{previous_product_transfer.id if previous_product_transfer else 'None'}')."
         )
@@ -144,8 +144,7 @@ class ProductTransferItemService:
         item.product_transfer = None
         item.save(update_fields=['product_transfer'])
         logger.info(
-            f"Product Transfer Item '{item.product.name}' detached from product transfer "
+            f"Product Transfer Item '{item.product.name}' detached from product transfer"
             f"'{previous_product_transfer.id if previous_product_transfer else 'None'}'."
         )
-
         return item

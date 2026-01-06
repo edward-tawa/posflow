@@ -1,4 +1,5 @@
 from branch.services.branch_service import BranchService
+from accounts.services.branch_account_service import BranchAccountService
 from transactions.services.transaction_service import TransactionService
 from transfers.models.transfer_model import Transfer
 from django.db import transaction as db_transaction
@@ -8,6 +9,7 @@ from company.models import Company
 from branch.models import Branch
 from django.db.models import F, Sum, FloatField
 from inventory.services.product_stock_service import ProductStockService
+from loguru import logger
 from datetime import date
 
 
@@ -173,7 +175,7 @@ class TransferService:
 
     @staticmethod
     @db_transaction.atomic
-    def perform_product_transfer(transfer: Transfer):
+    def perform_transfer(transfer: Transfer):
         """
         Perform a product transfer: record transaction, update stock,
         then mark transfer completed.
@@ -183,37 +185,51 @@ class TransferService:
         if transfer.status != "pending":
             raise ValueError("Only pending transfers can be performed")
 
-        if not transfer.items.exists():
-            raise ValueError("Cannot perform product transfer without attached product items")
 
-        # Recalculate totals
-        TransferService.recalculate_total(transfer)
+        if transfer.type == 'product':
+            if not transfer.items.exists():
+                raise ValueError("Cannot perform product transfer without attached product items")
 
-        if transfer.total_amount <= 0:
-            raise ValueError("Product transfer amount must be greater than zero")
+            # Recalculate totals
+            TransferService.recalculate_total(transfer)
 
-        # Record transaction
-        source_branch_account = BranchService.create_or_get_branch_account(
+            if transfer.total_amount <= 0:
+                raise ValueError("Transfer amount must be greater than zero")
+
+            # Move Stock
+            ProductStockService.decrease_stock_for_transfer(transfer)
+            ProductStockService.increase_stock_for_transfer(transfer)
+        
+        elif transfer.type == 'cash':
+
+            TransferService.recalculate_total(transfer)
+
+            if transfer.total_amount <= 0:
+                raise ValueError("Transfer amount must be greater than zero")
+            
+        else:
+            logger.error(f"Unknown transfer type encountered or selected: {transfer.type}")
+            raise ValueError(f"Unknown transfer type: {transfer.type}")
+            
+
+        # Retrieve branch accounts
+        source_branch_account = BranchAccountService.create_or_get_branch_account(
             branch=transfer.source_branch,
             company=transfer.company
         )
-        dest_branch_account = BranchService.create_or_get_branch_account(
+        dest_branch_account = BranchAccountService.create_or_get_branch_account(
             branch=transfer.destination_branch,
             company=transfer.company
         )
-
-        # Move Stock
-        ProductStockService.decrease_stock_for_transfer(transfer)
-        ProductStockService.increase_stock_for_transfer(transfer)
-
+        
         # Record Transaction
         transaction = TransactionService.create_transaction(
             company=transfer.company,
             branch=transfer.branch,
             debit_account=dest_branch_account,
             credit_account=source_branch_account,
-            transaction_type='PRODUCT_TRANSFER',
-            transaction_category='PRODUCT_TRANSFER',
+            transaction_type=f'{transfer.type.upper()}_TRANSFER',
+            transaction_category=f'{transfer.type.upper()}_TRANSFER',
             total_amount=transfer.total_amount,
             supplier=None,
             customer=None,
@@ -225,8 +241,9 @@ class TransferService:
         transfer.status = 'completed'
         transfer.save(update_fields=['status'])
 
-        logger.info(f"Product Transfer '{transfer.reference_number}' performed successfully.")
-
+        logger.info(
+            f"{transfer.type.capitalize()} Transfer '{transfer.reference_number}' performed successfully."
+        )
 
 
 

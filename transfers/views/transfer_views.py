@@ -119,3 +119,59 @@ class TransferViewSet(ModelViewSet):
             {"status": transfer.status},
             status=status.HTTP_200_OK
         )
+    
+
+    @action(detail=True, methods=["post"], url_path="recalculate-total", url_name="recalculate-total")
+    def recalculate_total(self, request, pk=None):
+        transfer = self.get_object()
+
+        TransferService.recalculate_total(transfer)
+
+        return Response(
+            {"total_amount": transfer.total_amount},
+            status=status.HTTP_200_OK
+        )
+
+
+    @action(detail=True, methods=["post"], url_path="hold", url_name="hold")
+    def hold(self, request, pk=None):
+        transfer = self.get_object()
+
+        try:
+            TransferService.hold_transfer(transfer)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {"status": transfer.status},
+            status=status.HTTP_200_OK
+        )
+    
+
+    @action(detail=True, methods=["post"], url_path="release", url_name="release")
+    def release(self, request, pk=None):
+        transfer = self.get_object()
+
+        try:
+            TransferService.release_transfer(transfer)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {"status": transfer.status},
+            status=status.HTTP_200_OK
+        )
+        
+
+    
+    @action(detail=True, methods=["post"], url_path="perform-product-transfer", url_name="perform-product-transfer")
+    def perform_product_transfer(self, request, pk=None):
+        transfer = self.get_object()
+
+        try:
+            TransferService.perform_product_transfer(transfer)
+        except ValueError as e:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(transfer)
+        return Response(serializer.data, status=status.HTTP_200_OK)

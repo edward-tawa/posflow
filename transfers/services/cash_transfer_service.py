@@ -8,6 +8,7 @@ from branch.models import Branch
 from accounts.models import BranchAccount
 from decimal import Decimal
 
+
 class CashTransferError(Exception):
     """Custom exception for CashTransfer domain errors."""
     pass
@@ -49,7 +50,7 @@ class CashTransferService:
         logger.info(
             f"Cash Transfer '{cash_transfer.id}' created for Transfer '{transfer.transfer_number}'."
         )
-        TransferService.recalculate_transfer_totals(transfer)
+        TransferService.recalculate_total(transfer)
         return cash_transfer
 
     # -------------------------
@@ -75,7 +76,7 @@ class CashTransferService:
             cash_transfer.save(update_fields=updated_fields)
             logger.info(f"Cash Transfer '{cash_transfer.id}' updated: {', '.join(updated_fields)}")
             if cash_transfer.transfer:
-                TransferService.recalculate_transfer_totals(cash_transfer.transfer)
+                TransferService.recalculate_total(cash_transfer.transfer)
 
         return cash_transfer
 
@@ -92,7 +93,7 @@ class CashTransferService:
         logger.info(f"Cash Transfer '{cash_transfer_id}' deleted from Transfer '{transfer_number}'.")
 
         if transfer:
-            TransferService.recalculate_transfer_totals(transfer)
+            TransferService.recalculate_total(transfer)
 
     # -------------------------
     # ATTACH / DETACH
@@ -109,8 +110,8 @@ class CashTransferService:
         )
 
         if previous_transfer:
-            TransferService.recalculate_transfer_totals(previous_transfer)
-        TransferService.recalculate_transfer_totals(transfer)
+            TransferService.recalculate_total(previous_transfer)
+        TransferService.recalculate_total(transfer)
 
         return cash_transfer
 
@@ -126,7 +127,7 @@ class CashTransferService:
         )
 
         if previous_transfer:
-            TransferService.recalculate_transfer_totals(previous_transfer)
+            TransferService.recalculate_total(previous_transfer)
         return cash_transfer
 
     # -------------------------
@@ -140,7 +141,7 @@ class CashTransferService:
         logger.info(f"Cash Transfer '{cash_transfer.id}' is now on hold.")
 
         if cash_transfer.transfer:
-            TransferService.recalculate_transfer_totals(cash_transfer.transfer)
+            TransferService.recalculate_total(cash_transfer.transfer)
         return cash_transfer
 
     @staticmethod
@@ -151,5 +152,5 @@ class CashTransferService:
         logger.info(f"Cash Transfer '{cash_transfer.id}' has been released from hold.")
 
         if cash_transfer.transfer:
-            TransferService.recalculate_transfer_totals(cash_transfer.transfer)
+            TransferService.recalculate_total(cash_transfer.transfer)
         return cash_transfer

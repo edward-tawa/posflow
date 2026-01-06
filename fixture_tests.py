@@ -334,7 +334,7 @@ def test_sale_receipt_fixture(create_branch, test_company_fixture, create_user, 
         customer = test_customer_fixture,
         sales_order = test_sale_order_fixture,
         receipt_number = SalesReceipt.generate_receipt_number(SalesReceipt),
-        total_amount = 1000.00, 
+        total_amount = 1000.00,
         issued_by = create_user,
     )
 
