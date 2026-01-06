@@ -95,6 +95,7 @@ class CashTransferService:
         if transfer:
             TransferService.recalculate_total(transfer)
 
+
     # -------------------------
     # ATTACH / DETACH
     # -------------------------
@@ -115,6 +116,7 @@ class CashTransferService:
 
         return cash_transfer
 
+
     @staticmethod
     @db_transaction.atomic
     def detach_from_transfer(cash_transfer: CashTransfer) -> CashTransfer:
@@ -129,6 +131,7 @@ class CashTransferService:
         if previous_transfer:
             TransferService.recalculate_total(previous_transfer)
         return cash_transfer
+
 
     # -------------------------
     # HOLD / RELEASE

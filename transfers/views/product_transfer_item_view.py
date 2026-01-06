@@ -65,27 +65,26 @@ class ProductTransferItemViewSet(ModelViewSet):
         )
         instance.delete()
 
-    
-    @action(detail=True, methods=["post"], url_path="attach", url_name="attach")
-    def attach(self, request, pk=None):
+    @action(detail=True, methods=["post"], url_path="attach-to-product-transfer", url_name="attach-to-product-transfer")
+    def attach_to_product_transfer(self, request, pk=None):
         item = self.get_object()
         transfer_id = request.data.get("transfer_id")
 
         try:
             transfer = Transfer.objects.get(id=transfer_id)
-            ProductTransferItemService.attach_to_transfer(item, transfer)
+            ProductTransferItemService.attach_to_product_transfer(item, transfer)
         except (Transfer.DoesNotExist, ProductTransferItemError) as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.get_serializer(item)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=["post"], url_path="detach", url_name="detach")
-    def detach(self, request, pk=None):
+    @action(detail=True, methods=["post"], url_path="detach-from-product-transfer", url_name="detach-from-product-transfer")
+    def detach_from_product_transfer(self, request, pk=None):
         item = self.get_object()
 
         try:
-            ProductTransferItemService.detach_from_transfer(item)
+            ProductTransferItemService.detach_from_product_transfer(item)
         except ProductTransferItemError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

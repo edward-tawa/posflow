@@ -109,15 +109,14 @@ class ProductTransferItemService:
 
     @staticmethod
     @db_transaction.atomic
-    def detach_from_transfer(item: ProductTransferItem) -> ProductTransferItem:
+    def detach_from_transfer(item: ProductTransferItem, transfer: Transfer) -> ProductTransferItem:
         previous_transfer = item.transfer
         item.transfer = None
         item.save(update_fields=['transfer'])
         logger.info(
             f"Product Transfer Item '{item.product.name}' detached from transfer "
-            f"'{previous_transfer.id if previous_transfer else 'None'}'."
+            f"'{transfer.id} {previous_transfer.id if previous_transfer else 'None'}'. "
         )
-
         if previous_transfer:
             previous_transfer.update_total_amount()
         return item
@@ -136,6 +135,7 @@ class ProductTransferItemService:
             f"'{product_transfer.id}' (previous product transfer: "
             f"'{previous_product_transfer.id if previous_product_transfer else 'None'}')."
         )
+        ProductTransferItemService.attach_to_transfer(item)
         return item
     
     @staticmethod
@@ -148,4 +148,5 @@ class ProductTransferItemService:
             f"Product Transfer Item '{item.product.name}' detached from product transfer"
             f"'{previous_product_transfer.id if previous_product_transfer else 'None'}'."
         )
+        ProductTransferItemService.detach_from_transfer(item)
         return item

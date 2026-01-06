@@ -75,8 +75,8 @@ class ProductTransferViewSet(ModelViewSet):
 
 
     
-    @action(detail=True, methods=["post"], url_path="attach", url_name="attach",)
-    def attach(self, request, pk=None):
+    @action(detail=True, methods=["post"], url_path="attach-to-transfer", url_name="attach-to-transfer",)
+    def attach_to_transfer(self, request, pk=None):
         product_transfer = self.get_object()
         transfer_id = request.data.get("transfer_id")
 
@@ -90,8 +90,8 @@ class ProductTransferViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-    @action(detail=True, methods=["post"], url_path="detach", url_name="detach",)
-    def detach(self, request, pk=None):
+    @action(detail=True, methods=["post"], url_path="detach-from-transfer", url_name="detach-from-transfer",)
+    def detach_from_transfer(self, request, pk=None):
         product_transfer = self.get_object()
 
         try:

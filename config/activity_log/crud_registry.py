@@ -2,6 +2,8 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from config.middleware.get_current_user_middleware import get_current_user
 from config.activity_log.base_activity_log import log_activity
+from transfers.services.transfer_service import TransferService
+from transfers.models.product_transfer_item_model import ProductTransferItem
 
 
 def register_crud_signals(model, actions, get_description=None, get_metadata=None):
@@ -29,3 +31,7 @@ def register_crud_signals(model, actions, get_description=None, get_metadata=Non
             description=description,
             metadata=metadata
         )
+    
+
+    
+
