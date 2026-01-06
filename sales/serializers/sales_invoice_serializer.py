@@ -65,7 +65,7 @@ class SalesInvoiceSerializer(CompanyValidationMixin, serializers.ModelSerializer
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
         validated_data['branch'] = request.user.branch
-
+        actor = None
         try:
             invoice = SalesInvoice.objects.create(**validated_data)
             actor = getattr(user, 'username', None) or getattr(expected_company, 'name', 'Unknown')

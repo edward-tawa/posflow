@@ -66,7 +66,7 @@ class CustomerSerializer(CompanyValidationMixin, serializers.ModelSerializer):
         expected_company = get_expected_company(request)
         user = getattr(request, 'user', None)
         validated_data['company'] = expected_company  # enforce company
-
+        actor = None
         try:
             try:    
                 validated_data['branch'] = request.user.branch

@@ -25,14 +25,12 @@ class SalesInvoiceItemSerializer(CompanyValidationMixin, serializers.ModelSerial
             'quantity',
             'unit_price',
             'tax_rate',
-            'subtotal',
-            'tax_amount',
-            'total_price',
+            # 'subtotal',
             'created_at',
             'updated_at',
         ]
         read_only_fields = [
-            'id', 'subtotal', 'tax_amount', 'total_price',
+            'id', 'subtotal', 'tax_rate',
             'created_at', 'updated_at'
         ]
 
@@ -75,7 +73,7 @@ class SalesInvoiceItemSerializer(CompanyValidationMixin, serializers.ModelSerial
         validated_data['sales_invoice'].company = expected_company  # enforce company
         user = getattr(request, 'user', None)
         product = validated_data.get('product')
-
+        
         try:
             item = SalesInvoiceItem.objects.create(**validated_data)
             actor = getattr(user, 'username', 'Unknown')
