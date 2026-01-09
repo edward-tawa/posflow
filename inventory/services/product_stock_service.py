@@ -459,3 +459,27 @@ class ProductStockService:
         stock_dict = {stock.product.id: stock.quantity for stock in stocks}
         return stock_dict
     
+
+
+
+    @staticmethod
+    def adjust_stocktake_item_quantity_for_movements(initial_quantity: int, movements):
+        """
+        Adjust a starting quantity based on a list of stock movements for a stocktake during stocktake only.
+
+        Args:
+            initial_quantity (int): The quantity counted during stock take. (the physical quantity counted)
+            movements (QuerySet or list of StockMovement): Movements to consider.
+
+        Returns:
+            int: Adjusted quantity.
+        """
+        adjusted_quantity = initial_quantity
+
+        for m in movements:
+            if m.movement_type in ["SALE", "TRANSFER_OUT", "DAMAGE", "WRITE_OFF", "MANUAL_DECREASE"]:
+                adjusted_quantity -= m.quantity
+            elif m.movement_type in ["PURCHASE", "TRANSFER_IN", "SALE_RETURN", "MANUAL_INCREASE"]:
+                adjusted_quantity += m.quantity
+
+        return adjusted_quantity

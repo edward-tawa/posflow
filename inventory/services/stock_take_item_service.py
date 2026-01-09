@@ -84,7 +84,7 @@ class StockItemService:
     # ----------------------------
     @staticmethod
     @db_transaction.atomic
-    def update_counted_quantity(stock_take_item: StockTakeItem, new_counted_quantity: int):
+    def update_counted_stock_item_quantity(stock_take_item: StockTakeItem, new_counted_quantity: int):
         """
         Updates counted quantity and recalculates totals.
         """
@@ -194,3 +194,45 @@ class StockItemService:
             f"Expected={totals['total_expected']}, "
             f"Discrepancy={totals['total_discrepancy']}"
         )
+
+
+    
+    @staticmethod
+    @db_transaction.atomic
+    def adjust_stocktake_item_quantity_for_movements(counted_quantity: int, movements):
+        """
+        Adjust a counted stocktake quantity based on stock movements that occurred after counting.
+
+        Args:
+            counted_quantity (int): The physical quantity counted during stocktake.
+            movements (QuerySet or list of StockMovement): Stock movements to consider.
+
+        Returns:
+            dict: Adjusted quantity and detailed breakdown of movement types.
+        """
+        # Mapping movement types to counters and whether they increase or decrease stock
+        type_map = {
+            "SALE": ("sold", -1),
+            "TRANSFER_OUT": ("transferred_out", -1),
+            "PURCHASE_RETURN": ("purchases_return", -1),
+            "DAMAGE": ("damaged", -1),
+            "WRITE_OFF": ("written_off", -1),
+            "MANUAL_DECREASE": ("manually_decreased", -1),
+            "PURCHASE": ("purchases", 1),
+            "TRANSFER_IN": ("transferred_in", 1),
+            "SALE_RETURN": ("sales_returns", 1),
+            "MANUAL_INCREASE": ("manually_increased", 1),
+        }
+
+        # Initialize counters for all movement types
+        counters = {name: 0 for name, _ in type_map.values()}
+
+        adjusted_quantity = counted_quantity
+
+        for m in movements:
+            if m.movement_type in type_map:
+                key, direction = type_map[m.movement_type]
+                counters[key] += m.quantity
+                adjusted_quantity += direction * m.quantity
+
+        return {"adjusted_quantity": adjusted_quantity, **counters}

@@ -6,6 +6,7 @@ from company.models import Company
 from branch.models import Branch
 from collections import defaultdict
 from django.db.models import Sum, F, Q, FloatField
+from django.utils import timezone
 
 
 
@@ -405,4 +406,25 @@ class StockMovementService:
             total_value=Sum(F('quantity') * F('unit_cost'), output_field=FloatField())
         )
 
-        return result['total_value'] or 0
+        return result['total_value'] or 0.0
+        
+    
+
+   
+
+    @staticmethod
+    def get_movements_during_stock_take(stock_take):
+        """
+        Return all stock movements for the product(s) in a stock take
+        that occurred between stock_take.started_at and stock_take.ended_at (or now if not ended).
+        """
+        end_time = stock_take.ended_at or timezone.now()
+
+        movements = StockMovement.objects.filter(
+            company=stock_take.company,
+            branch=stock_take.branch,
+            product=stock_take.product,
+            movement_date__gte=stock_take.started_at,
+            movement_date__lte=end_time
+        )
+        return movements

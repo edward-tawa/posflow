@@ -2,6 +2,7 @@ from django.db import transaction as db_transaction
 from loguru import logger
 from inventory.models.stock_take_model import StockTake
 from inventory.services.product_stock_service import ProductStockService
+from inventory.services.stock_take_item_service import StockItemService
 
 
 class StockTakeService:
@@ -42,6 +43,36 @@ class StockTakeService:
                 f"Failed to create stock take: Company='{company.name}', Branch='{branch.name}', Error={str(e)}"
             )
             raise
+
+    
+    @staticmethod
+    @db_transaction
+    def get_or_create_stock_take(company, branch, stock_id=None):
+        """
+        Retrieves an existing stock take by ID or creates a new one if not found.
+
+        Args:
+            company: The company conducting the stock take.
+            branch: The branch where the stock take is performed.
+            stock_id (int, optional): The ID of the stock take to retrieve.
+        
+        """        
+        if stock_id:
+            try:
+                stock_take = StockTake.objects.get(id=stock_id, company=company, branch=branch)
+                logger.info(
+                    f"Stock take retrieved: Company='{company.name}', Branch='{branch.name}', "
+                    f"Reference Number='{stock_take.reference_number}'"
+                )
+                return stock_take
+            except StockTake.DoesNotExist:
+                logger.warning(
+                    f"Stock take ID '{stock_id}' not found for Company='{company.name}'. Creating new stock take."
+                )
+        return StockTakeService.create_stock_take(
+            company=company,
+            branch=branch,
+        )
 
     
     @staticmethod
@@ -99,31 +130,31 @@ class StockTakeService:
             raise
     
 
-    @staticmethod
-    @db_transaction.atomic
-    def update_quantity_counted(stock_take: StockTake, new_quantity: int):
-        """
-        Updates the quantity counted in an existing stock take record.
+    # @staticmethod
+    # @db_transaction.atomic
+    # def update_quantity_counted(stock_take: StockTake, new_quantity: int):
+    #     """
+    #     Updates the quantity counted in an existing stock take record.
 
-        Args:
-            stock_take (StockTake): The stock take record to update.
-            new_quantity (int): The new quantity counted.
-        Returns:
-            StockTake: The updated stock take record.   
-        """
-        try:
-            stock_take.quantity_counted = new_quantity
-            stock_take.save()
-            logger.info(
-                f"Stock take quantity updated: Reference Number='{stock_take.reference_number}', New Quantity Counted={new_quantity}"
-            )
-            return stock_take
+    #     Args:
+    #         stock_take (StockTake): The stock take record to update.
+    #         new_quantity (int): The new quantity counted.
+    #     Returns:
+    #         StockTake: The updated stock take record.   
+    #     """
+    #     try:
+    #         stock_take.quantity_counted = new_quantity
+    #         stock_take.save()
+    #         logger.info(
+    #             f"Stock take quantity updated: Reference Number='{stock_take.reference_number}', New Quantity Counted={new_quantity}"
+    #         )
+    #         return stock_take
 
-        except Exception as e:
-            logger.error(
-                f"Failed to update stock take quantity: Reference Number='{stock_take.reference_number}', Error={str(e)}"
-            )
-            raise
+    #     except Exception as e:
+    #         logger.error(
+    #             f"Failed to update stock take quantity: Reference Number='{stock_take.reference_number}', Error={str(e)}"
+    #         )
+    #         raise
 
     
     @staticmethod
@@ -195,27 +226,32 @@ class StockTakeService:
     @staticmethod
     @db_transaction.atomic
     def finalize_stock_take(stock_take: StockTake):
-        """
-        Finalize a stock take and update actual product stock in the system.
-        """
-        try:
-            ProductStockService.update_quantity(
-                product=stock_take.product,
-                branch=stock_take.branch,
-                new_quantity=stock_take.quantity_counted
-            )
+        # 1. Get movements that occurred after counting
+        movements = ProductStockService.get_stock_movements_after_count(
+            branch=stock_take.branch,
+            product=stock_take.product,
+            counted_at=stock_take.counted_at
+        )
 
-            stock_take.status = "completed"
-            stock_take.save()
+        # 2. Adjust counted quantity
+        adjustment = StockItemService.adjust_stocktake_item_quantity_for_movements(
+            counted_quantity=stock_take.quantity_counted,
+            movements=movements
+        )
 
-            logger.info(
-                f"Stock take finalized: Ref='{stock_take.reference_number}', Stock Updated to '{stock_take.quantity_counted}'"
-            )
-            return stock_take
-        except Exception as e:
-            logger.error(
-                f"Failed to finalize stock take: Ref='{stock_take.reference_number}', Error={str(e)}"
-            )
-            raise
+        # 3. Update system stock with adjusted quantity
+        ProductStockService.update_quantity(
+            product=stock_take.product,
+            branch=stock_take.branch,
+            new_quantity=adjustment["adjusted_quantity"]
+        )
 
-
+        # 4. Save adjustment details for reporting
+        stock_take.adjusted_quantity = adjustment["adjusted_quantity"] # Needs to be reviewed here.
+        stock_take.movement_breakdown = adjustment  # optional, store as JSON
+        stock_take.status = "completed"
+        stock_take.save()
+        logger.info(
+            f"Stock take finalized: Ref='{stock_take.reference_number}', "
+            f"Original Count={stock_take.quantity_counted}, Adjusted Count={stock_take.adjusted_quantity}"
+        )
