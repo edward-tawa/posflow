@@ -11,12 +11,12 @@ register_crud_signals(
         'delete': 'transaction_deleted'
     },
     get_description=lambda instance, created=False, deleted=False: (
-        f"Transaction '{instance.name if instance.name else instance.id}' has been"
+        f"Transaction '{instance.transaction_number if instance else instance.id}' has been"
         f"{'created' if created else 'updated' if not deleted else 'deleted'}."
     ),
     get_metadata=lambda instance, created=False, deleted=False: {
         'transaction_id': instance.id,
-        'transaction_name': instance.name if instance.name else None,
+        'transaction_name': instance.transaction_number if instance else None,
         'created': created,
     }
 )

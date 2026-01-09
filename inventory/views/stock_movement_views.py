@@ -22,8 +22,8 @@ class StockMovementViewSet(ModelViewSet):
     permission_classes = [InventoryPermission]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['reference_number', 'movement_type']
-    ordering_fields = ['movement_date', 'created_at', 'quantity']
-    ordering = ['-movement_date']
+    ordering_fields = ['created_at', 'quantity']
+    ordering = ['-created_at']
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):

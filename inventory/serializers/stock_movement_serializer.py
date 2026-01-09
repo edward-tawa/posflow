@@ -39,7 +39,6 @@ class StockMovementSerializer(serializers.ModelSerializer):
             'purchase_return',
             'movement_type',
             'quantity',
-            'movement_type',
             'created_at',
             'updated_at',
         ]

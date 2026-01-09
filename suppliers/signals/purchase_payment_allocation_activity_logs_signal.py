@@ -11,12 +11,12 @@ register_crud_signals(
         'delete': 'purchase_payment_allocation_deleted'
     },
     get_description=lambda instance, created=False, deleted=False: (
-        f"PurchasePaymentAllocation '{instance.name if instance.name else None}' has been"
+        f"PurchasePaymentAllocation '{instance.allocation_number if instance else None}' has been"
         f"{'created' if created else 'updated' if not deleted else 'deleted'}."
     ),
     get_metadata=lambda instance, created=False, deleted=False: {
         'purchase_payment_allocation_id': instance.id,
-        'purchase_payment_allocation_name': instance.name if instance.name else None,
+        'purchase_payment_allocation_name': instance.allocation_number if instance else None,
         'created': created,
     }
 )

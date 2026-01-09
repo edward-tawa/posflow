@@ -16,7 +16,7 @@ register_crud_signals(
     ),
     get_metadata=lambda instance, created=False, deleted=False: {
         'sales_invoice_item_id': instance.id,
-        'sales_invoice_item_name': instance.name if instance.name else None,
+        'sales_invoice_item_name': instance.product_name if instance else None,
         'created': created,
     }
 )
