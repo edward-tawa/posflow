@@ -20,11 +20,11 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
         ('Marketing', 'Marketing'),
         ('Development', 'Development'),
         ('Manager', 'Manager'),
-        ('Inventory', 'Inventory Manager'),
+        ('Inventory_Mangement', 'Inventory Manager'),
         ('Admin', 'Administrator'),
         ('Support', 'Support Staff'),
         ('Accountant', 'Accountant'),
-        ('HRManger', 'Human Resources'),
+        ('HR_Manager', 'Human Resources'),
     ]
     username = models.CharField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)

@@ -10,12 +10,12 @@ register_crud_signals(
         'delete': 'supplier_deleted'
     },
     get_description=lambda instance, created=False, deleted=False: (
-        f"Supplier '{instance.name}' has been"
+        f"Supplier '{instance.name if instance.name else None}' has been"
         f"{'created' if created else 'updated' if not deleted else 'deleted'}."
     ),
     get_metadata=lambda instance, created=False, deleted=False: {
         'supplier_id': instance.id,
-        'supplier_name': instance.name,
+        'supplier_name': instance.name if instance.name else None,
         'created': created,
     }
 )

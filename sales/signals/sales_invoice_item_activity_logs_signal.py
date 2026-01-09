@@ -11,12 +11,12 @@ register_crud_signals(
         'delete': 'sales_invoice_item_deleted'
     },
     get_description=lambda instance, created=False, deleted=False: (
-        f"SalesInvoiceItem '{instance.id}' has been "
+        f"SalesInvoiceItem '{instance.id if instance.id else None}' has been "
         f"{'created' if created else 'updated' if not deleted else 'deleted'}."
     ),
     get_metadata=lambda instance, created=False, deleted=False: {
         'sales_invoice_item_id': instance.id,
-        # 'sales_invoice_item_name': instance.name,
+        'sales_invoice_item_name': instance.name if instance.name else None,
         'created': created,
     }
 )

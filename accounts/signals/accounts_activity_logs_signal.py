@@ -10,12 +10,12 @@ register_crud_signals(
         'delete': 'account_deleted'
     },
     get_description=lambda instance, created=False, deleted=False: (
-        f"Account '{instance.name}' has been "
+        f"Account '{instance.name if instance.name else instance.id}' has been "
         f"{'created' if created else 'updated' if not deleted else 'deleted'}."
     ),
     get_metadata=lambda instance, created=False, deleted=False: {
         'account_id': instance.id,
-        'account_name': instance.name,
+        'account_name': instance.name if instance.name else None,
         'created': created,
     }
 )

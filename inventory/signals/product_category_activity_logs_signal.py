@@ -11,12 +11,12 @@ register_crud_signals(
         'delete': 'product_category_deleted'
     },
     get_description=lambda instance, created=False, deleted=False: (
-        f"ProductCategory '{instance.name}' has been "
+        f"ProductCategory '{instance.name if instance.name else instance.id}' has been "
         f"{'created' if created else 'updated' if not deleted else 'deleted'}."
     ),
     get_metadata=lambda instance, created=False, deleted=False: {
         'product_category_id': instance.id,
-        'product_category_name': instance.name,
+        'product_category_name': instance.name if instance.name else None,
         'created': created,
     }
 )
