@@ -46,7 +46,7 @@ class StockTakeService:
 
     
     @staticmethod
-    @db_transaction
+    @db_transaction.atomic
     def get_or_create_stock_take(company, branch, stock_id=None):
         """
         Retrieves an existing stock take by ID or creates a new one if not found.
