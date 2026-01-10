@@ -96,7 +96,7 @@ class BranchAccountSerializer(serializers.ModelSerializer):
             validated_data['company'] = company
 
             logger.info(validated_data)
-            validated_data.pop('company', None)
+            # validated_data.pop('company', None)
             branch_account = BranchAccount.objects.create(**validated_data)
             logger.info(
                 f"{actor} created BranchAccount '{branch_account.branch.name}' "

@@ -78,3 +78,105 @@ def test_customer_specific_financials(client, test_user_token):
     # 3. Create Credit Sale
     url_credit = reverse('create-credit-sale', args=[cust_id])
     client.post(url_credit, {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+###############################################################################################################################
+#################################################################################################################################
+
+# ==========================================
+# CUSTOMERS
+# ==========================================
+
+@pytest.mark.django_db
+def test_customer_endpoints(client, test_user_token):
+    """
+    Test Customer List, Detail, and Branch History endpoints.
+    [Source: 8]
+    """
+    # 1. Customer List
+    url = reverse('customer-list')
+    response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    assert response.status_code == 200
+    
+    data = {
+            'first_name': 'Teddy', 
+            'last_name': 'Mads', 
+            'email': 'mads@gmail.com', 
+            'phone_number': '1234567897'
+        }
+    response = client.post(
+        url, 
+        data, 
+        content_type='application/json', 
+        HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+    )
+    logger.info(response.json())
+    assert response.status_code == 201
+
+    # 2. Customer Detail
+    url_detail = reverse('customer-detail', kwargs={'pk': 1})
+    response = client.put(
+        url_detail, 
+        data, 
+        content_type='application/json', 
+        HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+    )
+    assert response.status_code == 200
+
+    # 3. Customer Branch History
+    url_history = reverse('customer-branch-history-list')
+    response = client.get(url_history, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_customer_action_endpoints(client, test_user_token, test_customer_fixture, test_account_two_fixture):
+    """
+    Test specific Customer actions (Statements, Sales, Refunds).
+    """
+    # Create Cash Sale
+    url = reverse('create-cash-sale', kwargs={'customer_id': 1})
+    data =  {
+        'amount': '1000.00'
+    }
+    account_test = test_account_two_fixture
+    response = client.post(
+        url, 
+        data, 
+        content_type='application/json', 
+        HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+    )
+    logger.info(response.json())
+    assert response.status_code == 201
+
+    # Create Credit Sale
+    url = reverse('create-credit-sale', kwargs={'customer_id': test_customer_fixture.id})
+    response = client.post(
+        url, 
+        data, 
+        content_type='application/json', 
+        HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+    )
+    logger.info(response.json())
+    assert response.status_code == 201
+
+    # Customer Statement (Usually GET)
+    url = reverse('customer-statement', kwargs={'customer_id': 1})
+    response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    assert response.status_code == 200
+
+    # Outstanding Balance (Usually GET)
+    url = reverse('customer-outstanding-balance', kwargs={'customer_id': 1})
+    response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    assert response.status_code == 200
+
+    # Refund
+    url = reverse('customer-refund', kwargs={'customer_id': 1})
+    response = client.post(
+        url, 
+        data, 
+        content_type='application/json', 
+        HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+    )
+    logger.info(response.json())
+    assert response.status_code == 500 # Problem

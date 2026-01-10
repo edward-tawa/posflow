@@ -61,8 +61,8 @@ class CustomerAccountViewSet(ModelViewSet):
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         customer_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(customer=customer_account.customer.name, account_number=customer_account.account.number).info(
-            f"CustomerAccount for customer '{customer_account.customer.name}' and account '{customer_account.account.name}' (Number: {customer_account.account.number}) updated by {actor}."
+        logger.bind(customer=customer_account.customer.first_name, account_number=customer_account.account.account_number).info(
+            f"CustomerAccount for customer '{customer_account.customer.first_name}' and account '{customer_account.account.name}' (Number: {customer_account.account.account_number}) updated by {actor}."
         )
         
     def perform_destroy(self, instance):

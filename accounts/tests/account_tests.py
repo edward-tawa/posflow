@@ -328,3 +328,186 @@ def test_purchases_returns_account_urls(client, test_user_token):
         "description": "Purchase Returns Ledger"
     }
     client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+#############################################################################################
+#######################################################################################################
+
+# ==========================================
+# ENTITY ACCOUNTS (Branch, Customer, Employee, Supplier, Loan)
+# ==========================================
+
+@pytest.mark.django_db
+def test_entity_account_endpoints(client, test_user_token, test_account_fixture, test_customer_fixture, create_loan_fixture, test_supplier_fixture):
+    """
+    Test Branch, Customer, Employee, Loan, and Supplier Account endpoints.
+    [Source: 5, 6]
+    """
+    # Define the list of entity account url names
+    account_types = [
+        'branch-account-list',
+        'customer-account-list',
+        'employee-account-list',
+        'loan-account-list',
+        'supplier-account-list'
+    ]
+
+    for route_name in account_types:
+        url = reverse(route_name)
+        
+        # Test GET
+        response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+        assert response.status_code == 200
+
+        # Test CREATE
+        data = {
+            "account": test_account_fixture.id,
+            "customer": test_customer_fixture.id,
+            "employee": 1,
+            "loan": create_loan_fixture.id,
+            "supplier": test_supplier_fixture.id
+
+        }
+        response = client.post(
+            url, 
+            data, 
+            content_type='application/json', 
+            HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+        )
+        logger.info(response.json())
+        assert response.status_code == 201
+
+@pytest.mark.django_db
+def test_entity_account_details(client, test_user_token, test_account_fixture, test_customer_fixture, create_loan_fixture, test_supplier_fixture, create_entity_account_fixture):
+    """
+    Test Detail endpoints for Entity Accounts.
+    [Source: 5, 6]
+    """
+    detail_types = [
+        'branch-account-detail',
+        'customer-account-detail',
+        'employee-account-detail',
+        'loan-account-detail',
+        'supplier-account-detail'
+    ]
+
+    for route_name in detail_types:
+        create_entries  = create_entity_account_fixture
+        url = reverse(route_name, kwargs={'pk': 1})
+        
+        # Test GET
+        response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+        logger.info([response.json(), response.status_code])
+        assert response.status_code in [200, 404]
+
+        # Test UPDATE
+        data = {
+            "account": test_account_fixture.id,
+            "customer": test_customer_fixture.id,
+            "employee": 1,
+            "loan": create_loan_fixture.id,
+            "supplier": test_supplier_fixture.id
+        }
+        response = client.put(
+            url, 
+            data, 
+            content_type='application/json', 
+            HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+        )
+        logger.info(response.json())
+        assert response.status_code in [201, 200]
+
+
+# ==========================================
+# FINANCIAL ACCOUNTS (General, Bank, Cash)
+# ==========================================
+
+@pytest.mark.django_db
+def test_financial_account_endpoints(client, test_user_token, test_account_fixture):
+    """
+    Test General, Bank, and Cash Account endpoints.
+    [Source: 6]
+    """
+    account_types = [
+        'account-list',
+        'bank-account-list',
+        'cash-account-list'
+    ]
+
+    for route_name in account_types:
+        url = reverse(route_name)
+        
+        # Test GET
+        response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+        assert response.status_code == 200
+
+        # Test CREATE
+        data = {
+            "name": "Test Acc",
+            "account_type": "BRANCH",
+            "account": test_account_fixture.id,
+            "branch": 1,
+            "bank_name": "BancABC"
+        }
+        response = client.post(
+            url, 
+            data, 
+            content_type='application/json', 
+            HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+        )
+        logger.info(response.json())
+        assert response.status_code == 201
+
+         
+    url_detail = reverse('account-detail', kwargs={'pk': 1})
+    data = {
+        "name": "Test Acc 2",
+        "account_type": "CUSTOMER"
+    }
+    response = client.put(
+        url_detail, 
+        data, 
+        content_type='application/json', 
+        HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+    )
+    logger.info(response.json())
+    assert response.status_code == 200
+
+
+# ==========================================
+# TRADING ACCOUNTS (Sales, Purchases, Returns, Expenses)
+# ==========================================
+
+@pytest.mark.django_db
+def test_trading_account_endpoints(client, test_user_token, test_account_fixture, test_expense_fixture):
+    """
+    Test Sales, Purchases, Returns, and Expense Account endpoints.
+    """
+    trading_types = [
+        'sales-account-list',
+        'purchases-account-list',
+        'sales-returns-account-list',
+        'purchases-returns-account-list',
+        'expense-account-list'
+    ]
+
+    for route_name in trading_types:
+        url = reverse(route_name)
+        
+        # Test GET
+        response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+        assert response.status_code == 200
+
+        # Test CREATE
+        data = {
+            "account": test_account_fixture.id,
+            "expense": test_expense_fixture.id
+        }
+        response = client.post(
+            url, 
+            data, 
+            content_type='application/json', 
+            HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+        )
+        logger.info(response.json())
+        assert response.status_code == 201

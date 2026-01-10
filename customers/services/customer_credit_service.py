@@ -33,7 +33,7 @@ class CustomerCreditService:
                 branch=debit_account.branch,
                 debit_account=debit_account,
                 credit_account=credit_account,
-                transaction_type="CREDIT",  # Ensure this exists in Transaction.TRANSACTION_TYPES
+                transaction_type="INCOMING",  # Ensure this exists in Transaction.TRANSACTION_TYPES
                 transaction_category="CREDIT SALE",
                 customer=customer,
                 supplier=None,

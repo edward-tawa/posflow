@@ -38,9 +38,9 @@ class SalesAccountViewSet(ModelViewSet):
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         sales_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(account_number=sales_account.account.account_number, sales_person=sales_account.sales_person.username).success(
+        logger.bind(account_number=sales_account.account.account_number, sales_person=sales_account.sales_person.username if sales_account.sales_person else None).success(
             f"SalesAccount for account '{sales_account.account.name}' (Number: {sales_account.account.account_number}) "
-            f"and customer ID '{sales_account.sales_person.username}' created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
+            f"and customer ID '{sales_account.sales_person.username if sales_account.sales_person else None}' created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
         )
 
     def perform_update(self, serializer):

@@ -101,6 +101,8 @@ class LoanAccountSerializer(serializers.ModelSerializer):
 
         try:
             validated_data.pop('company', None)
+            validated_data['branch'] = request.user.branch
+
             loan_account = LoanAccount.objects.create(**validated_data)
             logger.info(
                 f"{actor} created LoanAccount '{loan_account.loan.borrower.first_name}' "

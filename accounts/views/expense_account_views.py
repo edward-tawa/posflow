@@ -39,9 +39,9 @@ class ExpenseAccountViewSet(ModelViewSet):
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         expense_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(account_number=expense_account.account.account_number, expense_category=expense_account.expense_category_id).success(
+        logger.bind(account_number=expense_account.account.account_number, expense_category=expense_account.expense.category if expense_account.expense else None).success(
             f"ExpenseAccount for account '{expense_account.account.name}' (Number: {expense_account.account.account_number}) "
-            f"and expense category ID '{expense_account.expense_category_id}' created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
+            f"and expense category ID '{expense_account.expense.category if expense_account.expense else None}' created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
         )
 
     def perform_update(self, serializer):
