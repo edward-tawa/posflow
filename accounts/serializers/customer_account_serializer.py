@@ -132,7 +132,7 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
                 setattr(instance, attr, value)
             instance.save()
             logger.info(
-                f"{actor} updated CustomerAccount '{instance.first_name}' (ID: {instance.id})."
+                f"{actor} updated CustomerAccount '{instance.id}' (ID: {instance.id})."
             )
             return instance
         except Exception as e:
