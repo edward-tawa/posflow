@@ -153,6 +153,48 @@ def test_account_one_fixture(test_company_fixture, create_branch):
     }
 
 #=========================================
+# Account 2 fixture
+#=========================================
+@pytest.fixture()
+def test_account_two_fixture(test_company_fixture, create_branch):
+    """
+    Creates and returns two Account instances for testing.
+    """
+    # CREATE
+    account_one = Account.objects.create(
+        name = 'Test 1 Account',
+        company = test_company_fixture,
+        branch = create_branch,
+        account_number = Account.generate_account_number(self='account'),
+        account_type = 'CUSTOMER',
+    )
+    account_two = Account.objects.create(
+        name = 'Test Account',
+        company = test_company_fixture,
+        branch = create_branch,
+        account_number = Account.generate_account_number(self='account'),
+        account_type = 'SALE',
+    )
+    account_three = Account.objects.create(
+        name = 'Test Account 3',
+        company = test_company_fixture,
+        branch = create_branch,
+        account_number = Account.generate_account_number(self='account'),
+        account_type = 'CASH',
+    )
+
+    cash = CashAccount.objects.create(
+        account = account_three,
+        branch = create_branch
+    )
+    return {
+        "acc1": account_one,
+        "acc2": account_two,
+        "acc3": account_three,
+        "cash": cash
+    }
+
+#=========================================
 # Debit&Credit Account fixture
 #=========================================
 @pytest.fixture()
@@ -264,7 +306,7 @@ def test_payment_fixture(create_branch, test_company_fixture, create_user):
 # Customer Fixture
 #=========================================
 @pytest.fixture()
-def test_customer_fixture(create_branch, test_company_fixture, create_user):
+def test_customer_fixture(create_branch, test_company_fixture):
     """
     Creates and returns a Customer instance for testing.
     """
@@ -743,3 +785,81 @@ def create_branch_fixture(test_company_get_fixture):
         "one" : branch_one,
         "two" : branch_two
     }
+
+
+#######################################
+# Loan Fixture
+#######################################
+from datetime import date
+from datetime import timedelta
+
+@pytest.fixture()
+def create_loan_fixture(create_user):
+    return Loan.objects.create(
+        borrower = create_user,
+        loan_amount = 1000.00,
+        interest_rate = 0.05,
+        start_date = date.today(),
+        end_date = date.today() + timedelta(days=20),
+        issued_by = create_user,
+    )
+
+
+##################
+#
+####################
+
+@pytest.fixture
+def create_entity_account_fixture(client, test_user_token, test_account_fixture, test_customer_fixture, create_loan_fixture, test_supplier_fixture):
+    """
+    Test Branch, Customer, Employee, Loan, and Supplier Account endpoints.
+    [Source: 5, 6]
+    """
+    # Define the list of entity account url names
+    account_types = [
+        'branch-account-list',
+        'customer-account-list',
+        'employee-account-list',
+        'loan-account-list',
+        'supplier-account-list'
+    ]
+
+    for route_name in account_types:
+        url = reverse(route_name)
+        
+        # Test GET
+        response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+        
+
+        # Test CREATE
+        data = {
+            "account": test_account_fixture.id,
+            "customer": test_customer_fixture.id,
+            "employee": 1,
+            "loan": create_loan_fixture.id,
+            "supplier": test_supplier_fixture.id
+
+        }
+        response = client.post(
+            url, 
+            data, 
+            content_type='application/json', 
+            HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+        )
+        logger.info(response.json())
+    
+    return
+
+#=========================================
+# Expense Fixture
+#=========================================
+@pytest.fixture
+def test_expense_fixture(test_company_fixture, create_branch, create_user):
+    return Expense.objects.create(
+        company = test_company_fixture,
+        branch = create_branch,
+        expense_number = Expense.generate_expense_number(Expense),
+        category = "TRAVEL",
+        amount = 10000.00,
+        incurred_by = create_user
+    )
