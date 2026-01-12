@@ -86,9 +86,9 @@ class ProductService:
         Positive adjustment increases stock, negative decreases stock.
         """
         try:
-            product.stock_quantity += adjustment
+            product.stock += adjustment
             product.save()
-            logger.info(f"Adjusted stock for Product {product.id} by {adjustment}. New quantity: {product.stock_quantity}")
+            logger.info(f"Adjusted stock for Product {product.id} by {adjustment}. New quantity: {product.stock}")
             return product
         except Exception as e:
             logger.exception(f"Error adjusting stock for Product {product.id}: {e}")

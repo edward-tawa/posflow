@@ -110,11 +110,11 @@ class ProductViewSet(ModelViewSet):
         adjustment = serializer.validated_data['adjustment']
         product = ProductService.adjust_product_quantity(product, adjustment)
 
-        logger.info(f"Adjusted stock for Product '{product.name}' by {adjustment}. New quantity: {product.stock_quantity}")
+        logger.info(f"Adjusted stock for Product '{product.name}' by {adjustment}. New quantity: {product.stock}")
         return Response({
             "id": product.id,
             "name": product.name,
-            "new_stock_quantity": product.stock_quantity
+            "new_stock_quantity": product.stock
         }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='search')

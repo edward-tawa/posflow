@@ -85,7 +85,7 @@ class StockTakeItemViewSet(ModelViewSet):
                 return Response({"error": "Stock take does not belong to your company."},
                                 status=status.HTTP_403_FORBIDDEN)
 
-            item = StockItemService.add_stock_take_item(
+            item = StockItemService.add_stock_take_item( # add_stock_take_item is not defined 
                 stock_take=stock_take,
                 product=product,
                 expected_quantity=expected_quantity,
