@@ -15,6 +15,7 @@ class StockTake(CreateUpdateBaseModel):
     performed_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, related_name='stock_takes')
     stock_take_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=50, choices=[
+        ('open', 'Open'),
         ('pending', 'Pending'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),

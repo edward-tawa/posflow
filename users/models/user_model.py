@@ -25,6 +25,7 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
         ('Support', 'Support Staff'),
         ('Accountant', 'Accountant'),
         ('HR_Manager', 'Human Resources'),
+        ('Staff', 'Staff'),
     ]
     username = models.CharField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)

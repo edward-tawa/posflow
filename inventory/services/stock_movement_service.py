@@ -419,12 +419,32 @@ class StockMovementService:
         that occurred between stock_take.started_at and stock_take.ended_at (or now if not ended).
         """
         end_time = stock_take.ended_at or timezone.now()
-
-        movements = StockMovement.objects.filter(
+        product_ids = stock_take.items.values_list("product_id", flat=True)
+        stock_item_movements = StockMovement.objects.filter(
             company=stock_take.company,
             branch=stock_take.branch,
-            product=stock_take.product,
+            product_id__in=product_ids,
             movement_date__gte=stock_take.started_at,
             movement_date__lte=end_time
         )
-        return movements
+        return stock_item_movements
+    
+
+    @staticmethod
+    def get_stock_item_movements_during_stock_take(
+        stock_take,
+        stock_take_item
+    ):
+        """
+        Return all stock movements for a specific stock take item
+        that occurred between stock_take.started_at and stock_take.ended_at (or now if not ended).
+        """
+        end_time = stock_take.ended_at or timezone.now()
+        stock_item_movements = StockMovement.objects.filter(
+            company=stock_take.company,
+            branch=stock_take.branch,
+            product=stock_take_item.product,
+            movement_date__gte=stock_take.started_at,
+            movement_date__lte=end_time
+        )
+        return stock_item_movements

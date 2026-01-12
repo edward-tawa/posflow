@@ -48,6 +48,21 @@ class TransferService:
         )
         logger.info(f"Transfer '{transfer.reference_number}' created.")
         return transfer
+    
+    @staticmethod
+    @db_transaction.atomic
+    def get_or_create_transfer(
+        *,
+        company: Company,
+        branch: Branch,
+        reference_number: str
+    ) -> Transfer:
+        transfer, created = Transfer.objects.get_or_create(
+            company=company,
+            branch=branch,
+            reference_number=reference_number,
+        )
+        return transfer
 
     # -------------------------
     # UPDATE
