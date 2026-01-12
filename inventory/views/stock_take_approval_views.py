@@ -80,7 +80,7 @@ class StockTakeApprovalViewSet(ModelViewSet):
             raise ValidationError("This stock take has already been approved or rejected.")
 
         if stock_take.is_finalized:
-           raise ValidationError("Cannot approve a finalized stock take.")
+            raise ValidationError("Cannot approve a finalized stock take.")
 
         approval = serializer.save(approved_by=user)
 

@@ -392,7 +392,7 @@ def test_entity_account_details(client, test_user_token, test_account_fixture, t
     ]
 
     for route_name in detail_types:
-        create_entries  = create_entity_account_fixture
+        create_entries = create_entity_account_fixture
         url = reverse(route_name, kwargs={'pk': 1})
         
         # Test GET
