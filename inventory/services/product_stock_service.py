@@ -5,6 +5,7 @@ from inventory.models.product_stock_model import ProductStock
 from inventory.services.stock_movement_service import StockMovementService
 from inventory.models.stock_movement_model import StockMovement
 from transfers.models.transfer_model import Transfer
+from transfers.services.transfer_service import TransferService
 
 
 class ProductStockService:
@@ -174,60 +175,6 @@ class ProductStockService:
             f"Stock restored for voided sales receipt | receipt={receipt.id} | reason={reason}"
         )
 
-    # ==========================================================
-    # TRANSFERS
-    # ==========================================================
-    @staticmethod
-    @db_transaction.atomic
-    def decrease_stock_for_transfer(transfer: "Transfer"):
-        """
-        Decrease stock from the source branch for all items in a transfer.
-        """
-        source_branch = transfer.source_branch
-        for item in transfer.items.select_related("product"):
-            ProductStockService._adjust_stock(
-                product=item.product,
-                company=transfer.company,
-                branch=source_branch,
-                quantity_change=-item.quantity
-            )
-            StockMovementService.create_stock_movement(
-                company=transfer.company,
-                branch=source_branch,
-                product=item.product,
-                quantity=item.quantity,
-                movement_type=StockMovement.MovementType.TRANSFER_OUT,
-                reason=f"Transfer {transfer.reference_number} from {source_branch.id} to {transfer.destination_branch.id}"
-            )
-
-        logger.info(f"Stock decreased for transfer | branch={source_branch.id} | transfer={transfer.id}")
-
-
-
-    @staticmethod
-    @db_transaction.atomic
-    def increase_stock_for_transfer(transfer: "Transfer"):
-        """
-        Increase stock in the destination branch for all items in a transfer.
-        """
-        dest_branch = transfer.destination_branch
-        for item in transfer.items.select_related("product"):
-            ProductStockService._adjust_stock(
-                product=item.product,
-                company=transfer.company,
-                branch=dest_branch,
-                quantity_change=item.quantity
-            )
-            StockMovementService.create_stock_movement(
-                company=transfer.company,
-                branch=dest_branch,
-                product=item.product,
-                quantity=item.quantity,
-                movement_type=StockMovement.MovementType.TRANSFER_IN,
-                reason=f"Transfer {transfer.reference_number} from {transfer.source_branch.id} to {dest_branch.id}"
-            )
-
-        logger.info(f"Stock increased for transfer | branch={dest_branch.id} | transfer={transfer.id}")
 
 
     # ==========================================================
@@ -280,7 +227,7 @@ class ProductStockService:
     # READ-ONLY QUERIES
     # ==========================================================
     @staticmethod
-    def get_stock_quantity(*, product, company, branch) -> float:
+    def get_product_stock_quantity(*, product, company, branch) -> float:
         stock = ProductStock.objects.filter(
             product=product,
             company=company,
@@ -397,12 +344,67 @@ class ProductStockService:
             f"| quantity={quantity} | reason={reason}"
         )
 
+    # ==========================================================
+    # TRANSFERS
+    # ==========================================================
+    @staticmethod
+    @db_transaction.atomic
+    def decrease_stock_for_transfer(transfer: "Transfer"):
+        """
+        Decrease stock from the source branch for all items in a transfer.
+        """
+        source_branch = transfer.source_branch
+        for item in transfer.items.select_related("product"):
+            ProductStockService._adjust_stock(
+                product=item.product,
+                company=transfer.company,
+                branch=source_branch,
+                quantity_change=-(item.quantity)
+            )
+            StockMovementService.create_stock_movement(
+                company=transfer.company,
+                branch=source_branch,
+                product=item.product,
+                quantity=item.quantity,
+                movement_type=StockMovement.MovementType.TRANSFER_OUT,
+                reason=f"Transfer {transfer.reference_number} from {source_branch.id} to {transfer.destination_branch.id}"
+            )
+
+        logger.info(f"Stock decreased for transfer | branch={source_branch.id} | transfer={transfer.id}")
+
+
+
+    @staticmethod
+    @db_transaction.atomic
+    def increase_stock_for_transfer(transfer: "Transfer"):
+        """
+        Increase stock in the destination branch for all items in a transfer.
+        """
+        dest_branch = transfer.destination_branch
+        for item in transfer.items.select_related("product"):
+            ProductStockService._adjust_stock(
+                product=item.product,
+                company=transfer.company,
+                branch=dest_branch,
+                quantity_change=item.quantity
+            )
+            StockMovementService.create_stock_movement(
+                company=transfer.company,
+                branch=dest_branch,
+                product=item.product,
+                quantity=item.quantity,
+                movement_type=StockMovement.MovementType.TRANSFER_IN,
+                reason=f"Transfer {transfer.reference_number} from {transfer.source_branch.id} to {dest_branch.id}"
+            )
+
+        logger.info(f"Stock increased for transfer | branch={dest_branch.id} | transfer={transfer.id}")
 
 
     
+
     @staticmethod
     @db_transaction.atomic
-    def transfer_stock(source_branch, target_branch, product, quantity, reason: str) -> None:
+    def perform_transfer_stock(transfer: "Transfer") -> None:
         """
         Docstring for transfer_stock
         
@@ -413,44 +415,13 @@ class ProductStockService:
 
          Transfers stock from one branch to the other.
         """
+        ProductStockService.decrease_stock_for_transfer(transfer)
+        ProductStockService.increase_stock_for_transfer(transfer)
+        logger.info(f"Stock transferred | transfer={transfer.id}")
 
-        if source_branch.company_id != target_branch.company_id:
-            raise ValueError("Cannot transfer stock across companies.")
+        
 
-        ProductStockService._adjust_stock(
-            product=product,
-            company=source_branch.company,
-            branch=source_branch,
-            quantity_change=-quantity
-        )
-        ProductStockService._adjust_stock(
-            product=product,
-            company=target_branch.company,
-            branch=target_branch,
-            quantity_change=quantity
-        )
-
-        StockMovementService.create_stock_movement(
-            company=source_branch.company,
-            branch=source_branch,
-            product=product,
-            quantity=quantity,
-            movement_type=StockMovement.MovementType.TRANSFER_OUT,
-            reason=reason
-        )
-
-        StockMovementService.create_stock_movement(
-            company=target_branch.company,
-            branch=target_branch,
-            product=product,
-            quantity=quantity,
-            movement_type=StockMovement.MovementType.TRANSFER_IN,
-            reason=reason
-        )
-        logger.info(
-            f"Stock transferred | product={product.id} | from_branch={source_branch.id} "
-            f"| to_branch={target_branch.id} | quantity={quantity}"
-        )
+        
 
         
     @staticmethod
@@ -462,24 +433,4 @@ class ProductStockService:
 
 
 
-    @staticmethod
-    def adjust_stocktake_item_quantity_for_movements(initial_quantity: int, movements):
-        """
-        Adjust a starting quantity based on a list of stock movements for a stocktake during stocktake only.
-
-        Args:
-            initial_quantity (int): The quantity counted during stock take. (the physical quantity counted)
-            movements (QuerySet or list of StockMovement): Movements to consider.
-
-        Returns:
-            int: Adjusted quantity.
-        """
-        adjusted_quantity = initial_quantity
-
-        for m in movements:
-            if m.movement_type in ["SALE", "TRANSFER_OUT", "DAMAGE", "WRITE_OFF", "MANUAL_DECREASE"]:
-                adjusted_quantity -= m.quantity
-            elif m.movement_type in ["PURCHASE", "TRANSFER_IN", "SALE_RETURN", "MANUAL_INCREASE"]:
-                adjusted_quantity += m.quantity
-
-        return adjusted_quantity
+    

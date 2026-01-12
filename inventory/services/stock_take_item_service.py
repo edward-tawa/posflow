@@ -4,6 +4,7 @@ from django.db.models import Sum, F
 from loguru import logger
 from inventory.models.stock_take_model import StockTake
 from inventory.models.product_model import Product
+from inventory.models import StockMovement
 
 
 class StockItemService:
@@ -228,7 +229,7 @@ class StockItemService:
         counters = {name: 0 for name, _ in type_map.values()}
 
         adjusted_quantity = counted_quantity
-
+        
         for m in movements:
             if m.movement_type in type_map:
                 key, direction = type_map[m.movement_type]
@@ -236,3 +237,48 @@ class StockItemService:
                 adjusted_quantity += direction * m.quantity
 
         return {"adjusted_quantity": adjusted_quantity, **counters}
+
+
+    @staticmethod
+    def track_stocktake_item_for_movements(stocktake: StockTake, stock_take_item: StockTakeItem):
+        """
+        Tracks stocktake item stock movements that occurred after counting.
+
+        Returns:
+            dict: movement_type -> quantity moved
+        """
+        if stocktake.status != 'open' or stock_take_item.stock_take != stocktake:
+            return {}
+
+        movement_date_gte = getattr(stock_take_item.stock_take, "started_at", stocktake.started_at)
+
+        stock_take_item_movements = StockMovement.objects.filter(
+            product=stock_take_item.product,
+            company=stock_take_item.stock_take.company,
+            branch=stock_take_item.stock_take.branch,
+            movement_date__gte=movement_date_gte,
+        )
+
+        movement_types = [
+            "SALE",
+            "TRANSFER_OUT",
+            "PURCHASE_RETURN",
+            "DAMAGE",
+            "WRITE_OFF",
+            "MANUAL_DECREASE",
+            "PURCHASE",
+            "TRANSFER_IN",
+            "SALE_RETURN",
+            "MANUAL_INCREASE",
+        ]
+
+        # Initialize counters
+        counters = {movement_type: 0 for movement_type in movement_types}
+
+        # Count quantities
+        for m in stock_take_item_movements:
+            if m.movement_type not in counters:
+                counters[m.movement_type] = 0
+            counters[m.movement_type] += m.quantity
+
+        return counters

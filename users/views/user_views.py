@@ -265,6 +265,7 @@ class UserLoginView(APIView):
                 "message": "Login successful",
                 'access_token': access_token,
                 'refresh_token': refresh_token,
+                'id': user.id,
                 'user_data': serializer.data
             },
             status=200

@@ -15,7 +15,19 @@ class Transfer(CreateUpdateBaseModel):
 
     
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='transfers')
-    branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='transfers')
+    
+    source_branch = models.ForeignKey(
+        'branch.Branch',
+        on_delete=models.CASCADE,
+        related_name='outgoing_transfers',
+    )
+
+    destination_branch = models.ForeignKey(
+        'branch.Branch',
+        on_delete=models.CASCADE,
+        related_name='incoming_transfers',
+    )
+
     reference_number = models.CharField(max_length=100, unique=True)
     transferred_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_made')
     received_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_received')
@@ -52,10 +64,11 @@ class Transfer(CreateUpdateBaseModel):
             self.total_amount = self.cash_transfer.total_amount
             self.save(update_fields=['total_amount'])
 
+    def clean(self):
+        if self.source_branch == self.destination_branch:
+            raise ValidationError("Source and destination branches must be different.")
 
-    class Meta:
-        unique_together = ('company', 'reference_number')
-        ordering = ['-transfer_date', 'id']
+    
 
     def generate_reference_number(self):
         unique_code = uuid.uuid4().hex[:6].upper()
@@ -68,6 +81,15 @@ class Transfer(CreateUpdateBaseModel):
             self.reference_number = self.generate_reference_number()
         super().save(*args, **kwargs)
         logger.bind(reference=self.reference_number).info(f"Transfer {self.reference_number} saved to database successfully.")
+
+
+    class Meta:
+        unique_together = ('company', 'reference_number')
+        ordering = ['-transfer_date', 'id']
+        indexes = [
+            models.Index(fields=['company', 'source_branch',]),
+            models.Index(fields=['company', 'destination_branch',]),
+        ]
 
     def __str__(self):
         return f"Transfer {self.reference_number} ({self.company.name})"

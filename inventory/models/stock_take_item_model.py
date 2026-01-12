@@ -11,6 +11,10 @@ class StockTakeItem(CreateUpdateBaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_take_items')
     expected_quantity = models.PositiveIntegerField()
     counted_quantity = models.PositiveIntegerField()
+
+    adjusted_quantity = models.FloatField(null=True, blank=True)
+    movement_breakdown = models.JSONField(null=True, blank=True)
+
     
     class Meta:
         unique_together = ('stock_take', 'product')

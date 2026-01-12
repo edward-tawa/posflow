@@ -3,6 +3,8 @@ from loguru import logger
 from inventory.models.stock_take_model import StockTake
 from inventory.services.product_stock_service import ProductStockService
 from inventory.services.stock_take_item_service import StockItemService
+from inventory.services.stock_movement_service import StockMovementService
+from django.utils import timezone
 
 
 class StockTakeService:
@@ -226,32 +228,133 @@ class StockTakeService:
     @staticmethod
     @db_transaction.atomic
     def finalize_stock_take(stock_take: StockTake):
-        # 1. Get movements that occurred after counting
-        movements = ProductStockService.get_stock_movements_after_count(
-            branch=stock_take.branch,
-            product=stock_take.product,
-            counted_at=stock_take.counted_at
-        )
+        """
+        Finalize a stock take by reconciling each stock take item with system stock.
+        
+        Steps:
+        1. Fetch movements that occurred after counting started.
+        2. Adjust counted quantity for movements.
+        3. Compare to system quantity and compute variance.
+        4. Post variance as a manual adjustment (never overwrite stock).
+        5. Save item-level reconciliation data.
+        6. Mark stock take as completed after all items reconciled.
+        """
 
-        # 2. Adjust counted quantity
-        adjustment = StockItemService.adjust_stocktake_item_quantity_for_movements(
-            counted_quantity=stock_take.quantity_counted,
-            movements=movements
-        )
+        # A stock take is an event. Each StockTakeItem corresponds to a product.
+        for item in stock_take.items.select_related("product"):
 
-        # 3. Update system stock with adjusted quantity
-        ProductStockService.update_quantity(
-            product=stock_take.product,
-            branch=stock_take.branch,
-            new_quantity=adjustment["adjusted_quantity"]
-        )
+            # Get movements that occurred after counting started for this product
+            movements = StockMovementService.get_stock_item_movements_during_stock_take(
+                stock_take=stock_take,
+                stock_take_item=item
+            )
 
-        # 4. Save adjustment details for reporting
-        stock_take.adjusted_quantity = adjustment["adjusted_quantity"] # Needs to be reviewed here.
-        stock_take.movement_breakdown = adjustment  # optional, store as JSON
+            # Apply movements to the counted quantity to get adjusted quantity
+            adjustment = StockItemService.adjust_stocktake_item_quantity_for_movements(
+                counted_quantity=item.quantity_counted,
+                movements=movements
+            )
+            adjusted_quantity = adjustment["adjusted_quantity"]
+
+            # Get current system quantity for this product in this branch
+            system_quantity = ProductStockService.get_product_stock_quantity(
+                product=item.product,
+                company=stock_take.company,
+                branch=stock_take.branch
+            )
+
+            # Compute variance (difference between reality and system)
+            variance = adjusted_quantity - system_quantity
+
+            # Post variance as a manual stock adjustment (if any)
+            if variance != 0:
+                ProductStockService.adjust_stock_manually(
+                    product=item.product,
+                    company=stock_take.company,
+                    branch=stock_take.branch,
+                    quantity_change=variance,
+                    reason=f"Stock take {stock_take.reference_number}",
+                    performed_by=stock_take.performed_by
+                )
+
+            # Save item-level reconciliation details
+            item.adjusted_quantity = adjusted_quantity
+            item.movement_breakdown = adjustment
+            item.save(update_fields=["adjusted_quantity", "movement_breakdown"])
+
+            logger.info(
+                f"Stock take item finalized | Ref={stock_take.reference_number} | "
+                f"Product={item.product.id} | "
+                f"Counted={item.quantity_counted} | "
+                f"Adjusted={adjusted_quantity} | "
+                f"SystemBefore={system_quantity} | "
+                f"VariancePosted={variance}"
+            )
+
+        # Mark the entire stock take as completed after all items reconciled
         stock_take.status = "completed"
-        stock_take.save()
+        stock_take.completed_at = timezone.now()
+        stock_take.save(update_fields=["status", "completed_at"])
+
         logger.info(
-            f"Stock take finalized: Ref='{stock_take.reference_number}', "
-            f"Original Count={stock_take.quantity_counted}, Adjusted Count={stock_take.adjusted_quantity}"
+            f"Stock take completed | Ref={stock_take.reference_number} | "
+            f"Items={stock_take.items.count()}"
         )
+
+    
+
+    @staticmethod
+    def preview_stock_take(stock_take: StockTake):
+        """
+        Returns per-product stock take preview without touching system stock.
+
+        Each row explains:
+        - what was counted
+        - what happened during the stock take
+        - what the real quantity should be
+        - what adjustment will be posted
+        """
+
+        preview = []
+
+        for item in stock_take.items.select_related("product"):
+
+            # 1. Get movements that happened while stock take was open
+            movements = StockMovementService.get_stock_item_movements_during_stock_take(
+                stock_take=stock_take,
+                stock_take_item=item
+            )
+
+            # 2. Calculate how those movements affected the counted quantity
+            adjustment = StockItemService.adjust_stocktake_item_quantity_for_movements(
+                counted_quantity=item.counted_quantity,
+                movements=movements
+            )
+
+            adjusted_quantity = adjustment["adjusted_quantity"]
+
+            # Remove adjusted_quantity from breakdown (we only want movement types there)
+            movement_breakdown = adjustment.copy()
+            movement_breakdown.pop("adjusted_quantity")
+
+            # 3. Get current system stock
+            system_quantity = ProductStockService.get_product_stock_quantity(
+                product=item.product,
+                company=stock_take.company,
+                branch=stock_take.branch
+            )
+
+            # 4. Compute variance
+            variance = adjusted_quantity - system_quantity
+
+            preview.append({
+                "product_id": item.product.id,
+                "product_name": item.product.name,
+                "system_quantity": system_quantity,
+                "counted_quantity": item.counted_quantity,
+                "adjusted_quantity": adjusted_quantity,
+                "variance": variance,
+                "movements": movement_breakdown,
+            })
+
+        return preview
