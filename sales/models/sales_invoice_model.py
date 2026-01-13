@@ -1,5 +1,6 @@
 from django.db import models
 from config.models.create_update_base_model import CreateUpdateBaseModel
+from django.db.models import F, Sum
 from loguru import logger
 import uuid
 
@@ -35,22 +36,37 @@ class SalesInvoice(CreateUpdateBaseModel):
 
 
     def generate_invoice_number(self):
+        """
+        Generates a unique invoice number.
+        """
         return f"{self.PREFIX}-{uuid.uuid4().hex[:6].upper()}"
 
     def update_total_amount(self):
-        total = sum(item.unit_price * item.quantity for item in self.items.all())
+        """
+        Updates the total_amount based on associated invoice items.
+        """
+        total = self.items.aggregate(
+            total=Sum(F('quantity') * F('unit_price'))
+        )['total'] or 0  # fallback to 0 if there are no items
         self.total_amount = total
         self.save(update_fields=['total_amount'])
 
     def save(self, *args, **kwargs):
+        """
+        Overrides the save method to ensure an invoice number is generated if not already set.
+        """
         if not self.invoice_number:
             self.invoice_number = self.generate_invoice_number()
         super().save(*args, **kwargs)
 
     def __str__(self):
+        """
+        Returns a string representation of the SalesInvoice instance.
+        """
         return f"Invoice {self.invoice_number} - {self.customer}"
 
     class Meta:
+        # Database indexes for optimized queries
         indexes = [
             models.Index(fields=["company", "branch", "invoice_date"]),
             models.Index(fields=["issued_by"]),
