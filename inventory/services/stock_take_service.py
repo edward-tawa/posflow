@@ -2,8 +2,10 @@ from django.db import transaction as db_transaction
 from loguru import logger
 from inventory.models.stock_take_model import StockTake
 from inventory.services.product_stock_service import ProductStockService
-from inventory.services.stock_take_item_service import StockItemService
+from inventory.services.stock_take_item_service import StockTakeItemService
 from inventory.services.stock_movement_service import StockMovementService
+from inventory.services.stock_take_reconciliation_service import StockTakeReconcialiationService
+from django.db.models import Sum, F
 from django.utils import timezone
 
 
@@ -27,12 +29,14 @@ class StockTakeService:
         try:
             reference_number = StockTake.generate_reference_number()
             stock_take = StockTake.objects.create(
-                company=company,
-                branch=branch,
-                quantity_counted=quantity_counted,
-                performed_by=performed_by,
-                reference_number=reference_number,
-                notes=notes
+                    company=company,
+                    branch=branch,
+                    quantity_counted=0,
+                    performed_by=performed_by,
+                    reference_number=reference_number,
+                    notes=notes,
+                    status="open",
+                    started_at=timezone.now(),
             )
             logger.info(
                 f"Stock take created: Company='{company.name}', Branch='{branch.name}', "
@@ -130,33 +134,6 @@ class StockTakeService:
                 f"Failed to delete stock take: Reference Number='{stock_take.reference_number}', Error={str(e)}"
             )
             raise
-    
-
-    # @staticmethod
-    # @db_transaction.atomic
-    # def update_quantity_counted(stock_take: StockTake, new_quantity: int):
-    #     """
-    #     Updates the quantity counted in an existing stock take record.
-
-    #     Args:
-    #         stock_take (StockTake): The stock take record to update.
-    #         new_quantity (int): The new quantity counted.
-    #     Returns:
-    #         StockTake: The updated stock take record.   
-    #     """
-    #     try:
-    #         stock_take.quantity_counted = new_quantity
-    #         stock_take.save()
-    #         logger.info(
-    #             f"Stock take quantity updated: Reference Number='{stock_take.reference_number}', New Quantity Counted={new_quantity}"
-    #         )
-    #         return stock_take
-
-    #     except Exception as e:
-    #         logger.error(
-    #             f"Failed to update stock take quantity: Reference Number='{stock_take.reference_number}', Error={str(e)}"
-    #         )
-    #         raise
 
     
     @staticmethod
@@ -244,13 +221,13 @@ class StockTakeService:
         for item in stock_take.items.select_related("product"):
 
             # Get movements that occurred after counting started for this product
-            movements = StockMovementService.get_stock_item_movements_during_stock_take(
+            movements = StockTakeReconcialiationService.get_stock_item_movements_during_stock_take(
                 stock_take=stock_take,
                 stock_take_item=item
             )
 
             # Apply movements to the counted quantity to get adjusted quantity
-            adjustment = StockItemService.adjust_stocktake_item_quantity_for_movements(
+            adjustment = StockTakeReconcialiationService.adjust_stocktake_item_quantity_for_movements(
                 counted_quantity=item.quantity_counted,
                 movements=movements
             )
@@ -320,13 +297,13 @@ class StockTakeService:
         for item in stock_take.items.select_related("product"):
 
             # 1. Get movements that happened while stock take was open
-            movements = StockMovementService.get_stock_item_movements_during_stock_take(
+            movements = StockTakeReconcialiationService.get_stock_item_movements_during_stock_take(
                 stock_take=stock_take,
                 stock_take_item=item
             )
 
             # 2. Calculate how those movements affected the counted quantity
-            adjustment = StockItemService.adjust_stocktake_item_quantity_for_movements(
+            adjustment = StockTakeReconcialiationService.adjust_stocktake_item_quantity_for_movements(
                 counted_quantity=item.counted_quantity,
                 movements=movements
             )
@@ -358,3 +335,32 @@ class StockTakeService:
             })
 
         return preview
+    
+
+
+    @staticmethod
+    def calculate_stock_take_totals(stock_take: StockTake):
+        aggregates = stock_take.items.aggregate(
+            total_expected=Sum("expected_quantity"),
+            total_counted=Sum("counted_quantity"),
+            total_discrepancy=Sum(F("counted_quantity") - F("expected_quantity")),
+        )
+
+        return {
+            "total_expected": aggregates["total_expected"] or 0,
+            "total_counted": aggregates["total_counted"] or 0,
+            "total_discrepancy": aggregates["total_discrepancy"] or 0,
+        }
+
+    @staticmethod
+    @db_transaction.atomic
+    def update_stock_take_totals(stock_take: StockTake):
+        totals = StockTakeService.calculate_stock_take_totals(stock_take)
+        stock_take.quantity_counted = totals["total_counted"]
+        stock_take.save(update_fields=["quantity_counted"])
+        logger.info(
+            f"Stock take totals updated: StockTakeID='{stock_take.id}', "
+            f"Counted={totals['total_counted']}, "
+            f"Expected={totals['total_expected']}, "
+            f"Discrepancy={totals['total_discrepancy']}"
+        )

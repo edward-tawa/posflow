@@ -6,6 +6,8 @@ from inventory.services.stock_movement_service import StockMovementService
 from inventory.models.stock_movement_model import StockMovement
 from transfers.models.transfer_model import Transfer
 from transfers.services.transfer_service import TransferService
+from django.db.models import Sum, F, FloatField
+from inventory.models.stock_movement_model import StockMovement
 
 
 class ProductStockService:
@@ -228,6 +230,9 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     def get_product_stock_quantity(*, product, company, branch) -> float:
+        """
+        Get current stock quantity for a product in a branch.
+        """
         stock = ProductStock.objects.filter(
             product=product,
             company=company,
@@ -243,11 +248,77 @@ class ProductStockService:
             .aggregate(total_quantity=Sum("quantity"))["total_quantity"]
             or 0
         )
+    
+
+    @staticmethod
+    def get_current_stock_value(*, company, branch, product) -> float:
+        """
+        Returns the total value of current stock of a product at a branch.
+        Uses the latest unit cost from stock movements.
+        """
+        # Get latest stock movement with unit cost
+        latest_movement = (
+            StockMovement.objects.filter(
+                company=company,
+                branch=branch,
+                product=product,
+                unit_cost__isnull=False
+            )
+            .order_by('-movement_date')
+            .first()
+        )
+
+        if not latest_movement:
+            return 0.0
+
+        # Multiply current quantity by latest unit cost
+        current_quantity = ProductStockService.get_current_product_stock(
+            company=company,
+            branch=branch,
+            product=product
+        )
+        return current_quantity * latest_movement.unit_cost
+
+    @staticmethod
+    def get_product_stock_summary_per_day(*, company, branch, date, product=None):
+        """
+        Returns a dictionary with stock totals and value per product for a given branch and date.
+        """
+        # Base queryset for the date and branch
+        qs = StockMovement.objects.filter(
+            company=company,
+            branch=branch,
+            movement_date__date=date
+        )
+
+        if product:
+            qs = qs.filter(product=product)
+
+        # Aggregate total quantity and total value per product
+        aggregation = qs.values('product_id', 'product__name').annotate(
+            total_quantity=Sum('quantity'),
+            total_value=Sum(F('quantity') * F('unit_cost'), output_field=FloatField())
+        )
+
+        # Convert to dictionary keyed by product id
+        summary = {
+            item['product_id']: {
+                "product_name": item['product__name'],
+                "quantity": item['total_quantity'] or 0,
+                "value": item['total_value'] or 0,
+            }
+            for item in aggregation
+        }
+
+        return summary
 
 
     @staticmethod
     @db_transaction.atomic
     def decrease_stock_for_purchase_return(purchase_return) -> None:
+        """
+        Decrease stock for all items in a PurchaseReturn.
+        """
         if getattr(purchase_return, "is_stock_posted", False):
             raise ValueError("Stock already decreased for this purchase return.")
 
@@ -278,6 +349,9 @@ class ProductStockService:
     @staticmethod
     @db_transaction.atomic
     def increase_stock_for_sales_return(sales_return) -> None:
+        """
+        Increase stock for all items in a SalesReturn.
+        """
         if getattr(sales_return, "is_stock_posted", False):
             raise ValueError("Stock already increased for this sales return.")
 
@@ -343,6 +417,9 @@ class ProductStockService:
             f"Stock written off | product={product.id} | branch={branch.id} "
             f"| quantity={quantity} | reason={reason}"
         )
+    
+
+
 
     # ==========================================================
     # TRANSFERS
@@ -399,33 +476,13 @@ class ProductStockService:
 
         logger.info(f"Stock increased for transfer | branch={dest_branch.id} | transfer={transfer.id}")
 
-
-    
-
-    @staticmethod
-    @db_transaction.atomic
-    def perform_transfer_stock(transfer: "Transfer") -> None:
-        """
-        Docstring for transfer_stock
-        
-        :param source_branch: Description
-        :param target_branch: Description
-        :param product: Description
-        :param quantity: Description
-
-         Transfers stock from one branch to the other.
-        """
-        ProductStockService.decrease_stock_for_transfer(transfer)
-        ProductStockService.increase_stock_for_transfer(transfer)
-        logger.info(f"Stock transferred | transfer={transfer.id}")
-
-        
-
-        
-
         
     @staticmethod
     def get_current_product_stock(*, company, branch, product) -> dict:
+        """
+        Get current stock quantities for a product in a branch.
+        Returns a dictionary with product IDs as keys and quantities as values.
+        """
         stocks = ProductStock.objects.filter(company=company, branch=branch, product=product)
         stock_dict = {stock.product.id: stock.quantity for stock in stocks}
         return stock_dict

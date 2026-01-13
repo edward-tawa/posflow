@@ -5,7 +5,6 @@ from django.db import transaction as db_transaction
 
 class ProductCategoryService:
 
-
     @staticmethod
     @db_transaction.atomic
     def create_product_category(company, name, description):
@@ -90,7 +89,24 @@ class ProductCategoryService:
         except Exception as e:
             logger.error(f"Failed to delete product category: ID='{category.id}', Error={str(e)}")
             raise
+
     
+    @staticmethod
+    @db_transaction.atomic
+    def add_product_to_category(product: Product, category: ProductCategory):
+        """
+        Assigns a product to a category safely.
+        """
+        if product.company != category.company:
+            raise ValueError("Product and category must belong to the same company")
+        if category.branch and product.branch != category.branch:
+            raise ValueError("Product and category branch mismatch")
+
+        product.product_category = category
+        product.save(update_fields=["product_category"])
+        logger.info(f"Product '{product.name}' added to category '{category.name}'")
+        return product
+
 
     @staticmethod
     @db_transaction.atomic
@@ -165,7 +181,7 @@ class ProductCategoryService:
 
     @staticmethod
     @db_transaction.atomic
-    def get_product_product_category(product: Product, company, branch):
+    def get_product_category(product: Product, company, branch):
         """
         Retrieves the product category for a given product for a specific company and branch.
 

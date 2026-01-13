@@ -7,6 +7,7 @@ from django.db.models import F, Sum, FloatField
 
 
 class Transfer(CreateUpdateBaseModel):
+    # Transfer model to handle general details of a transfer
     PREFIX = "TR"
     TYPE_CHOICES = (
         ("cash", "Cash Transfer"),

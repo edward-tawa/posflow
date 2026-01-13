@@ -20,6 +20,8 @@ class StockTakeSerializer(serializers.ModelSerializer):
             'reference_number',
             'stock_take_date',
             'quantity_counted',
+            'started_at',
+            'ended_at',
             'performed_by_summary',
             'status',
             'created_at',

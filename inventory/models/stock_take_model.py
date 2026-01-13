@@ -21,7 +21,7 @@ class StockTake(CreateUpdateBaseModel):
         ('cancelled', 'Cancelled'),
     ], default='pending', help_text="Status of the stock take")
     reference_number = models.CharField(max_length=100, blank=True, null=True, help_text="Optional reference number for tracking")
-    started_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
     ended_at = models.DateTimeField(blank=True, null=True)
     is_approved = models.BooleanField(default=False)
     is_finalized = models.BooleanField(default=False)

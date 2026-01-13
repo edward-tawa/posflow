@@ -3,7 +3,6 @@ from inventory.models.product_category_model import ProductCategory
 from inventory.models.product_stock_model import ProductStock
 from inventory.models.stock_take_item_model import StockTakeItem
 from django.db import transaction as db_transaction
-from django.http import StreamingHttpResponse
 import csv
 from io import StringIO
 from django.db.models import Q
@@ -48,6 +47,22 @@ class ProductService:
             logger.exception(f"Error updating product {product.id if product else 'unknown'}: {e}")
             raise e
         
+
+    @staticmethod
+    @db_transaction.atomic
+    def add_product_to_category(product: Product, category: ProductCategory):
+        """
+        Assigns a product to a category safely.
+        """
+        if product.company != category.company:
+            raise ValueError("Product and category must belong to the same company")
+        if category.branch and product.branch != category.branch:
+            raise ValueError("Product and category branch mismatch")
+
+        product.product_category = category
+        product.save(update_fields=["product_category"])
+        logger.info(f"Product '{product.name}' added to category '{category.name}'")
+        return product
     
     @staticmethod
     @db_transaction.atomic
@@ -234,22 +249,20 @@ class ProductService:
             raise e
 
 
+
+
     @staticmethod
-    @db_transaction.atomic
     def bulk_export_products(company, branch):
         """
-        Bulk export products to a CSV format using streaming.
-        Returns a StreamingHttpResponse suitable for download.
+        Prepare product data as CSV rows (generator).
+        Does NOT deal with HTTP response.
         """
-        
         try:
-            # Generator that yields CSV rows
             def csv_generator():
-                # Create a StringIO buffer for each row
                 output = StringIO()
                 writer = csv.writer(output)
 
-                # Write header
+                # Header
                 writer.writerow([
                     'id', 'name', 'description', 'price', 'sku',
                     'product_category_id', 'stock_quantity', 'created_at', 'updated_at'
@@ -258,7 +271,7 @@ class ProductService:
                 output.seek(0)
                 output.truncate(0)
 
-                # Stream product rows
+                # Product rows
                 for product in Product.objects.filter(company=company, branch=branch).iterator():
                     writer.writerow([
                         product.id,
@@ -275,12 +288,9 @@ class ProductService:
                     output.seek(0)
                     output.truncate(0)
 
-            logger.info(f"Streaming CSV export for Company {company.id}")
-            return StreamingHttpResponse(
-                csv_generator(),
-                content_type='text/csv'
-            )
+            return csv_generator()
 
         except Exception as e:
-            logger.exception(f"Error bulk exporting products for Company {company.id}: {e}")
+            logger.exception(f"Error generating CSV for Company {company.id}: {e}")
             raise e
+

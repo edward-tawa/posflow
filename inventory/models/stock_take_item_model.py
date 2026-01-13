@@ -1,5 +1,4 @@
 from django.db import models
-from company.models.company_model import Company
 from config.models.create_update_base_model import CreateUpdateBaseModel
 from inventory.models.product_model import Product
 from inventory.models.stock_take_model import StockTake
@@ -21,7 +20,7 @@ class StockTakeItem(CreateUpdateBaseModel):
         ordering = ['product__name']
     
     @property
-    def discrepancy(self):
+    def variance(self):
         return self.counted_quantity - self.expected_quantity
 
 
