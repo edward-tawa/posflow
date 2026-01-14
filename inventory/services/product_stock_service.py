@@ -136,12 +136,272 @@ class ProductStockService:
 
         logger.info(f"Stock increased for purchase invoice | invoice={purchase_invoice.id}")
 
+    
+    @staticmethod
+    @db_transaction.atomic
+    def decrease_stock_for_purchase_return(purchase_return) -> None:
+        """
+        Decrease stock for all items in a PurchaseReturn.
+        """
+        if getattr(purchase_return, "is_stock_posted", False):
+            raise ValueError("Stock already decreased for this purchase return.")
+
+        for item in purchase_return.items.select_related("product"):
+            ProductStockService._adjust_stock(
+                product=item.product,
+                company=purchase_return.company,
+                branch=purchase_return.branch,
+                quantity_change=-item.quantity
+            )
+
+            StockMovementService.create_stock_movement(
+                company=purchase_return.company,
+                branch=purchase_return.branch,
+                product=item.product,
+                quantity=item.quantity,
+                movement_type=StockMovement.MovementType.PURCHASE_RETURN,
+                reason='PURCHASE_RETURN'
+            )
+
+        purchase_return.is_stock_posted = True
+        purchase_return.save(update_fields=["is_stock_posted"])
+
+        logger.info(f"Stock decreased for purchase return | return={purchase_return.id}")
+
+
+    
+    @staticmethod
+    @db_transaction.atomic
+    def increase_stock_for_sales_return(sales_return) -> None:
+        """
+        Increase stock for all items in a SalesReturn.
+        """
+        if getattr(sales_return, "is_stock_posted", False):
+            raise ValueError("Stock already increased for this sales return.")
+
+        for item in sales_return.items.select_related("product"):
+            ProductStockService._adjust_stock(
+                product=item.product,
+                company=sales_return.company,
+                branch=sales_return.branch,
+                quantity_change=item.quantity
+            )
+            StockMovementService.create_stock_movement(
+                company=sales_return.company,
+                branch=sales_return.branch,
+                product=item.product,
+                quantity=item.quantity,
+                movement_type=StockMovement.MovementType.SALE_RETURN,
+                unit_cost=item.unit_price,
+                reason='SALE_RETURN'
+            )
+        sales_return.is_stock_posted = True
+        sales_return.save(update_fields=["is_stock_posted"])
+
+        logger.info(f"Stock increased for sales return | return={sales_return.id}")
+
+
+
+    
+    # ===========================================================
+    # ITEM LEVEL OPERATIONS
+    # ==========================================================
+
+    # ==========================================================
+    # SALES (DECREASE STOCK)
+    # ==========================================================
+    @staticmethod
+    @db_transaction.atomic
+    def decrease_stock_for_sale_item(item) -> None:
+        """
+        Decrease stock for a single SalesReceipt item.
+        """
+        ProductStockService._adjust_stock(
+            product=item.product,
+            company=item.receipt.company,
+            branch=item.receipt.branch,
+            quantity_change=-item.quantity
+        )
+
+        StockMovementService.create_stock_movement(
+            company=item.receipt.company,
+            branch=item.receipt.branch,
+            product=item.product,
+            quantity=item.quantity,
+            movement_type=StockMovement.MovementType.SALE,
+            sales_order=item.sales_order,
+            sales_invoice=item.sales_invoice,
+            reason='SALES'
+        )
+
+        logger.info(f"Stock decreased for sales item | item={item.id}, quantity={item.quantity}")
+
+
+    # ==========================================================
+    # PURCHASES (INCREASE STOCK)
+    # ==========================================================
+    @staticmethod
+    @db_transaction.atomic
+    def increase_stock_for_purchase_item(item) -> None:
+        """
+        Increase stock for a single PurchaseInvoice item.
+        """
+        ProductStockService._adjust_stock(
+            product=item.product,
+            company=item.purchase_invoice.company,
+            branch=item.purchase_invoice.branch,
+            quantity_change=item.quantity
+        )
+
+        StockMovementService.create_stock_movement(
+            company=item.purchase_invoice.company,
+            branch=item.purchase_invoice.branch,
+            product=item.product,
+            quantity=item.quantity,
+            movement_type=StockMovement.MovementType.PURCHASE,
+            purchase_order=item.purchase_order,
+            purchase_invoice=item.purchase_invoice,
+            reason='PURCHASE'
+        )
+
+        logger.info(f"Stock increased for purchase item | item={item.id}, quantity={item.quantity}")
+
+
+    # ==========================================================
+    # PURCHASE RETURNS (DECREASE STOCK)
+    # ==========================================================
+    @staticmethod
+    @db_transaction.atomic
+    def decrease_stock_for_purchase_return_item(item) -> None:
+        """
+        Decrease stock for a single PurchaseReturn item.
+        """
+        ProductStockService._adjust_stock(
+            product=item.product,
+            company=item.purchase_return.company,
+            branch=item.purchase_return.branch,
+            quantity_change=-item.quantity
+        )
+
+        StockMovementService.create_stock_movement(
+            company=item.purchase_return.company,
+            branch=item.purchase_return.branch,
+            product=item.product,
+            quantity=item.quantity,
+            movement_type=StockMovement.MovementType.PURCHASE_RETURN,
+            reason='PURCHASE_RETURN'
+        )
+
+        logger.info(f"Stock decreased for purchase return item | item={item.id}, quantity={item.quantity}")
+
+
+    # ==========================================================
+    # SALES RETURNS (INCREASE STOCK)
+    # ==========================================================
+    @staticmethod
+    @db_transaction.atomic
+    def increase_stock_for_sales_return_item(item) -> None:
+        """
+        Increase stock for a single SalesReturn item.
+        """
+        ProductStockService._adjust_stock(
+            product=item.product,
+            company=item.sales_return.company,
+            branch=item.sales_return.branch,
+            quantity_change=item.quantity
+        )
+
+        StockMovementService.create_stock_movement(
+            company=item.sales_return.company,
+            branch=item.sales_return.branch,
+            product=item.product,
+            quantity=item.quantity,
+            movement_type=StockMovement.MovementType.SALE_RETURN,
+            unit_cost=item.unit_price,
+            reason='SALE_RETURN',
+            sales_return=item.sales_return
+        )
+
+        logger.info(f"Stock increased for sales return item | item={item.id}, quantity={item.quantity}")
+
+
+    # ==========================================================
+    # SALES RETURNS (DECREASE STOCK)
+    # ==========================================================
+    @staticmethod
+    @db_transaction.atomic
+    def decrease_stock_for_sales_return_item(item) -> None:
+        """
+        Decrease stock for a single SalesReturn item (e.g., reversing or deleting the item).
+        """
+        ProductStockService._adjust_stock(
+            product=item.product,
+            company=item.sales_return.company,
+            branch=item.sales_return.branch,
+            quantity_change=-item.quantity
+        )
+
+        StockMovementService.create_stock_movement(
+            company=item.sales_return.company,
+            branch=item.sales_return.branch,
+            product=item.product,
+            quantity=item.quantity,
+            movement_type=StockMovement.MovementType.SALE_RETURN,
+            unit_cost=item.unit_price,
+            reason='SALE_RETURN_REVERSAL',
+            sales_return=item.sales_return
+        )
+
+        logger.info(f"Stock decreased for sales return item | item={item.id}, quantity={item.quantity}")
+
+
+    # ==========================================================
+    # REVERSALS / VOIDS (ITEM LEVEL)
+    # ==========================================================
+    @staticmethod
+    @db_transaction.atomic
+    def increase_stock_for_voided_sale_item(item, reason: str = None, performed_by=None) -> None:
+        """
+        Restore stock for a single SalesReceipt item from a voided receipt.
+        """
+        if getattr(item, "is_stock_reversed", False):
+            raise ValueError(f"Stock already reversed for sales item '{item.id}'.")
+
+        # Adjust stock
+        ProductStockService._adjust_stock(
+            product=item.product,
+            company=item.receipt.company,
+            branch=item.receipt.branch,
+            quantity_change=item.quantity
+        )
+
+        # Record the stock movement
+        StockMovementService.create_stock_movement(
+            company=item.receipt.company,
+            branch=item.receipt.branch,
+            product=item.product,
+            quantity=item.quantity,
+            movement_type=StockMovement.MovementType.VOIDED_SALE,
+            sales_receipt=item.receipt,
+            reason=reason
+        )
+
+        # Optionally mark the item as reversed
+        item.is_stock_reversed = True
+        item.save(update_fields=["is_stock_reversed"])
+
+        logger.warning(
+            f"Stock restored for voided sales item | item={item.id} | quantity={item.quantity} | reason={reason}"
+        )
+
+
+
     # ==========================================================
     # REVERSALS / VOIDS
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def restore_stock_from_voided_sale(receipt, reason: str, performed_by) -> None:
+    def increase_stock_for_voided_sale(receipt, reason: str=None, performed_by=None) -> None:
         """
         Restore stock for a voided sales receipt.
         """
@@ -176,6 +436,8 @@ class ProductStockService:
         logger.warning(
             f"Stock restored for voided sales receipt | receipt={receipt.id} | reason={reason}"
         )
+
+    
 
 
 
@@ -313,68 +575,7 @@ class ProductStockService:
         return summary
 
 
-    @staticmethod
-    @db_transaction.atomic
-    def decrease_stock_for_purchase_return(purchase_return) -> None:
-        """
-        Decrease stock for all items in a PurchaseReturn.
-        """
-        if getattr(purchase_return, "is_stock_posted", False):
-            raise ValueError("Stock already decreased for this purchase return.")
 
-        for item in purchase_return.items.select_related("product"):
-            ProductStockService._adjust_stock(
-                product=item.product,
-                company=purchase_return.company,
-                branch=purchase_return.branch,
-                quantity_change=-item.quantity
-            )
-
-            StockMovementService.create_stock_movement(
-                company=purchase_return.company,
-                branch=purchase_return.branch,
-                product=item.product,
-                quantity=item.quantity,
-                movement_type=StockMovement.MovementType.PURCHASE_RETURN,
-                reason='PURCHASE_RETURN'
-            )
-
-        purchase_return.is_stock_posted = True
-        purchase_return.save(update_fields=["is_stock_posted"])
-
-        logger.info(f"Stock decreased for purchase return | return={purchase_return.id}")
-
-
-    
-    @staticmethod
-    @db_transaction.atomic
-    def increase_stock_for_sales_return(sales_return) -> None:
-        """
-        Increase stock for all items in a SalesReturn.
-        """
-        if getattr(sales_return, "is_stock_posted", False):
-            raise ValueError("Stock already increased for this sales return.")
-
-        for item in sales_return.items.select_related("product"):
-            ProductStockService._adjust_stock(
-                product=item.product,
-                company=sales_return.company,
-                branch=sales_return.branch,
-                quantity_change=item.quantity
-            )
-            StockMovementService.create_stock_movement(
-                company=sales_return.company,
-                branch=sales_return.branch,
-                product=item.product,
-                quantity=item.quantity,
-                movement_type=StockMovement.MovementType.SALE_RETURN,
-                unit_cost=item.unit_price,
-                reason='SALE_RETURN'
-            )
-        sales_return.is_stock_posted = True
-        sales_return.save(update_fields=["is_stock_posted"])
-
-        logger.info(f"Stock increased for sales return | return={sales_return.id}")
 
     
 

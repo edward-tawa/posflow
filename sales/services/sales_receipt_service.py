@@ -53,9 +53,6 @@ class SalesReceiptService:
             # Add items from the sales order to the receipt
             SalesReceiptItemService.add_order_items_to_receipt(sales_order, receipt)
 
-            # Deduct stock for the items in the receipt
-            ProductStockService.decrease_stock_for_sale(receipt=receipt)
-
             # Prepare accounts and transaction
             debit_account = CashAccountService.get_or_create_cash_account(company=company, branch=branch)
             transaction = TransactionService.create_transaction(
@@ -83,76 +80,121 @@ class SalesReceiptService:
 
     @staticmethod
     @db_transaction.atomic
-    def update_sales_receipt(receipt: SalesReceipt, **kwargs) -> SalesReceipt:
+    def update_sales_receipt(
+        receipt: SalesReceipt,
+        customer: Customer = None,
+        branch = None,
+        company = None,
+        sale: Sale = None,
+        sales_order: SalesOrder = None,
+        total_amount: Decimal = None,
+        notes: str = None,
+        status: str = None,
+        issued_by = None
+    ) -> SalesReceipt:
+        """
+        Update a SalesReceipt with provided fields.
+        Only non-None arguments will be applied.
+        """
         try:
-            for key, value in kwargs.items():
-                setattr(receipt, key, value)
-            receipt.save(update_fields=kwargs.keys())
-            logger.info(f"Sales Receipt '{receipt.receipt_number}' updated.")
+            update_fields = []
+
+            if customer is not None:
+                receipt.customer = customer
+                update_fields.append('customer')
+
+            if branch is not None:
+                receipt.branch = branch
+                update_fields.append('branch')
+
+            if company is not None:
+                receipt.company = company
+                update_fields.append('company')
+
+            if sale is not None:
+                receipt.sale = sale
+                update_fields.append('sale')
+
+            if sales_order is not None:
+                receipt.sales_order = sales_order
+                update_fields.append('sales_order')
+
+            if total_amount is not None:
+                receipt.total_amount = total_amount
+                update_fields.append('total_amount')
+
+            if notes is not None:
+                receipt.notes = notes
+                update_fields.append('notes')
+
+            if status is not None:
+                receipt.status = status
+                update_fields.append('status')
+
+            if issued_by is not None:
+                receipt.issued_by = issued_by
+                update_fields.append('issued_by')
+
+            if update_fields:
+                receipt.save(update_fields=update_fields)
+                logger.info(f"Sales Receipt '{receipt.receipt_number}' updated: {update_fields}")
+
             return receipt
+
         except Exception as e:
             logger.error(f"Error updating sales receipt '{receipt.receipt_number}': {str(e)}")
             raise
+
 
     
     @staticmethod
     @db_transaction.atomic
     def delete_sales_receipt(receipt: SalesReceipt) -> None:
+        util_receipt = receipt
         try:
-            receipt_number = receipt.receipt_number
-            receipt.delete()
-            logger.info(f"Sales Receipt '{receipt_number}' deleted.")
-        except Exception as e:
-            logger.error(f"Error deleting sales receipt '{receipt.receipt_number}': {str(e)}")
-            raise
-
-
-    @staticmethod
-    @db_transaction.atomic
-    def deduct_stock_from_receipt(receipt: SalesReceipt) -> None:
-        """
-        Deducts stock for all products in a given sales receipt.
-        """
-        try:
+            # Restore stock for all items first
             for item in receipt.items.all():
-                product = item.product
-                if product.stock < item.quantity:
-                    raise ValueError(
-                        f"Not enough stock for product '{product.name}'."
-                        f"Available: {product.stock}, Required: {item.quantity}"
-                    )
-                product.stock -= item.quantity
-                product.save(update_fields=['stock'])
-                logger.info(
-                    f"Deducted {item.quantity} from stock of '{product.name}'. "
-                    f"New stock: {product.stock}"
-                )
-            logger.info(f"Stock updated for all items in receipt '{receipt.receipt_number}'")
+                ProductStockService.increase_stock_for_voided_sale_item(item)
+            # Delete items and receipt
+            receipt.delete()
+            logger.info(f"Sales Receipt '{util_receipt.receipt_number}' and its items deleted, stock restored.")
         except Exception as e:
-            logger.error(f"Error deducting stock for receipt '{receipt.receipt_number}': {str(e)}")
+            logger.error(f"Error deleting sales receipt '{util_receipt.receipt_number}': {str(e)}")
             raise
+
 
 
     @staticmethod
     @db_transaction.atomic
-    def void_receipt(receipt: SalesReceipt, reason: str = "") -> SalesReceipt:
+    def void_sales_receipt(receipt: SalesReceipt, reason: str = "") -> SalesReceipt:
         if receipt.is_voided:
             logger.warning(f"Receipt '{receipt.receipt_number}' is already voided.")
             return receipt
-        # Restore stock before marking receipt as voided
-        SalesReceiptService.restore_stock_for_receipt(receipt)
-        receipt.is_voided = True
-        receipt.void_reason = reason
-        receipt.voided_at = timezone.now()
-        receipt.status = 'VOIDED'
-        receipt.save(update_fields=["is_voided", "void_reason", "voided_at", "status"])
-        logger.warning(f"Sales receipt '{receipt.receipt_number}' voided. Reason: {reason}")
-        return receipt
+
+        try:
+            # Loop through all items and restore stock individually
+            for item in receipt.items.all():
+                ProductStockService.increase_stock_for_voided_sale_item(item)
+
+            # Mark receipt as voided
+            receipt.is_voided = True
+            receipt.void_reason = reason
+            receipt.voided_at = timezone.now()
+            receipt.status = 'VOIDED'
+            receipt.save(update_fields=["is_voided", "void_reason", "voided_at", "status"])
+
+            logger.warning(f"Sales receipt '{receipt.receipt_number}' voided. Reason: {reason}")
+            return receipt
+
+        except Exception as e:
+            logger.error(f"Error voiding sales receipt '{receipt.receipt_number}': {str(e)}")
+            raise
+
     
 
     @staticmethod
     @db_transaction.atomic
-    def attach_to_sale(receipt: SalesReceipt, sale) -> SalesReceipt:
+    def attach_sales_receipt_to_sale(receipt: SalesReceipt, sale) -> SalesReceipt:
         receipt.sale = sale
         receipt.save(update_fields=["sale"])
         logger.info(
@@ -174,21 +216,6 @@ class SalesReceiptService:
             raise
     
 
-    @staticmethod
-    @db_transaction.atomic
-    def update_total_amount(receipt: SalesReceipt) -> SalesReceipt:
-        """
-        Recalculate the total amount for the receipt based on its items.
-        """
-        total = sum(
-            (item.subtotal + item.tax_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            for item in receipt.items.all()
-        )
-        receipt.total_amount = total
-        receipt.save(update_fields=['total_amount'])
-        logger.info(f"Updated total amount for receipt '{receipt.receipt_number}' to {total}")
-        return receipt
-
 
     @staticmethod
     def get_sales_receipt_by_id(receipt_id: int) -> SalesReceipt | None:
@@ -203,30 +230,3 @@ class SalesReceiptService:
     @staticmethod
     def get_sales_receipts_by_customer(customer: Union[Customer, int]):
         return SalesReceipt.objects.filter(customer=customer).order_by('-created_at')
-
-
-    @staticmethod
-    @db_transaction.atomic
-    def restore_stock_for_receipt(receipt: SalesReceipt) -> None:
-        """
-        Restores stock for all products in a given sales receipt.
-        Used when a receipt is voided or reversed.
-        """
-        try:
-            for item in receipt.items.all():
-                product = item.product
-                product.stock += item.quantity
-                product.save(update_fields=['stock'])
-
-                logger.info(
-                    f"Restored {item.quantity} to stock of '{product.name}'. "
-                    f"New stock: {product.stock}"
-                )
-
-            logger.info(f"Stock restored for receipt '{receipt.receipt_number}'")
-
-        except Exception as e:
-            logger.error(
-                f"Error restoring stock for receipt '{receipt.receipt_number}': {str(e)}"
-            )
-            raise

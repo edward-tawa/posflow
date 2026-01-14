@@ -1,6 +1,8 @@
 from inventory.services.product_stock_service import ProductStockService
 from sales.models.sales_return_model import SalesReturn
 from accounts.models.sales_returns_account_model import SalesReturnsAccount
+from sales.services.sales_return_item_service import SalesReturnItemService
+from sales.services.sales_return_state_service import SalesReturnStateService
 from transactions.services.transaction_service import TransactionService
 from django.db import transaction as db_transaction
 from decimal import Decimal
@@ -11,11 +13,10 @@ from loguru import logger
 class SalesReturnService:
     """
     Service class for managing sales returns.
-    Provides methods for creating, updating, reversing, and managing sales returns.
+    Handles creation, updating, and reversing of sales returns.
     """
 
-    ALLOWED_STATUSES = {"DRAFT", "APPROVED", "CANCELLED"}
-    ALLOWED_UPDATE_FIELDS = {"return_date", "notes", "total_amount", "processed_by", "sale", "sale_order", "customer", "branch", "company"}
+    ALLOWED_UPDATE_FIELDS = ["return_date", "notes", "total_amount"]
 
     # -------------------------
     # CREATE
@@ -27,17 +28,26 @@ class SalesReturnService:
         branch,
         customer,
         sale_order,
+        product,
+        product_name: str,
+        quantity: int,
+        unit_price: Decimal,
+        tax_rate: Decimal = Decimal("0.00"),
         sale=None,
         return_date=None,
-        total_amount=Decimal("0.00"),
         processed_by=None,
         notes=None,
-        status=None  # Optional status
+        status=None
     ) -> SalesReturn:
+        """
+        Create a sales return with a single item.
+        Automatically creates the sales return item, adjusts stock, and creates accounting transaction.
+        """
         try:
             if return_date is None:
                 return_date = timezone.now().date()
 
+            # Create SalesReturn
             sales_return = SalesReturn.objects.create(
                 company=company,
                 branch=branch,
@@ -45,18 +55,24 @@ class SalesReturnService:
                 sale_order=sale_order,
                 sale=sale,
                 return_date=return_date,
-                total_amount=total_amount,
+                total_amount=Decimal("0.00"),  # will calculate after creating item
                 processed_by=processed_by,
                 notes=notes
             )
 
-            # Increase stock for returned items
-            ProductStockService.increase_stock_for_sales_return(sales_return=sales_return)
+            # Create SalesReturnItem and adjust stock
+            item = SalesReturnItemService.create_sales_return_item(
+                sales_return=sales_return,
+                product=product,
+                product_name=product_name,
+                quantity=quantity,
+                unit_price=unit_price,
+                tax_rate=tax_rate
+            )
 
-            # Determine accounts
+
+            # Accounting transaction
             sales_return_account = SalesReturnsAccount.objects.get(company=company, branch=branch)
-
-            # Create transaction
             transaction = TransactionService.create_transaction(
                 company=company,
                 branch=branch,
@@ -67,12 +83,11 @@ class SalesReturnService:
                 total_amount=sales_return.total_amount,
                 customer=customer
             )
-
             TransactionService.apply_transaction_to_accounts(transaction)
 
             # Update status if provided
             if status:
-                SalesReturnService.update_sales_return_status(sales_return, new_status=status)
+                SalesReturnStateService.update_sales_return_status(sales_return, new_status=status)
 
             logger.info(f"Sales Return '{sales_return.return_number}' created for company '{company.name}'.")
             return sales_return
@@ -97,27 +112,64 @@ class SalesReturnService:
 
             # Only update status via centralized method
             if status:
-                SalesReturnService.update_sales_return_status(sales_return, new_status=status)
+                SalesReturnStateService.update_sales_return_status(sales_return, new_status=status)
 
             return sales_return
         except Exception as e:
             logger.error(f"Error updating sales return '{sales_return.return_number}': {str(e)}")
             raise
+    
+
 
     # -------------------------
-    # STATUS MANAGEMENT
+    # ADD ITEMS
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def update_sales_return_status(sales_return: SalesReturn, new_status: str) -> SalesReturn:
-        if new_status not in SalesReturnService.ALLOWED_STATUSES:
-            logger.error(f"Attempted to set invalid status '{new_status}' for sales return '{sales_return.return_number}'")
-            raise ValueError(f"Invalid status: {new_status}")
+    def add_items_to_sales_return(
+        sales_return: SalesReturn,
+        items: list[dict]
+    ):
+        """
+        Add multiple items to an existing sales return.
+        Each item dict should have:
+            - product
+            - product_name
+            - quantity
+            - unit_price
+            - tax_rate (optional)
+        """
+        if items is None or not isinstance(items, list) or len(items) == 0:
+            raise ValueError("Items must be a non-empty list of item data dictionaries.")
+        
+        required_keys = {"product", "product_name", "quantity", "unit_price"}
+        for idx, item_data in enumerate(items, start=1):
+            if not all(k in item_data for k in required_keys):
+                raise ValueError(f"Item at index {idx} is missing required keys: {required_keys - item_data.keys()}")
 
-        sales_return.status = new_status
-        sales_return.save(update_fields=["status"])
-        logger.info(f"Sales Return '{sales_return.return_number}' status updated to '{new_status}'.")
-        return sales_return
+        try:
+            created_items = []
+
+            for item_data in items:
+                created_item = SalesReturnItemService.create_sales_return_item(
+                    sales_return=sales_return,
+                    product=item_data["product"],
+                    product_name=item_data["product_name"],
+                    quantity=item_data["quantity"],
+                    unit_price=item_data["unit_price"],
+                    tax_rate=item_data.get("tax_rate", Decimal("0.00"))
+                )
+                created_items.append(created_item)
+
+            logger.info(
+                f"{len(created_items)} items added to Sales Return '{sales_return.return_number}'."
+            )
+
+            return created_items
+        except Exception as e:
+            logger.error(f"Error adding items to Sales Return '{sales_return.return_number}': {str(e)}")
+            raise
+
 
     # -------------------------
     # REVERSE
@@ -150,7 +202,7 @@ class SalesReturnService:
             TransactionService.reverse_transaction(original_transaction)
 
         # Mark sales return as cancelled
-        SalesReturnService.update_sales_return_status(sales_return, new_status="CANCELLED")
+        SalesReturnStateService.update_sales_return_status(sales_return, new_status="CANCELLED")
 
         logger.info(f"Sales Return '{sales_return.return_number}' reversed successfully.")
         return sales_return

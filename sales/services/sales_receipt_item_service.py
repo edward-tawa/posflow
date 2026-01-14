@@ -4,12 +4,13 @@ from sales.models.sales_receipt_item_model import SalesReceiptItem
 from sales.models.sales_receipt_model import SalesReceipt
 from django.db import transaction as db_transaction
 from sales.models.sales_invoice_model import SalesInvoice
+from inventory.services.product_stock_service import ProductStockService
 from loguru import logger
 
 
 
 class SalesReceiptItemService:
-
+    # Sales Receipt Item Management Service
     @staticmethod
     @db_transaction.atomic
     def create_sales_receipt_item(
@@ -20,6 +21,15 @@ class SalesReceiptItemService:
         unit_price: float,
         tax_rate: float
     ) -> SalesReceiptItem:
+        """
+        Docstring for create_sales_receipt_item
+        
+        Create a sales receipt item.
+        1. Create SalesReceiptItem
+        2. Deduct stock for the sold item
+        3. Update total amount on the receipt
+        4. Return the created item
+        """
         try:
             item = SalesReceiptItem.objects.create(
                 sales_receipt=sales_receipt,
@@ -32,10 +42,18 @@ class SalesReceiptItemService:
             logger.info(
                 f"Sales Receipt Item '{item.id}' created for receipt '{sales_receipt.receipt_number}'."
             )
+
+            # Deduct stock for the sold item
+            ProductStockService.decrease_stock_for_sale(item)
+
+            # Update total amount on the receipt
+            sales_receipt.update_total_amount()
+            
             return item
         except Exception as e:
             logger.error(f"Error creating sales receipt item: {str(e)}")
             raise
+    
 
     @staticmethod
     @db_transaction.atomic
@@ -45,6 +63,14 @@ class SalesReceiptItemService:
         unit_price: float = None,
         tax_rate: float = None
     ) -> SalesReceiptItem:
+        """
+        Docstring for update_sales_receipt_item
+        
+        Update a sales receipt item.
+        1. Update SalesReceiptItem fields.
+        2. Return the updated item.
+        """
+        old_quantity = item.quantity
         try:
             if quantity is not None:
                 item.quantity = quantity
@@ -53,6 +79,17 @@ class SalesReceiptItemService:
             if tax_rate is not None:
                 item.tax_rate = tax_rate
 
+
+            if quantity is not None and quantity != old_quantity:
+                # Adjust stock if quantity has changed
+                difference = quantity - old_quantity
+                ProductStockService.adjust_stock_manually(
+                    product=item.product,
+                    company=item.sales_receipt.company,
+                    branch=item.sales_receipt.branch,
+                    quantity_change=difference,
+                    reason=f"Adjustment due to update of Sales Receipt Item '{item.id}'"
+                    )
             item.save(update_fields=[k for k in ['quantity', 'unit_price', 'tax_rate'] if k])
             logger.info(f"Sales Receipt Item '{item.id}' updated.")
             return item
@@ -60,11 +97,21 @@ class SalesReceiptItemService:
             logger.error(f"Error updating sales receipt item '{item.id}': {str(e)}")
             raise
 
+
     @staticmethod
     @db_transaction.atomic
     def delete_sales_receipt_item(item: SalesReceiptItem) -> None:
+        """
+        Docstring for delete_sales_receipt_item
+        
+        Delete a sales receipt item.
+        1. Delete the SalesReceiptItem.
+        2. Return None.
+        """
         try:
             item_id = item.id
+            # decrease stock for the sold item
+            ProductStockService.increase_stock_for_voided_sale_item(item)
             item.delete()
             logger.info(f"Sales Receipt Item '{item_id}' deleted.")
         except Exception as e:
@@ -75,7 +122,14 @@ class SalesReceiptItemService:
     
     @staticmethod
     @db_transaction.atomic
-    def attach_to_receipt(item: SalesReceiptItem, receipt: SalesReceipt) -> SalesReceiptItem:
+    def attach_item_to_receipt(item: SalesReceiptItem, receipt: SalesReceipt) -> SalesReceiptItem:
+        """
+        Docstring for attach_item_to_receipt
+        
+        Attach a sales receipt item to a sales receipt.
+        1. Update the item's sales_receipt field
+        2. Return the updated item
+        """
         try:
             item.sales_receipt = receipt
             item.save(update_fields=["sales_receipt"])
@@ -89,33 +143,52 @@ class SalesReceiptItemService:
             )
             raise
 
-    
-    @staticmethod
-    @db_transaction.atomic
-    def calculate_totals(item: SalesReceiptItem) -> dict:
-        subtotal = item.subtotal
-        tax = item.tax_amount
-        total = item.total_price
-        logger.info(f"Calculated totals for item '{item.id}': subtotal={subtotal}, tax={tax}, total={total}")
-        return {"subtotal": subtotal, "tax": tax, "total": total}
-    
 
 
     @staticmethod
     @db_transaction.atomic
     def bulk_create_receipt_items(items_data: list[dict], receipt: SalesReceipt) -> list[SalesReceiptItem]:
+        """
+        Docstring for bulk_create_receipt_items
+        
+        Bulk create sales receipt items for a given receipt.
+        1. Create multiple SalesReceiptItem instances
+        2. Return the list of created items
+        """
         items = [SalesReceiptItem(sales_receipt=receipt, **data) for data in items_data]
         SalesReceiptItem.objects.bulk_create(items)
+        for item in items:
+            # Deduct stock for each sold item
+            ProductStockService.decrease_stock_for_sale(item)
+        # Update total amount on the receipt
+        receipt.update_total_amount()
         logger.info(f"Bulk created {len(items)} items for receipt '{receipt.receipt_number}'.")
         return items
+    
+
+    # @staticmethod
+    # @db_transaction.atomic
+    # def calculate_totals(item: SalesReceiptItem) -> dict:
+    #     subtotal = item.subtotal
+    #     tax = item.tax_amount
+    #     total = item.total_price
+    #     logger.info(f"Calculated totals for item '{item.id}': subtotal={subtotal}, tax={tax}, total={total}")
+    #     return {"subtotal": subtotal, "tax": tax, "total": total}
 
 
 
     @staticmethod
     @db_transaction.atomic
-    def add_order_items_to_receipt(order: SalesOrder, receipt: SalesReceipt):
+    def add_order_items_to_receipt(order: SalesOrder, receipt: SalesReceipt) -> list[SalesReceiptItem]:
+        """
+        Add all items from a SalesOrder to a SalesReceipt.
+        1. Creates new SalesReceiptItems for each order item.
+        2. Deducts stock automatically via create_sales_receipt_item().
+        3. Returns the list of created receipt items.
+        """
+        items_created = []
         for order_item in order.items.all():
-            SalesReceiptItemService.create_sales_receipt_item(
+            item = SalesReceiptItemService.create_sales_receipt_item(
                 sales_receipt=receipt,
                 product=order_item.product,
                 product_name=order_item.product_name,
@@ -123,42 +196,40 @@ class SalesReceiptItemService:
                 unit_price=order_item.unit_price,
                 tax_rate=order_item.tax_rate
             )
-        logger.info(f"Added {order.items.count()} items from Order '{order.order_number}' to Receipt '{receipt.receipt_number}'.")
+            items_created.append(item)
+
+        logger.info(
+            f"Added {len(items_created)} items from Order '{order.order_number}' "
+            f"to Receipt '{receipt.receipt_number}'."
+        )
+        return items_created
 
 
-    
+
+
     @staticmethod
     @db_transaction.atomic
-    def add_invoice_items_to_receipt(invoice: SalesInvoice, receipt: SalesReceipt):
+    def add_invoice_items_to_receipt(invoice: SalesInvoice, receipt: SalesReceipt) -> list[SalesReceiptItem]:
         """
-        Copies all items from a SalesInvoice to a SalesReceipt.
-        
-        This ensures the receipt reflects exactly what was invoiced and paid for.
+        Add all items from a SalesInvoice to a SalesReceipt.
+        1. Creates new SalesReceiptItems for each invoice item.
+        2. Deducts stock automatically via create_sales_receipt_item() if needed.
+        3. Returns the list of created receipt items.
         """
-        try:
-            items_created = []
-            for invoice_item in invoice.items.all():
-                item = SalesReceiptItem.objects.create(
-                    sales_receipt=receipt,
-                    product=invoice_item.product,
-                    product_name=invoice_item.product_name,
-                    quantity=invoice_item.quantity,
-                    unit_price=invoice_item.unit_price,
-                    tax_rate=invoice_item.tax_rate
-                )
-                items_created.append(item)
-
-            # Optionally update receipt total
-            total = sum(item.subtotal + item.tax_amount for item in items_created)
-            receipt.total_amount = total
-            receipt.save(update_fields=['total_amount'])
-
-            logger.info(
-                f"Added {len(items_created)} items from Invoice '{invoice.invoice_number}' to Receipt '{receipt.receipt_number}'."
+        items_created = []
+        for invoice_item in invoice.items.all():
+            item = SalesReceiptItemService.create_sales_receipt_item(
+                sales_receipt=receipt,
+                product=invoice_item.product,
+                product_name=invoice_item.product_name,
+                quantity=invoice_item.quantity,
+                unit_price=invoice_item.unit_price,
+                tax_rate=invoice_item.tax_rate
             )
-            return items_created
-        except Exception as e:
-            logger.error(
-                f"Error adding items from Invoice '{invoice.invoice_number}' to Receipt '{receipt.receipt_number}': {str(e)}"
-            )
-            raise
+            items_created.append(item)
+
+        logger.info(
+            f"Added {len(items_created)} items from Invoice '{invoice.invoice_number}' "
+            f"to Receipt '{receipt.receipt_number}'."
+        )
+        return items_created

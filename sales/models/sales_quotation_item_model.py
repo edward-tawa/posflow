@@ -24,17 +24,6 @@ class SalesQuotationItem(CreateUpdateBaseModel):
     def total_price(self):
         return self.subtotal + self.tax_amount
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.sales_quotation:
-            self.sales_quotation.update_total_amount()
-
-    def delete(self, *args, **kwargs):
-        sales_quotation = self.sales_quotation
-        super().delete(*args, **kwargs)
-        if sales_quotation:
-            sales_quotation.update_total_amount()
-            logger.info(f"Deleted SalesQuotationItem '{self.product_name}' and updated total for quotation '{sales_quotation.quotation_number}'.")
 
     def __str__(self):
         return f"{self.product_name} (x{self.quantity}) - {self.total_price}"
