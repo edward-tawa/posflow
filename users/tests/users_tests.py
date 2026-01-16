@@ -165,3 +165,184 @@ def test_token_refresh_failure(client):
 #     url_reset = reverse('user-reset-password-bulk')
 #     response = client.post(url_reset, {"ids": [], "new_password": "pass"}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
 #     assert response.status_code == 400
+
+
+#################################################################################################################################################################################
+##########################################################################################################################################################################################
+
+# ==========================================
+# USER AUTHENTICATION & REGISTRATION
+# ==========================================
+
+# @pytest.mark.django_db
+# def test_user_auth_endpoints(client, test_user_token, test_company_token_fixture):
+#     """
+#     Test User Login, Logout, Register, and Token Refresh endpoints.
+#     """
+#     # 1. User Login
+#     url = reverse('user-login')
+
+#     data = {
+#         'email': "test@example.com",
+#         'password': 'teddy'
+#     }
+
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 200
+
+#     # 2. User Token Refresh
+#     url = reverse('user-token-refresh')
+#     data = {
+#         "refresh_token": response.json().get('refresh_token')
+#     }
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 200
+
+#     # 3. User Register
+#     url = reverse('user-register')
+
+#     data = {
+#         "email": "newuser@example.com",
+#         "username": "newuser",
+#         "password": "Password123!",
+#         "first_name": "New",
+#         "role": "Sales" 
+#     }
+
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json',
+#         HTTP_AUTHORIZATION = f'Bearer: {test_company_token_fixture}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+    
+#     # 4. User Logout
+#     url = reverse('user-logout')
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json',
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 200
+
+
+# # ==========================================
+# # USER MANAGEMENT
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_user_list_endpoints(client, test_company_token_fixture, create_user):
+#     """
+#     Test User List and Bulk actions.
+#     """
+#     create = create_user
+#     url = reverse('user-list')
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+#     logger.info(response.json())
+#     assert response.status_code == 200
+
+#     # Test Bulk Activate
+#     url_bulk = reverse('user-activate-bulk')
+#     data = None
+#     response = client.post(
+#         url_bulk, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code in [201, 400, 403]
+
+#     """
+#     Test User Detail, Update, and specific Delete endpoints.
+#     """
+#     url = reverse('user-detail', kwargs={'pk': 1})
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}')
+#     logger.info(response.json())
+#     assert response.status_code in [200, 404]
+
+# @pytest.mark.django_db
+# def test_user_update_endpoints(client, test_user_token, create_user):
+#     create = create_user
+#     url_update = reverse('user-update', kwargs={'pk': 1})
+#     data = None
+#     response = client.put(
+#         url_update, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+    
+#     # Test DELETE
+#     url_delete = reverse('user-delete', kwargs={'pk': 1})
+#     data = None
+#     response = client.post(
+#         url_delete, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 204
+
+# @pytest.mark.django_db
+# def test_user_actions_endpoints(client, test_company_token_fixture, create_user):
+#     """
+#     Test User specific actions: Activate, Assign Role, Reset Password.
+#     """
+#     create = create_user
+#     # Activate
+#     url = reverse('user-activate', kwargs={'pk': 1})
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code in [201, 404]
+
+#     # Assign Role
+#     url = reverse('user-assign-role', kwargs={'pk': 1})
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code in [201, 404, 403]
+    
+#     # Reset Password
+#     url = reverse('user-reset-password', kwargs={'pk': 1})
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code in [201, 404, 403]

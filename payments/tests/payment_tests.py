@@ -284,3 +284,370 @@ def test_payment_updates(client, test_user_token):
     # 2. Sales Payment Update Amount (Reverse)
     client.post(reverse('sales-payment-update-amount', args=[pk]), {"amount": "120.00"}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
     client.post(reverse('sales-payment-reverse-payment', args=[pk]), {}, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+#######################################################################################################################################
+#################################################################################################################################################
+
+# ==========================================
+# EXPENSES
+# ==========================================
+
+# @pytest.mark.django_db
+# def test_expense_endpoints(client, test_user_token):
+#     """
+#     Test Expense List and Detail endpoints.
+#     """
+#     url = reverse('expense-list')
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Test CREATE
+#     data = {
+#         "category": 'TRAVEL',
+#         "amount": 100.00
+#     }
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Test Detail
+#     url_detail = reverse('expense-detail', kwargs={'pk': 1})
+#     response = client.get(url_detail, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+
+# @pytest.mark.django_db
+# def test_expense_actions(client, test_user_token):
+#     """
+#     Test Expense actions: Attach/Detach Payment, Mark Paid/Unpaid, Update Status.
+#     """
+#     # Attach Payment
+#     url = reverse('expense-attach-payment', kwargs={'pk': 1})
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code in [201, 404]
+
+#     # Detach Payment
+#     url = reverse('expense-detach-payment', kwargs={'pk': 1})
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code in [201, 404]
+
+#     # Mark Paid
+#     url = reverse('expense-mark-paid', kwargs={'pk': 1})
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code in [201, 404]
+
+#     # Mark Unpaid
+#     url = reverse('expense-mark-unpaid', kwargs={'pk': 1})
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code in [201, 404]
+    
+#     # Update Status
+#     url = reverse('expense-update-status', kwargs={'pk': 1})
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code in [201, 404]
+
+
+# # ==========================================
+# # PAYMENT ALLOCATIONS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_payment_allocation_endpoints(client, test_user_token):
+#     """
+#     Test Payment Allocation List, Detail, and Actions.
+#     """
+#     url = reverse('payment-allocation-list')
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Test CREATE
+#     data = {}
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code in [201, 400]
+
+#     # Apply Allocation
+#     url_apply = reverse('payment-allocation-apply-allocation', kwargs={'pk': 1})
+#     response = client.post(
+#         url_apply, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code in [201, 404]
+    
+#     # Attach/Detach Customer
+#     url_attach = reverse('payment-allocation-attach-customer', kwargs={'pk': 1})
+#     client.post(url_attach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    
+#     url_detach = reverse('payment-allocation-detach-customer', kwargs={'pk': 1})
+#     client.post(url_detach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Reverse Allocation
+#     url_reverse = reverse('payment-allocation-reverse-allocation', kwargs={'pk': 1})
+#     response = client.post(
+#         url_reverse, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code in [201, 404]
+
+
+# # ==========================================
+# # PAYMENTS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_payment_endpoints(client, test_user_token):
+#     """
+#     Test Payment List and Detail.
+#     [Source: 14]
+#     """
+#     url = reverse('payment-list')
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Test CREATE
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('payment-detail', kwargs={'pk': 1})
+#     response = client.put(
+#         url_detail, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code == 201
+
+
+# @pytest.mark.django_db
+# def test_payment_attachments_and_actions(client, test_user_token):
+#     """
+#     Test Payment attachments (Customer, Invoice, Order) and Lifecycle (Complete, Fail).
+#     [Source: 14, 15]
+#     """
+#     data = None
+    
+#     # Attach/Detach Customer
+#     client.post(reverse('payment-attach-customer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('payment-detach-customer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Invoice
+#     client.post(reverse('payment-attach-invoice', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('payment-detach-invoice', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Order
+#     client.post(reverse('payment-attach-order', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('payment-detach-order', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Complete Payment
+#     url_complete = reverse('payment-complete-payment', kwargs={'pk': 1})
+#     response = client.post(
+#         url_complete, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Fail Payment
+#     url_fail = reverse('payment-fail-payment', kwargs={'pk': 1})
+#     response = client.post(
+#         url_fail, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code == 201
+
+
+# # ==========================================
+# # PAYMENT RECEIPTS & ITEMS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_payment_receipt_endpoints(client, test_user_token):
+#     """
+#     Test Payment Receipt List, Detail, and Actions (Send, Cancel).
+#     [Source: 15, 16]
+#     """
+#     url = reverse('payment-receipt-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code == 201
+
+#     # Send Receipt
+#     url_send = reverse('payment-receipt-send-receipt', kwargs={'pk': 1})
+#     client.post(url_send, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Cancel Receipt
+#     url_cancel = reverse('payment-receipt-cancel-receipt', kwargs={'pk': 1})
+#     client.post(url_cancel, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_payment_receipt_item_endpoints(client, test_user_token):
+#     """
+#     Test Payment Receipt Items and marking refunds.
+#     [Source: 16, 17]
+#     """
+#     url = reverse('payment-receipt-item-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Mark Refunded
+#     url_refund = reverse('payment-receipt-item-mark-refunded', kwargs={'pk': 1})
+#     data = None
+#     response = client.post(
+#         url_refund, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+    
+#     # Unmark Refunded
+#     url_unmark = reverse('payment-receipt-item-unmark-refunded', kwargs={'pk': 1})
+#     client.post(url_unmark, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+
+# # ==========================================
+# # REFUNDS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_refund_endpoints(client, test_user_token):
+#     """
+#     Test Refund List and Detail.
+#     [Source: 17]
+#     """
+#     url = reverse('refund-list')
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Test CREATE
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('refund-detail', kwargs={'pk': 1})
+#     response = client.put(
+#         url_detail, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code == 201
+
+
+# @pytest.mark.django_db
+# def test_refund_actions_and_workflow(client, test_user_token):
+#     """
+#     Test Refund attachments (Customer, Order, Payment) and Workflow (Process, Fail, Cancel).
+#     [Source: 17, 18]
+#     """
+#     data = None
+    
+#     # Attach/Detach Customer
+#     client.post(reverse('refund-attach-customer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('refund-detach-customer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Order
+#     client.post(reverse('refund-attach-order', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('refund-detach-order', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Payment
+#     client.post(reverse('refund-attach-payment', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('refund-detach-payment', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Workflow Actions
+#     # Process
+#     url_process = reverse('refund-process-refund', kwargs={'pk': 1})
+#     response = client.post(url_process, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Pending
+#     url_pending = reverse('refund-pending-refund', kwargs={'pk': 1})
+#     client.post(url_pending, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Fail
+#     url_fail = reverse('refund-fail-refund', kwargs={'pk': 1})
+#     client.post(url_fail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Cancel
+#     url_cancel = reverse('refund-cancel-refund-action', kwargs={'pk': 1})
+#     client.post(url_cancel, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')

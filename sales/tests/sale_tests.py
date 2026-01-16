@@ -455,3 +455,395 @@ def test_delivery_note_item_urls(client, test_user_token, test_delivery_note_fix
     )
     logger.info(response.json())
     assert response.status_code == 201
+
+
+############################################################################
+########################################################################################
+
+# ==========================================
+# DELIVERY NOTES
+# ==========================================
+
+# @pytest.mark.django_db
+# def test_delivery_note_endpoints(client, test_user_token):
+#     """
+#     Test Delivery Note List, Detail, and Status Update.
+#     [Source: 19]
+#     """
+#     url = reverse('delivery-note-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('delivery-note-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('delivery-note-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_delivery_note_attachments(client, test_user_token):
+#     """
+#     Test Delivery Note Attachments (Order, Receipt) and Item management.
+#     [Source: 19]
+#     """
+#     data = None
+
+#     # Attach Order
+#     url_attach_order = reverse('delivery-note-attach-order', kwargs={'pk': 1})
+#     client.post(url_attach_order, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Receipt
+#     client.post(reverse('delivery-note-attach-receipt', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('delivery-note-detach-receipt', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Delivery Note Items (Generic List/Detail)
+#     url_items = reverse('delivery-note-item-list')
+#     client.get(url_items, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach specific items (Item level)
+#     url_item_attach = reverse('delivery-note-item-attach', kwargs={'pk': 1})
+#     client.post(url_item_attach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     url_item_detach = reverse('delivery-note-item-detach', kwargs={'pk': 1})
+#     client.post(url_item_detach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # SALES INVOICES
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_sales_invoice_endpoints(client, test_user_token):
+#     """
+#     Test Sales Invoice List, Detail, and Actions (Discount, Issue, Void).
+#     [Source: 20, 21]
+#     """
+#     url = reverse('sales-invoice-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('sales-invoice-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Apply Discount
+#     url_discount = reverse('sales-invoice-apply-discount', kwargs={'pk': 1})
+#     client.post(url_discount, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Mark Issued
+#     url_issued = reverse('sales-invoice-mark-as-issued', kwargs={'pk': 1})
+#     client.post(url_issued, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Void Invoice
+#     url_void = reverse('sales-invoice-void-invoice', kwargs={'pk': 1})
+#     client.post(url_void, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_sales_invoice_item_endpoints(client, test_user_token):
+#     """
+#     Test Sales Invoice Items and Bulk Creation.
+#     [Source: 20]
+#     """
+#     url = reverse('sales-invoice-item-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Bulk Create Items
+#     url_bulk = reverse('sales-invoice-item-bulk-create-items')
+#     data = None
+#     response = client.post(
+#         url_bulk, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code == 201
+
+#     # Mark Invoice Paid (at item level context?)
+#     url_mark_paid = reverse('sales-invoice-item-mark-invoice-as-paid')
+#     client.post(url_mark_paid, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+
+# # ==========================================
+# # SALES ORDERS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_sales_order_endpoints(client, test_user_token):
+#     """
+#     Test Sales Order List, Detail, and Status Update.
+#     [Source: 21, 22]
+#     """
+#     url = reverse('sales-order-list')
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Test CREATE
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('sales-order-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('sales-order-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_sales_order_actions(client, test_user_token):
+#     """
+#     Test Sales Order actions: Attach Invoice, Bulk Items.
+#     [Source: 21]
+#     """
+#     data = None
+    
+#     # Attach Invoice
+#     url_attach = reverse('sales-order-attach-invoice', kwargs={'pk': 1})
+#     response = client.post(
+#         url_attach, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Bulk Items
+#     url_bulk = reverse('sales-order-bulk-items', kwargs={'pk': 1})
+#     response = client.post(
+#         url_bulk, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code == 201
+
+
+# # ==========================================
+# # SALES PAYMENTS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_sales_payment_endpoints(client, test_user_token):
+#     """
+#     Test Sales Payment List, Detail, and Apply/Reverse actions.
+#     [Source: 22]
+#     """
+#     url = reverse('sales-payment-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('sales-payment-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Apply Payment (General)
+#     url_apply = reverse('sales-payment-apply-payment')
+#     client.post(url_apply, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Reverse Payment
+#     url_reverse = reverse('sales-payment-reverse-payment', kwargs={'pk': 1})
+#     client.post(url_reverse, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Amount
+#     url_amount = reverse('sales-payment-update-amount', kwargs={'pk': 1})
+#     client.post(url_amount, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # SALES QUOTATIONS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_sales_quotation_endpoints(client, test_user_token):
+#     """
+#     Test Sales Quotation List, Detail, and Workflow.
+#     [Source: 23, 24]
+#     """
+#     url = reverse('sales-quotation-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('sales-quotation-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('sales-quotation-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Customer
+#     client.post(reverse('sales-quotation-attach-customer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('sales-quotation-detach-customer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_sales_quotation_item_endpoints(client, test_user_token):
+#     """
+#     Test Sales Quotation Items and attachments.
+#     [Source: 22, 23]
+#     """
+#     url = reverse('sales-quotation-item-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+    
+#     # Detail
+#     url_detail = reverse('sales-quotation-item-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attachments
+#     url_att_inv = reverse('sales-quotation-item-attach-invoice', kwargs={'pk': 1})
+#     client.post(url_att_inv, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     url_att_quo = reverse('sales-quotation-item-attach-quotation', kwargs={'pk': 1})
+#     client.post(url_att_quo, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    
+#     url_det_inv = reverse('sales-quotation-item-detach-invoice', kwargs={'pk': 1})
+#     client.post(url_det_inv, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # SALES RECEIPTS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_sales_receipt_endpoints(client, test_user_token):
+#     """
+#     Test Sales Receipt List, Detail, and Void.
+#     [Source: 23]
+#     """
+#     url = reverse('sales-receipt-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('sales-receipt-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Void Receipt
+#     url_void = reverse('sales-receipt-void-receipt', kwargs={'pk': 1})
+#     client.post(url_void, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_sales_receipt_items(client, test_user_token):
+#     """
+#     Test Sales Receipt Items and Bulk Create.
+#     [Source: 25]
+#     """
+#     url = reverse('sales-receipt-item-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Bulk Create
+#     data = None
+#     url_bulk = reverse('sales-receipt-item-bulk-create-items')
+#     response = client.post(url_bulk, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('sales-receipt-item-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # SALES RETURNS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_sales_return_endpoints(client, test_user_token):
+#     """
+#     Test Sales Return List, Detail, and Status.
+#     [Source: 24]
+#     """
+#     url = reverse('sales-return-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('sales-return-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('sales-return-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_sales_return_item_endpoints(client, test_user_token):
+#     """
+#     Test Sales Return Items.
+#     [Source: 25]
+#     """
+#     # Note: Using the list name. If 'sales-order-items' uses the same name in your conf, this test hits that.
+#     url = reverse('sales-return-item-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+    
+#     # Detail
+#     url_detail = reverse('sales-return-item-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach to Return
+#     url_attach = reverse('sales-return-item-attach-to-return', kwargs={'pk': 1})
+#     client.post(url_attach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('sales-return-item-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')

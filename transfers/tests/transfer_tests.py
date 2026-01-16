@@ -1,4 +1,4 @@
-# from fixture_tests import *
+from fixture_tests import *
 
 # @pytest.mark.django_db
 # def test_cash_transfer_urls(client, test_company_token_fixture, test_company_get_fixture, create_branch_fixture, test_account_one_fixture, test_transfer_fixture, test_branch_account_fixture):
@@ -169,3 +169,116 @@
 #         HTTP_AUTHORIZATION=f'Bearer {test_company_token_fixture}'
 #     )
 #     assert response.status_code == 403 #will comeback
+
+
+###################################################################################
+###############################################################################################
+
+# ==========================================
+# CASH TRANSFERS
+# ==========================================
+
+# @pytest.mark.django_db
+# def test_cash_transfer_endpoints(client, test_user_token):
+#     """
+#     Test Cash Transfer List, Detail, and Actions (Hold, Release, Detach).
+#     [Source: 34, 35]
+#     """
+#     url = reverse('cash-transfer-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('cash-transfer-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Actions
+#     client.post(reverse('cash-transfer-detach', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('cash-transfer-hold', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('cash-transfer-release', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # PRODUCT TRANSFERS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_product_transfer_endpoints(client, test_user_token):
+#     """
+#     Test Product Transfer List, Detail, and Transfer execution.
+#     [Source: 35, 36]
+#     """
+#     url = reverse('product-transfer-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('product-transfer-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach
+#     client.post(reverse('product-transfer-attach-to-transfer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('product-transfer-detach-from-transfer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Execute Transfer
+#     url_exec = reverse('product-transfer-transfer', kwargs={'pk': 1})
+#     client.post(url_exec, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_product_transfer_items(client, test_user_token):
+#     """
+#     Test Product Transfer Items.
+#     [Source: 36]
+#     """
+#     url = reverse('product-transfer-item-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+    
+#     # Detail
+#     url_detail = reverse('product-transfer-item-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Item
+#     client.post(reverse('product-transfer-item-attach-to-product-transfer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('product-transfer-item-detach-from-product-transfer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # GENERAL TRANSFERS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_general_transfer_endpoints(client, test_user_token):
+#     """
+#     Test General Transfer List, Detail, and Workflow.
+#     [Source: 36, 37]
+#     """
+#     url = reverse('transfer-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('transfer-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Workflow Actions
+#     client.post(reverse('transfer-hold', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('transfer-release', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('transfer-perform-product-transfer', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('transfer-recalculate-total', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('transfer-update-status', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')

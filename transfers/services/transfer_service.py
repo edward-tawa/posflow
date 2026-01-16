@@ -8,7 +8,7 @@ from users.models import User
 from company.models import Company
 from branch.models import Branch
 from django.db.models import F, Sum, FloatField
-from inventory.services.product_stock_service import ProductStockService
+# from inventory.services.product_stock_service import ProductStockService
 from loguru import logger
 from datetime import date
 

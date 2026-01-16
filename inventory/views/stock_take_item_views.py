@@ -9,7 +9,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from inventory.services.stock_take_item_service import StockItemService
+# from inventory.services.stock_take_item_service import StockItemService  ###Circular import error
 from inventory.models.product_model import Product
 from inventory.models.stock_take_model import StockTake
 from rest_framework import status

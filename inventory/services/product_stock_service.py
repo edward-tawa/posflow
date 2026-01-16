@@ -401,7 +401,7 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def increase_stock_for_voided_sale(receipt, reason: str=None, performed_by=None) -> None:
+    def increase_stock_for_voided_sale(receipt, reason: str = None, performed_by=None) -> None:
         """
         Restore stock for a voided sales receipt.
         """

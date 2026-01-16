@@ -513,3 +513,439 @@ def test_purchase_payment_allocation_urls(client, test_user_token, test_supplier
     )
     logger.info(response.json())
     assert response.status_code == 201
+
+
+# ==========================================
+# SUPPLIERS
+# ==========================================
+
+# @pytest.mark.django_db
+# def test_supplier_endpoints(client, test_user_token):
+#     """
+#     Test Supplier List, Detail, and Bulk Import/Export.
+#     [Source: 25, 26]
+#     """
+#     url = reverse('supplier-list')
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Test CREATE
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('supplier-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Bulk Import
+#     url_import = reverse('supplier-bulk-import')
+#     client.post(url_import, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Export CSV
+#     url_export = reverse('supplier-export-csv')
+#     client.post(url_export, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_supplier_actions(client, test_user_token):
+#     """
+#     Test Supplier assignment (Company, Branch) and Status updates.
+#     [Source: 26]
+#     """
+#     data = None
+    
+#     # Assign/Unassign Company
+#     url_assign_co = reverse('supplier-assign-company', kwargs={'pk': 1})
+#     client.post(url_assign_co, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    
+#     url_unassign_co = reverse('supplier-unassign-company', kwargs={'pk': 1})
+#     client.post(url_unassign_co, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Branch
+#     url_attach_br = reverse('supplier-attach-branch', kwargs={'pk': 1})
+#     client.post(url_attach_br, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+    
+#     url_detach_br = reverse('supplier-detach-branch', kwargs={'pk': 1})
+#     client.post(url_detach_br, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('supplier-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # PURCHASE ORDERS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_purchase_order_endpoints(client, test_user_token):
+#     """
+#     Test Purchase Order List, Detail, and Approval.
+#     [Source: 26]
+#     """
+#     url = reverse('purchaseorder-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('purchaseorder-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Approve
+#     url_approve = reverse('purchaseorder-approve-order', kwargs={'pk': 1})
+#     client.post(url_approve, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_purchase_order_item_endpoints(client, test_user_token):
+#     """
+#     Test Purchase Order Items and Attach/Detach actions.
+#     [Source: 27]
+#     """
+#     url = reverse('purchaseorderitem-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+    
+#     # Detail
+#     url_detail = reverse('purchaseorderitem-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach
+#     url_attach = reverse('purchaseorderitem-attach-to-order', kwargs={'pk': 1})
+#     client.post(url_attach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     url_detach = reverse('purchaseorderitem-detach-from-order', kwargs={'pk': 1})
+#     client.post(url_detach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('purchaseorderitem-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # PURCHASE RETURNS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_purchase_return_endpoints(client, test_user_token):
+#     """
+#     Test Purchase Return List, Detail, and Supplier management.
+#     [Source: 27, 28]
+#     """
+#     url = reverse('purchase-return-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('purchase-return-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Supplier
+#     url_attach = reverse('purchase-return-attach-supplier', kwargs={'pk': 1})
+#     client.post(url_attach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     url_detach = reverse('purchase-return-detach-supplier', kwargs={'pk': 1})
+#     client.post(url_detach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('purchase-return-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_purchase_return_item_endpoints(client, test_user_token):
+#     """
+#     Test Purchase Return Items.
+#     [Source: 28]
+#     """
+#     url = reverse('purchase-return-item-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+    
+#     # Detail
+#     url_detail = reverse('purchase-return-item-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Return
+#     url_attach = reverse('purchase-return-item-attach-return', kwargs={'pk': 1})
+#     client.post(url_attach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     url_detach = reverse('purchase-return-item-detach-return', kwargs={'pk': 1})
+#     client.post(url_detach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('purchase-return-item-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # SUPPLIER DEBIT & CREDIT NOTES
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_supplier_debit_note_endpoints(client, test_user_token):
+#     """
+#     Test Supplier Debit Note List, Detail, and Actions.
+#     [Source: 28, 29]
+#     """
+#     url = reverse('supplier-debit-note-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('supplier-debit-note-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Supplier
+#     client.post(reverse('supplier-debit-note-attach-supplier', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('supplier-debit-note-detach-supplier', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     client.post(reverse('supplier-debit-note-update-status', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_supplier_credit_note_endpoints(client, test_user_token):
+#     """
+#     Test Supplier Credit Note List, Detail, and Actions.
+#     [Source: 29, 30]
+#     """
+#     url = reverse('supplier-credit-note-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('supplier-credit-note-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach Supplier
+#     client.post(reverse('supplier-credit-note-attach-supplier', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('supplier-credit-note-detach-supplier', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     client.post(reverse('supplier-credit-note-update-status', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_supplier_credit_note_item_actions(client, test_user_token):
+#     """
+#     Test Supplier Credit Note Items: Attach, Update Qty, Update Price.
+#     [Source: 30]
+#     """
+#     data = None
+    
+#     # List (Generic check)
+#     url = reverse('supplier-credit-note-item-list')
+#     client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach/Detach
+#     client.post(reverse('supplier-credit-note-item-attach-credit-note', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('supplier-credit-note-item-detach-credit-note', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Quantity/Price
+#     client.post(reverse('supplier-credit-note-item-update-quantity', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     client.post(reverse('supplier-credit-note-item-update-unit-price', kwargs={'pk': 1}), data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+
+# # ==========================================
+# # PURCHASE INVOICES
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_purchase_invoice_endpoints(client, test_user_token):
+#     """
+#     Test Purchase Invoice List, Detail, and Approval.
+#     [Source: 31]
+#     """
+#     url = reverse('purchase-invoice-list')
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Test CREATE
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('purchase-invoice-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Approve
+#     url_approve = reverse('purchase-invoice-approve', kwargs={'pk': 1})
+#     client.post(url_approve, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_purchase_invoice_actions(client, test_user_token):
+#     """
+#     Test Purchase Invoice actions: Detach Supplier, Update Status.
+#     [Source: 31]
+#     """
+#     data = None
+    
+#     # Detach from Supplier
+#     url_detach = reverse('purchase-invoice-detach-from-supplier', kwargs={'pk': 1})
+#     response = client.post(
+#         url_detach, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Update Status
+#     url_status = reverse('purchase-invoice-update-status', kwargs={'pk': 1})
+#     response = client.post(
+#         url_status, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     assert response.status_code == 201
+
+
+# @pytest.mark.django_db
+# def test_purchase_invoice_item_endpoints(client, test_user_token):
+#     """
+#     Test Purchase Invoice Items and Attach/Detach logic.
+#     [Source: 31, 32]
+#     """
+#     url = reverse('purchase-invoice-item-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+    
+#     # Detail
+#     url_detail = reverse('purchase-invoice-item-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Attach to Invoice
+#     url_attach = reverse('purchase-invoice-item-attach-to-invoice', kwargs={'pk': 1})
+#     client.post(url_attach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Detach from Invoice
+#     url_detach = reverse('purchase-invoice-item-detach-from-invoice', kwargs={'pk': 1})
+#     client.post(url_detach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # PURCHASE PAYMENT ALLOCATIONS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_purchase_payment_allocation_endpoints(client, test_user_token):
+#     """
+#     Test Purchase Payment Allocation List, Detail, and Validation.
+#     [Source: 32]
+#     """
+#     url = reverse('purchase-payment-allocation-list')
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     data = None
+#     response = client.post(url, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('purchase-payment-allocation-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Validate Allocation
+#     url_validate = reverse('purchase-payment-allocation-validate-allocation', kwargs={'pk': 1})
+#     client.post(url_validate, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# # ==========================================
+# # PURCHASE PAYMENTS
+# # ==========================================
+
+# @pytest.mark.django_db
+# def test_purchase_payment_endpoints(client, test_user_token):
+#     """
+#     Test Purchase Payment List and Detail.
+#     [Source: 32]
+#     """
+#     url = reverse('purchase-payment-list')
+    
+#     # Test GET
+#     response = client.get(url, HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+#     assert response.status_code == 200
+
+#     # Test CREATE
+#     data = None
+#     response = client.post(
+#         url, 
+#         data, 
+#         content_type='application/json', 
+#         HTTP_AUTHORIZATION=f'Bearer {test_user_token}'
+#     )
+#     logger.info(response.json())
+#     assert response.status_code == 201
+
+#     # Detail
+#     url_detail = reverse('purchase-payment-detail', kwargs={'pk': 1})
+#     client.put(url_detail, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+
+# @pytest.mark.django_db
+# def test_purchase_payment_actions(client, test_user_token):
+#     """
+#     Test Purchase Payment actions: Attach/Detach Supplier, Update Notes/Status.
+#     [Source: 32, 33]
+#     """
+#     data = None
+
+#     # Attach/Detach Supplier
+#     url_attach = reverse('purchase-payment-attach-supplier', kwargs={'pk': 1})
+#     client.post(url_attach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     url_detach = reverse('purchase-payment-detach-supplier', kwargs={'pk': 1})
+#     client.post(url_detach, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Notes
+#     url_notes = reverse('purchase-payment-update-notes', kwargs={'pk': 1})
+#     client.post(url_notes, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
+
+#     # Update Status
+#     url_status = reverse('purchase-payment-update-status', kwargs={'pk': 1})
+#     client.post(url_status, data, content_type='application/json', HTTP_AUTHORIZATION=f'Bearer {test_user_token}')
