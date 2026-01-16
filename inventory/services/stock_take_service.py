@@ -2,7 +2,7 @@ from django.db import transaction as db_transaction
 from loguru import logger
 from inventory.models.stock_take_model import StockTake
 from inventory.services.product_stock_service import ProductStockService
-from inventory.services.stock_take_item_service import StockTakeItemService
+# from inventory.services.stock_take_item_service import StockTakeItemService
 from inventory.services.stock_movement_service import StockMovementService
 from inventory.services.stock_take_reconciliation_service import StockTakeReconcialiationService
 from django.db.models import Sum, F
