@@ -51,13 +51,13 @@ class TransferService:
     
     @staticmethod
     @db_transaction.atomic
-    def get_or_create_transfer(
+    def get_transfer(
         *,
         company: Company,
         branch: Branch,
         reference_number: str
     ) -> Transfer:
-        transfer, created = Transfer.objects.get_or_create(
+        transfer = Transfer.objects.get(
             company=company,
             branch=branch,
             reference_number=reference_number,

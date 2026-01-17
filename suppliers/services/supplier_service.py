@@ -17,13 +17,23 @@ class SupplierService:
     # -------------------------
     @staticmethod
     @transaction.atomic
-    def create_supplier(company, branch, name: str, **kwargs) -> Supplier:
+    def create_supplier(*, 
+                        company,
+                        branch,
+                        name: str,
+                        email=None,
+                        phone_number=None,
+                        address=None,
+                        notes=None) -> Supplier:
         try:
             supplier = Supplier.objects.create(
                 company=company,
                 branch=branch,
                 name=name,
-                **kwargs
+                email=email,
+                phone_number=phone_number,
+                address=address,
+                notes=notes
             )
             logger.info(f"Supplier created successfully | id={supplier.id}")
             return supplier
@@ -37,10 +47,24 @@ class SupplierService:
     # -------------------------
     @staticmethod
     @transaction.atomic
-    def update_supplier(supplier: Supplier, **kwargs) -> Supplier:
+    def update_supplier(supplier: Supplier, name=None, email=None, phone_number=None, address=None, notes=None, branch=None, company=None, status=None) -> Supplier:
         try:
-            for field, value in kwargs.items():
-                setattr(supplier, field, value)
+            if name is not None:
+                supplier.name = name
+            if email is not None:
+                supplier.email = email
+            if phone_number is not None:
+                supplier.phone_number = phone_number
+            if address is not None:
+                supplier.address = address
+            if notes is not None:
+                supplier.notes = notes
+            if branch is not None:
+                supplier.branch = branch
+            if company is not None:
+                supplier.company = company
+            if status is not None:
+                supplier.status = status
 
             supplier.save()
             logger.info(f"Supplier updated successfully | id={supplier.id}")
@@ -119,7 +143,15 @@ class SupplierService:
     def import_bulk_suppliers(company, branch, supplier_data_list: List[dict]) -> List[Supplier]:
         try:
             suppliers = [
-                Supplier(company=company, branch=branch, **data)
+                Supplier(
+                    company=company,
+                    branch=branch,
+                    name=data.get("name"),
+                    email=data.get("email"),
+                    phone_number=data.get("phone_number"),
+                    address=data.get("address"),
+                    notes=data.get("notes")
+                )
                 for data in supplier_data_list
             ]
 
@@ -149,6 +181,8 @@ class SupplierService:
                         name=row.get("Name") or row.get("name"),
                         email=row.get("Email") or row.get("email"),
                         phone_number=row.get("Phone Number") or row.get("phone_number"),
+                        address=row.get("Address") or row.get("address"),
+                        notes=row.get("Notes") or row.get("notes")
                     )
                 )
 

@@ -4,7 +4,6 @@ from django.db import transaction as db_transaction
 from decimal import Decimal, ROUND_HALF_UP
 from django.utils import timezone
 from loguru import logger
-
 from sales.models.sales_order_model import SalesOrder
 from sales.services.sales_receipt_item_service import SalesReceiptItemService
 
@@ -13,14 +12,30 @@ class SalesInvoiceItemService:
 
     @staticmethod
     @db_transaction.atomic
-    def create_sales_invoice_item(**kwargs) -> SalesInvoiceItem:
+    def create_sales_invoice_item(
+        sales_invoice: SalesInvoice,
+        product,
+        product_name: str,
+        quantity: int,
+        unit_price: Decimal,
+        tax_rate: Decimal
+    ) -> SalesInvoiceItem:
+        """
+        Creates a single SalesInvoiceItem and updates the invoice totals.
+        """
         try:
-            item = SalesInvoiceItem.objects.create(**kwargs)
+            item = SalesInvoiceItem.objects.create(
+                sales_invoice=sales_invoice,
+                product=product,
+                product_name=product_name,
+                quantity=quantity,
+                unit_price=unit_price,
+                tax_rate=tax_rate
+            )
             logger.info(
                 f"Sales Invoice Item '{item.id}' created for invoice '{item.sales_invoice.invoice_number}'."
             )
-            # Update totals automatically
-            SalesInvoiceItemService.update_invoice_totals(item.sales_invoice)
+            SalesInvoiceItemService.update_invoice_totals(sales_invoice)
             return item
         except Exception as e:
             logger.error(f"Error creating sales invoice item: {str(e)}")
@@ -28,18 +43,46 @@ class SalesInvoiceItemService:
 
     @staticmethod
     @db_transaction.atomic
-    def update_sales_invoice_item(item: SalesInvoiceItem, **kwargs) -> SalesInvoiceItem:
+    def update_sales_invoice_item(
+        item: SalesInvoiceItem,
+        product=None,
+        product_name: str | None = None,
+        quantity: int | None = None,
+        unit_price: Decimal | None = None,
+        tax_rate: Decimal | None = None
+    ) -> SalesInvoiceItem:
+        """
+        Updates fields of a SalesInvoiceItem explicitly.
+        """
         try:
-            for key, value in kwargs.items():
-                setattr(item, key, value)
-            item.save(update_fields=kwargs.keys())
-            logger.info(f"Sales Invoice Item '{item.id}' updated.")
-            # Update totals automatically
-            SalesInvoiceItemService.update_invoice_totals(item.sales_invoice)
+            update_fields = []
+
+            if product is not None:
+                item.product = product
+                update_fields.append("product")
+            if product_name is not None:
+                item.product_name = product_name
+                update_fields.append("product_name")
+            if quantity is not None:
+                item.quantity = quantity
+                update_fields.append("quantity")
+            if unit_price is not None:
+                item.unit_price = unit_price
+                update_fields.append("unit_price")
+            if tax_rate is not None:
+                item.tax_rate = tax_rate
+                update_fields.append("tax_rate")
+
+            if update_fields:
+                item.save(update_fields=update_fields)
+                logger.info(f"Sales Invoice Item '{item.id}' updated: {update_fields}")
+                SalesInvoiceItemService.update_invoice_totals(item.sales_invoice)
+
             return item
         except Exception as e:
             logger.error(f"Error updating sales invoice item '{item.id}': {str(e)}")
             raise
+
 
     @staticmethod
     @db_transaction.atomic
@@ -66,21 +109,36 @@ class SalesInvoiceItemService:
 
     @staticmethod
     @db_transaction.atomic
-    def attach_to_invoice(item: SalesInvoiceItem, invoice: SalesInvoice) -> SalesInvoiceItem:
+    def add_sales_invoice_item_to_invoice(item: SalesInvoiceItem, invoice: SalesInvoice) -> SalesInvoiceItem:
         try:
             item.sales_invoice = invoice
             item.save(update_fields=["sales_invoice"])
             logger.info(
-                f"Sales Invoice Item '{item.id}' attached to invoice '{invoice.invoice_number}'."
+                f"Sales Invoice Item '{item.id}' added to invoice '{invoice.invoice_number}'."
             )
-            # Update totals automatically
-            SalesInvoiceItemService.update_invoice_totals(invoice)
             return item
         except Exception as e:
             logger.error(
-                f"Error attaching sales invoice item '{item.id}' to invoice '{invoice.invoice_number}': {str(e)}"
+                f"Error adding sales invoice item '{item.id}' to invoice '{invoice.invoice_number}': {str(e)}"
             )
             raise
+    
+    @staticmethod
+    @db_transaction.atomic
+    def add_sales_invoice_items_to_invoice(items: list[SalesInvoiceItem], invoice: SalesInvoice) -> None:
+        try:
+            for item in items:
+                item.sales_invoice = invoice
+                item.save(update_fields=["sales_invoice"])
+            logger.info(
+                f"Added {len(items)} items to Sales Invoice '{invoice.invoice_number}'."
+            )
+        except Exception as e:
+            logger.error(
+                f"Error adding items to sales invoice '{invoice.invoice_number}': {str(e)}"
+            )
+            raise
+
 
     @staticmethod
     @db_transaction.atomic

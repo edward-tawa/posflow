@@ -12,17 +12,20 @@ class PurchaseOrderItem(CreateUpdateBaseModel):
     product_category = models.ForeignKey('inventory.ProductCategory', on_delete=models.CASCADE, related_name='purchase_order_items', blank=True, null=True) 
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    # total_price = models.DecimalField(max_digits=12, decimal_places=2)
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
 
     class Meta:
         ordering = ['-created_at']
 
+    @property
     def total_price(self):
         """Calculate total price for the item."""
         if not self.total_amount:
             self.total_amount = self.quantity * self.unit_price
         return self.total_amount
+    
+    @property
+    def total_amount(self):
+        return self.quantity * self.unit_price
     
     def save(self, *args, **kwargs):
         if not self.product_category and self.product:

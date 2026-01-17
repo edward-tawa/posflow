@@ -1,31 +1,38 @@
 from suppliers.models.purchase_invoice_item_model import PurchaseInvoiceItem
 from suppliers.models.purchase_invoice_model import PurchaseInvoice
+from inventory.models.product_model import Product
 from loguru import logger
 from django.db import transaction as db_transaction
 
 
 class PurchaseInvoiceItemService:
     """
-    Service class for managing purchase invoice items.
-    Provides methods for CRUD operations, attaching/detaching to invoices,
-    automatic invoice total updates, and detailed logging.
+    Service class for managing purchase invoice items without kwargs.
+    Handles CRUD, attaching/detaching, and automatic invoice total updates.
     """
 
-    ALLOWED_UPDATE_FIELDS = {"product_name", "quantity", "unit_price", "total_price", "notes"}
+    ALLOWED_UPDATE_FIELDS = {"quantity", "unit_price", "product"}
 
     # -------------------------
     # CREATE
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def create_item(**kwargs) -> PurchaseInvoiceItem:
-        item = PurchaseInvoiceItem.objects.create(**kwargs)
-        logger.info(
-            f"Purchase Invoice Item '{item.product_name}' created for invoice "
-            f"'{item.purchase_invoice.id if item.purchase_invoice else 'None'}'."
+    def create_item(
+        purchase_invoice: PurchaseInvoice,
+        product: Product,
+        quantity: int,
+        unit_price: float
+    ) -> PurchaseInvoiceItem:
+        item = PurchaseInvoiceItem.objects.create(
+            purchase_invoice=purchase_invoice,
+            product=product,
+            quantity=quantity,
+            unit_price=unit_price
         )
-        if item.purchase_invoice:
-            item.purchase_invoice.update_total_amount()
+        logger.info(
+            f"Purchase Invoice Item '{product.name}' created for invoice '{purchase_invoice.invoice_number}'."
+        )
         return item
 
     # -------------------------
@@ -33,19 +40,28 @@ class PurchaseInvoiceItemService:
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def update_item(item: PurchaseInvoiceItem, **kwargs) -> PurchaseInvoiceItem:
+    def update_item(
+        item: PurchaseInvoiceItem,
+        product: Product = None,
+        quantity: int = None,
+        unit_price: float = None
+    ) -> PurchaseInvoiceItem:
         updated_fields = []
-        for key, value in kwargs.items():
-            if key in PurchaseInvoiceItemService.ALLOWED_UPDATE_FIELDS:
-                setattr(item, key, value)
-                updated_fields.append(key)
+
+        if product and item.product != product:
+            item.product = product
+            updated_fields.append('product')
+        if quantity is not None and item.quantity != quantity:
+            item.quantity = quantity
+            updated_fields.append('quantity')
+        if unit_price is not None and item.unit_price != unit_price:
+            item.unit_price = unit_price
+            updated_fields.append('unit_price')
 
         if updated_fields:
             item.save(update_fields=updated_fields)
-            logger.info(f"Purchase Invoice Item '{item.product_name}' updated: {', '.join(updated_fields)}")
+            logger.info(f"Purchase Invoice Item '{item.product.name}' updated: {', '.join(updated_fields)}")
 
-        if item.purchase_invoice:
-            item.purchase_invoice.update_total_amount()
         return item
 
     # -------------------------
@@ -55,7 +71,7 @@ class PurchaseInvoiceItemService:
     @db_transaction.atomic
     def delete_item(item: PurchaseInvoiceItem) -> None:
         invoice = item.purchase_invoice
-        item_name = item.product_name
+        item_name = item.product.name
         item.delete()
         logger.info(f"Purchase Invoice Item '{item_name}' deleted.")
         if invoice:
@@ -66,30 +82,29 @@ class PurchaseInvoiceItemService:
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def attach_to_invoice(item: PurchaseInvoiceItem, invoice: PurchaseInvoice) -> PurchaseInvoiceItem:
+    def add_to_invoice(item: PurchaseInvoiceItem, invoice: PurchaseInvoice) -> PurchaseInvoiceItem:
         previous_invoice = item.purchase_invoice
         item.purchase_invoice = invoice
         item.save(update_fields=['purchase_invoice'])
         logger.info(
-            f"Purchase Invoice Item '{item.product_name}' attached to invoice "
-            f"'{invoice.id}' (previous invoice: '{previous_invoice.id if previous_invoice else 'None'}')."
+            f"Purchase Invoice Item '{item.product.name}' attached to invoice '{invoice.invoice_number}' "
+            f"(previous invoice: '{previous_invoice.invoice_number if previous_invoice else 'None'}')."
         )
         invoice.update_total_amount()
-        return item
-
-    @staticmethod
-    @db_transaction.atomic
-    def detach_from_invoice(item: PurchaseInvoiceItem) -> PurchaseInvoiceItem:
-        previous_invoice = item.purchase_invoice
-        item.purchase_invoice = None
-        item.save(update_fields=['purchase_invoice'])
-        logger.info(
-            f"Purchase Invoice Item '{item.product_name}' detached from invoice "
-            f"'{previous_invoice.id if previous_invoice else 'None'}'."
-        )
         if previous_invoice:
             previous_invoice.update_total_amount()
         return item
 
-
-    
+    @staticmethod
+    @db_transaction.atomic
+    def remove_from_invoice(item: PurchaseInvoiceItem) -> PurchaseInvoiceItem:
+        previous_invoice = item.purchase_invoice
+        item.purchase_invoice = None
+        item.save(update_fields=['purchase_invoice'])
+        logger.info(
+            f"Purchase Invoice Item '{item.product.name}' detached from invoice "
+            f"'{previous_invoice.invoice_number if previous_invoice else 'None'}'."
+        )
+        if previous_invoice:
+            previous_invoice.update_total_amount()
+        return item

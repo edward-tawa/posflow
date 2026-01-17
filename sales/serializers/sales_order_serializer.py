@@ -23,6 +23,8 @@ class SalesOrderSerializer(CompanyValidationMixin, serializers.ModelSerializer):
             'order_number',
             'order_date',
             'status',
+            'paid_at',
+            'dispatched_at',
             'total_amount',
             'sales_person',
             'notes',

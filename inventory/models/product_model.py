@@ -11,7 +11,7 @@ class Product(CreateUpdateBaseModel):
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=255)
     description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     product_category = models.ForeignKey('inventory.ProductCategory', on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     stock = models.IntegerField(default=0)
     sku = models.CharField(max_length=100, unique=False, blank=True)  # SKU will be unique per company

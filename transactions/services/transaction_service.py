@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q
+from inventory.models.product_model import Product
 from transactions.models.transaction_model import Transaction
 from company.models.company_model import Company
 from branch.models.branch_model import Branch
@@ -12,6 +13,9 @@ from loguru import logger
 from decimal import Decimal
 from django.db import transaction as db_transaction
 from config.pagination.pagination import StandardResultsSetPagination
+from transactions.services.transaction_item_service import TransactionItemService
+
+
 
 class TransactionService:
     @staticmethod
@@ -35,7 +39,8 @@ class TransactionService:
                     transaction_category: str,
                     total_amount: Decimal,
                     customer: Customer = None,
-                    supplier: Supplier = None
+                    supplier: Supplier = None,
+                    product: Product = None
                 ):
         """
         Create a transaction with auto-generated transaction_number, status, and date.
@@ -57,6 +62,16 @@ class TransactionService:
                 # transaction_date is auto_now_add
             )
             logger.info(f"Transaction {transaction.transaction_number} created with status {transaction.status}")
+            if transaction.transaction_type in [t[0] for t in Transaction.TRANSACTION_TYPE]:
+                transaction_item = TransactionItemService.create_transaction_item(
+                        transaction=transaction,
+                        product=product,
+                        product_name=product.name if product else "N/A",
+                        quantity=1,
+                        unit_price=product.unit_price if product else Decimal("0.00"),
+                        )
+
+                TransactionItemService.add_to_transaction(transaction_item, transaction)
             return transaction
         except Exception as e:
             logger.exception(f"Error creating transaction: {str(e)}")
@@ -129,45 +144,6 @@ class TransactionService:
     
 
     @staticmethod
-    @db_transaction.atomic
-    def transfer_funds(from_account, to_account, amount):
-        logger.info(f"Transferring {amount} from Account {from_account.id} to Account {to_account.id}")
-        try:
-            # Lock the accounts in a consistent order to avoid deadlocks
-            if from_account.id < to_account.id:
-                first, second = from_account, to_account
-            else:
-                first, second = to_account, from_account
-
-            first = Account.objects.select_for_update().get(id=first.id)
-            second = Account.objects.select_for_update().get(id=second.id)
-
-            # After locking, determine which is which
-            if first.id == from_account.id:
-                from_account, to_account = first, second
-            else:
-                from_account, to_account = second, first
-
-            # Check balance
-            from_account_balance = AccountsService.get_account_balance(from_account)
-            if from_account_balance < amount:
-                raise ValueError("Insufficient funds in the source account.")
-
-            # Update balances
-            from_account.balance = from_account_balance - amount
-            from_account.save(update_fields=['balance'])
-            logger.info(f"Debited {amount} from Account {from_account.id}: {from_account_balance} → {from_account.balance}")
-
-            to_account_balance = AccountsService.get_account_balance(to_account)
-            to_account.balance = to_account_balance + amount
-            to_account.save(update_fields=['balance'])
-            logger.info(f"Credited {amount} to Account {to_account.id}: {to_account_balance} → {to_account.balance}")
-
-        except Exception as e:
-            logger.error(f"Fund transfer failed: {e}")
-            raise
-
-    @staticmethod
     def get_transaction_summary(transaction):
         logger.debug(f"Generating summary for transaction {transaction.transaction_number}")
         summary = {
@@ -199,192 +175,7 @@ class TransactionService:
             logger.error(f"Failed to delete transaction {transaction.transaction_number}: {e}")
             raise
     
-    @staticmethod
-    def list_transactions_by_account(account):
-        logger.info(f"Listing transactions for Account {account.id}")
-        transactions = Transaction.objects.filter(
-            models.Q(debit_account=account) | models.Q(credit_account=account)
-        ).order_by('-transaction_date')
-        logger.info(f"Found {transactions.count()} transactions for Account {account.id}")
-        return transactions
     
-    @staticmethod
-    def get_transactions_by_date_range(start_date, end_date):
-        logger.info(f"Retrieving transactions from {start_date} to {end_date}")
-        transactions = Transaction.objects.filter(
-            transaction_date__range=(start_date, end_date)
-        ).order_by('-transaction_date')
-        logger.info(f"Found {transactions.count()} transactions in date range")
-        return transactions
-    
-    @staticmethod
-    def get_transactions_by_type(transaction_type, company, branch):
-        logger.info(f"Retrieving transactions of type {transaction_type}")
-        transactions = Transaction.objects.filter(
-            company=company,
-            branch=branch,
-            transaction_type=transaction_type
-        ).order_by('-transaction_date')
-        logger.info(f"Found {transactions.count()} transactions of type {transaction_type}")
-        return transactions
-    
-    @staticmethod
-    def get_transactions_by_category(transaction_category, company, branch):
-        logger.info(f"Retrieving transactions of category {transaction_category} for company {company.id}, branch {branch.id}")
-
-        transactions = Transaction.objects.filter(
-            transaction_category=transaction_category,
-            company=company,
-            branch=branch
-        ).order_by('-transaction_date')
-
-        logger.info(f"Found {transactions.count()} transactions of category {transaction_category} for company {company.id}, branch {branch.id}")
-
-        return transactions
-
-    
-    @staticmethod
-    def get_transactions_by_company(company):
-        logger.info(f"Retrieving transactions for company {company.id}")
-        transactions = Transaction.objects.filter(
-            company=company
-        ).order_by('-transaction_date')
-        logger.info(f"Found {transactions.count()} transactions for company {company.id}")
-        return transactions
-    
-    @staticmethod
-    def get_transaction_by_branch(company, branch):
-        logger.info(f"Retrieving transactions for branch {branch.id}")
-        transactions = Transaction.objects.filter(
-            company=company,
-            branch=branch
-        ).order_by('-transaction_date')
-        logger.info(f"Found {transactions.count()} transactions for branch {branch.id}")
-        return transactions
-    
-    @staticmethod
-    def get_transactions_by_id(company, branch, id: int):
-        transactions = Transaction.objects.fitler(
-            company=company,
-            branch=branch,
-            id=id,
-        ).order_by('-transaction_date')
-        logger.info(f"Found {transactions.count()} transactions for id {id} in branch {branch.id}")
-        return transactions
-
-    @staticmethod
-    def get_transactions(account=None, company=None):
-        """
-        Returns a filtered queryset of transactions.
-        Pagination is handled in the view.
-        """
-        logger.info(f"Fetching transactions for account={account} company={company}")
-        qs = Transaction.objects.all()
-        if account:
-            qs = qs.filter(models.Q(debit_account=account) | models.Q(credit_account=account))
-        if company:
-            qs = qs.filter(company=company)
-        return qs.order_by('-transaction_date')
-
-    
-    @staticmethod
-    def search_transactions(query):
-        logger.info(f"Searching transactions with query '{query}'")
-        transactions = Transaction.objects.filter(
-            models.Q(transaction_number__icontains=query) |
-            models.Q(debit_account__name__icontains=query) |
-            models.Q(credit_account__name__icontains=query)
-        ).order_by('-transaction_date')
-        logger.info(f"Found {transactions.count()} transactions matching query '{query}'")
-        return transactions
-    
-    @staticmethod
-    def check_duplicate(transaction: Transaction):
-        """
-         checks duplicate transactions
-        """
-        transaction_number = transaction.transaction_number
-
-        exists = Transaction.objects.filter(transaction_number=transaction_number).exists()
-
-        if exists:
-            logger.warning(f"Duplicate transaction number found: {transaction_number}")
-            raise ValueError(f"Duplicate transaction number: {transaction_number}")
-    
-    @staticmethod
-    def schedule_transaction(transaction_data, schedule_date):
-        logger.info(f"Scheduling transaction for {schedule_date}")
-        # Add to ScheduledTransaction model (you should create it)
-
-    @staticmethod
-    def get_account_ledger(account):
-        return Transaction.objects.filter(
-            Q(debit_account=account) | Q(credit_account=account)
-        ).order_by("transaction_date")
-    
-
-
-    @staticmethod
-    def get_opening_balance(account, date):
-        debit_sum = Transaction.objects.filter(
-            debit_account=account,
-            transaction_date__lt=date
-        ).aggregate(models.Sum('total_amount'))['total_amount__sum'] or 0
-
-        credit_sum = Transaction.objects.filter(
-            credit_account=account,
-            transaction_date__lt=date
-        ).aggregate(models.Sum('total_amount'))['total_amount__sum'] or 0
-
-        return debit_sum - credit_sum
-    
-    @staticmethod
-    def mark_transaction_pending(transaction):
-        transaction.status = "PENDING"
-        transaction.save(update_fields=["status"])
-
-    @staticmethod
-    def approve_transaction(transaction):
-        transaction.status = "APPROVED"
-        transaction.save(update_fields=["status"])
-        TransactionService.apply_transaction_to_accounts(transaction)
-
-    
-    @staticmethod
-    def enforce_transaction_limit(user, amount, daily_limit=10000):
-        today_total = Transaction.objects.filter(
-            created_by=user,
-            transaction_date__date=models.functions.Now().date()
-        ).aggregate(models.Sum("total_amount"))["total_amount__sum"] or 0
-
-        if today_total + amount > daily_limit:
-            raise ValueError("Daily transaction limit exceeded.")
-        
-
-    @staticmethod
-    def export_transactions_to_csv(transactions):
-        # return CSV file path or response
-        pass
-
-
-    
-    @staticmethod
-    def reconcile_account(account):
-        calculated = (
-            Transaction.objects.filter(debit_account=account)
-            .aggregate(models.Sum("total_amount"))["total_amount__sum"] or 0
-        ) - (
-            Transaction.objects.filter(credit_account=account)
-            .aggregate(models.Sum("total_amount"))["total_amount__sum"] or 0
-        )
-
-        if calculated != account.balance:
-            logger.warning(
-                f"Reconciliation mismatch for Account {account.id}: stored={account.balance}, calculated={calculated}"
-            )
-            return False
-
-        return True
 
 
 

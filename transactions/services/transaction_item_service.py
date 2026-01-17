@@ -29,7 +29,7 @@ class TransactionItemService:
     ) -> TransactionItem:
 
         if transaction.transaction_type == Transaction.CASH_TRANSFER and product is not None:
-            raise ValidationError("Cannot attach a product item to a cash transfer transaction.")
+            raise ValidationError("Cannot add a product item to a cash transfer transaction.")
 
         item = TransactionItem.objects.create(
             transaction=transaction,
@@ -42,6 +42,7 @@ class TransactionItemService:
         logger.info(f"Transaction item created | id={item.id}")
         TransactionService.recalculate_totals(transaction)
         return item
+
 
     # -------------------------
     # UPDATE
@@ -70,8 +71,8 @@ class TransactionItemService:
 
         item.save()
         logger.info(f"Transaction item updated | id={item.id}")
-        TransactionService.recalculate_totals(item.transaction)
         return item
+
 
     # -------------------------
     # DELETE
@@ -85,36 +86,39 @@ class TransactionItemService:
         logger.info(f"Transaction item deleted | id={item_id}")
         TransactionService.recalculate_totals(transaction_ref)
 
+
     # -------------------------
     # ATTACH / DETACH
     # -------------------------
     @staticmethod
     @transaction.atomic
-    def attach_to_transaction(
+    def add_to_transaction(
         item: TransactionItem,
         transaction: Transaction
     ) -> TransactionItem:
 
         old_transaction = item.transaction
 
-        if transaction.transaction_type == Transaction.CASH_TRANSFER and item.product is not None:
-            raise ValidationError("Cannot attach a product item to a cash transfer transaction.")
+        if transaction.transaction_type not in [t[0] for t in Transaction.TRANSACTION_TYPE] and item.product is not None:
+            raise ValidationError("Cannot add a product item to a cash transfer or credit transaction.")
 
         item.transaction = transaction
         item.save(update_fields=['transaction'])
-        logger.info(f"Transaction item '{item.id}' attached to transaction '{transaction.id}'.")
+        logger.info(f"Transaction item '{item.id}' added to transaction '{transaction.id}'.")
 
-        TransactionService.recalculate_totals(transaction)
+        transaction.update_total_amount()
         if old_transaction:
-            TransactionService.recalculate_totals(old_transaction)
+            old_transaction.update_total_amount()
         return item
+
 
     @staticmethod
     @transaction.atomic
-    def detach_from_transaction(item: TransactionItem) -> TransactionItem:
+    def remove_from_transaction(item: TransactionItem) -> TransactionItem:
         # If transaction FK is non-nullable, raise an error instead of setting None
-        raise ValidationError("Cannot detach item from transaction because transaction field is non-nullable.")
+        raise ValidationError("Cannot remove item from transaction because transaction field is non-nullable.")
     
+
     # -------------------------
     # STATUS
     # -------------------------
@@ -136,29 +140,4 @@ class TransactionItemService:
         logger.info(f"Transaction item '{item.id}' status updated to '{new_status}'.")
         return item
 
-    # -------------------------
-    # GETTERS
-    # -------------------------
-    @staticmethod
-    def get_transaction_item_by_id(item_id: int) -> TransactionItem:
-        try:
-            return TransactionItem.objects.get(id=item_id)
-        except TransactionItem.DoesNotExist:
-            logger.error(f"Transaction item with id '{item_id}' does not exist.")
-            raise
-
-    @staticmethod
-    def get_transaction_items_by_transaction(transaction: Transaction) -> QuerySet[TransactionItem]:
-        return TransactionItem.objects.filter(transaction=transaction).order_by('created_at')
-
-    @staticmethod
-    def list_all_transaction_items() -> QuerySet[TransactionItem]:
-        return TransactionItem.objects.all().order_by('created_at')
-
-    @staticmethod
-    def list_transaction_items_by_status(status: str) -> QuerySet[TransactionItem]:
-        return TransactionItem.objects.filter(status=status).order_by('created_at')
-
-    @staticmethod
-    def count_transaction_items() -> int:
-        return TransactionItem.objects.count()
+    

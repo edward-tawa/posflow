@@ -1,7 +1,9 @@
 from suppliers.models.purchase_return_model import PurchaseReturn
 from inventory.services.product_stock_service import ProductStockService
+from suppliers.services.purchase_return_item_service import PurchaseReturnItemService
 from transactions.services.transaction_service import TransactionService
 from suppliers.models.supplier_model import Supplier
+from typing import List, Dict, Optional
 from loguru import logger
 from django.db import transaction as db_transaction
 
@@ -14,11 +16,6 @@ class PurchaseReturnService:
     """
 
     ALLOWED_STATUSES = {"DRAFT", "APPROVED", "CANCELLED"}
-    ALLOWED_UPDATE_FIELDS = {"reference", "date", "notes", "total_amount"}
-
-    # -------------------------
-    # CREATE
-    # -------------------------
 
     @staticmethod
     @db_transaction.atomic
@@ -27,63 +24,71 @@ class PurchaseReturnService:
         branch,
         supplier,
         purchase_order,
+        return_product_list: List[Dict],
         purchase=None,
         issued_by=None,
         status="DRAFT"
     ) -> PurchaseReturn:
-        try:
-            # Validate status
-            if status not in PurchaseReturnService.ALLOWED_STATUSES:
-                raise ValueError(f"Invalid status: {status}")
+        # Validate status
+        if status not in PurchaseReturnService.ALLOWED_STATUSES:
+            raise ValueError(f"Invalid status: {status}")
 
-            # Create PurchaseReturn
-            purchase_return = PurchaseReturn.objects.create(
-                company=company,
-                branch=branch,
-                supplier=supplier,
-                purchase_order=purchase_order,
-                purchase=purchase,
-                issued_by=issued_by
+        # Create PurchaseReturn
+        purchase_return = PurchaseReturn.objects.create(
+            company=company,
+            branch=branch,
+            supplier=supplier,
+            purchase_order=purchase_order,
+            purchase=purchase,
+            issued_by=issued_by,
+            status=status
+        )
+
+        # Create items and adjust stock
+        for return_product in return_product_list:
+            item = PurchaseReturnItemService.create_item(
+                purchase_return=purchase_return,
+                product=return_product['product'],  # Product instance
+                quantity=return_product['quantity'],
+                unit_price=return_product['unit_price'],
+                tax_rate=return_product.get('tax_rate', 0)
+            )
+            ProductStockService.decrease_stock_for_purchase_return_item(item)
+
+        # Recalculate total amount now that items exist
+        purchase_return.update_total_amount()
+
+        # Get supplier's primary account for the branch
+        primary_account = supplier.supplier_accounts.filter(
+            branch=branch,
+            is_primary=True
+        ).first()
+
+        if not primary_account:
+            logger.error(
+                f"Supplier {supplier.name} has no primary account for branch {branch.name}"
+            )
+            raise ValueError(
+                f"Supplier {supplier.name} has no primary account for branch {branch.name}"
             )
 
-            # Adjust stock
-            ProductStockService.decrease_stock_for_purchase_return(purchase_return=purchase_return)
+        # Create transaction
+        transaction = TransactionService.create_transaction(
+            company=company,
+            branch=branch,
+            debit_account=primary_account.account,
+            credit_account=PurchaseReturnService.get_purchases_return_account(),
+            transaction_type="PURCHASE_RETURN",
+            transaction_category="PURCHASE_RETURN",
+            total_amount=purchase_return.total_amount,
+            supplier=supplier
+        )
 
-            # Get supplier's primary account for the branch
-            primary_account = supplier.supplier_accounts.filter(
-                branch=branch,
-                is_primary=True
-            ).first()
+        # Apply transaction
+        TransactionService.apply_transaction_to_accounts(transaction)
 
-            if not primary_account:
-                logger.error(
-                    f"Supplier {supplier.name} has no primary account for branch {branch.name}"
-                )
-                raise ValueError(
-                    f"Supplier {supplier.name} has no primary account for branch {branch.name}"
-                )
-
-            # Create transaction
-            transaction = TransactionService.create_transaction(
-                company=company,
-                branch=branch,
-                debit_account=primary_account.account,
-                credit_account=PurchaseReturnService.get_purchases_return_account(),
-                transaction_type="PURCHASE_RETURN",
-                transaction_category="PURCHASE_RETURN",
-                total_amount=purchase_return.total_amount,
-                supplier=supplier
-            )
-
-            # Apply transaction to accounts
-            TransactionService.apply_transaction_to_accounts(transaction)
-
-            logger.info(f"Purchase Return '{purchase_return.id}' created.")
-            return purchase_return
-
-        except Exception as e:
-            logger.error(f"Error creating purchase return: {str(e)}")
-            raise
+        logger.info(f"Purchase Return '{purchase_return.id}' created.")
+        return purchase_return
 
 
     # -------------------------
@@ -91,23 +96,41 @@ class PurchaseReturnService:
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def update_purchase_return(purchase_return: PurchaseReturn, **kwargs) -> PurchaseReturn:
-        try:
-            for key, value in kwargs.items():
-                if key in PurchaseReturnService.ALLOWED_UPDATE_FIELDS:
-                    setattr(purchase_return, key, value)
-                else:
-                    logger.warning(f"Attempted to update invalid field '{key}' on purchase return '{purchase_return.id}'")
+    def update_purchase_return(
+        purchase_return: PurchaseReturn,
+        reference=None,
+        date=None,
+        notes=None,
+        total_amount=None
+    ) -> PurchaseReturn:
+        updated = False
 
-            # Optional: recalculate total_amount here if linked items exist
-            # purchase_return.total_amount = sum(item.total_price for item in purchase_return.items.all())
-
-            purchase_return.save(update_fields=kwargs.keys())
+        if reference is not None and purchase_return.reference != reference:
+            purchase_return.reference = reference
+            updated = True
+        if date is not None and purchase_return.return_date != date:
+            purchase_return.return_date = date
+            updated = True
+        if notes is not None and purchase_return.notes != notes:
+            purchase_return.notes = notes
+            updated = True
+        if total_amount is not None and purchase_return.total_amount != total_amount:
+            purchase_return.total_amount = total_amount
+            updated = True
+        purchase_return.update_total_amount()
+        if updated:
+            purchase_return.save(update_fields=[f for f, v in [
+                ('reference', reference),
+                ('return_date', date),
+                ('notes', notes),
+                ('total_amount', total_amount)
+            ] if v is not None])
             logger.info(f"Purchase Return '{purchase_return.id}' updated.")
-            return purchase_return
-        except Exception as e:
-            logger.error(f"Error updating purchase return '{purchase_return.id}': {str(e)}")
-            raise
+        else:
+            logger.info(f"No changes applied to Purchase Return '{purchase_return.id}'.")
+
+        return purchase_return
+
 
     # -------------------------
     # DELETE

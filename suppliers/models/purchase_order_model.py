@@ -29,6 +29,12 @@ class PurchaseOrder(CreateUpdateBaseModel):
     def generate_reference_number(self):
         """Generate a 6-character uppercase reference code."""
         return uuid.uuid4().hex[:6].upper()
+    
+    def update_total_amount(self):
+        """Recalculate and update the total amount based on associated items."""
+        total = sum(item.total_amount for item in self.items.all())
+        self.total_amount = total
+        self.save(update_fields=['total_amount'])
 
     def save(self, *args, **kwargs):
         if not self.reference_number:

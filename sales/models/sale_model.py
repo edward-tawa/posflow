@@ -35,6 +35,7 @@ class Sale(CreateUpdateBaseModel):
         'sales.SalesReceipt', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales'
     )
     sale_date = models.DateTimeField(auto_now_add=True)
+    
     payment_status = models.CharField(
         max_length=15, choices=PAYMENT_STATUS, default='UNPAID'
     )

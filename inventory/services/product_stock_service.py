@@ -1,9 +1,19 @@
+from typing import Union
 from django.db import transaction as db_transaction
 from django.db.models import Sum
 from loguru import logger
+from inventory.models.product_model import Product
 from inventory.models.product_stock_model import ProductStock
 from inventory.services.stock_movement_service import StockMovementService
 from inventory.models.stock_movement_model import StockMovement
+from sales.models.sales_invoice_item_model import SalesInvoiceItem
+from sales.models.sales_receipt_item_model import SalesReceiptItem
+from sales.models.sales_receipt_model import SalesReceipt
+from sales.models.sales_return_item_model import SalesReturnItem
+from suppliers.models.purchase_invoice_item_model import PurchaseInvoiceItem
+from suppliers.models.purchase_invoice_model import PurchaseInvoice
+from suppliers.models.purchase_return_item_model import PurchaseReturnItem
+from suppliers.models.purchase_return_model import PurchaseReturn
 from transfers.models.transfer_model import Transfer
 from transfers.services.transfer_service import TransferService
 from django.db.models import Sum, F, FloatField
@@ -65,7 +75,7 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def decrease_stock_for_sale(receipt) -> None:
+    def decrease_stock_for_sale(receipt: SalesReceipt) -> None:
         """
         Deduct stock for all items in a SalesReceipt.
         """
@@ -104,7 +114,7 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def increase_stock_for_purchase_invoice(purchase_invoice) -> None:
+    def increase_stock_for_purchase_invoice(purchase_invoice: PurchaseInvoice) -> None:
         """
         Increase stock for all items in a PurchaseInvoice.
         """
@@ -139,7 +149,7 @@ class ProductStockService:
     
     @staticmethod
     @db_transaction.atomic
-    def decrease_stock_for_purchase_return(purchase_return) -> None:
+    def decrease_stock_for_purchase_return(purchase_return: PurchaseReturn) -> None:
         """
         Decrease stock for all items in a PurchaseReturn.
         """
@@ -212,25 +222,39 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def decrease_stock_for_sale_item(item) -> None:
+    def decrease_stock_for_sale_item(item: SalesReceiptItem | SalesInvoiceItem) -> None:
         """
-        Decrease stock for a single SalesReceipt item.
+        Decrease stock for a single sales item (receipt or invoice) and create a stock movement.
         """
+        # Determine the parent object and associated company/branch
+        if isinstance(item, SalesReceiptItem):
+            parent = item.receipt
+            sales_order = item.sales_order
+            sales_invoice = None
+        elif isinstance(item, SalesInvoiceItem):
+            parent = item.sales_invoice
+            sales_order = None
+            sales_invoice = item.sales_invoice
+        else:
+            raise TypeError(f"Unsupported item type: {type(item)}")
+
+        # Adjust stock
         ProductStockService._adjust_stock(
             product=item.product,
-            company=item.receipt.company,
-            branch=item.receipt.branch,
+            company=parent.company,
+            branch=parent.branch,
             quantity_change=-item.quantity
         )
 
+        # Create stock movement
         StockMovementService.create_stock_movement(
-            company=item.receipt.company,
-            branch=item.receipt.branch,
+            company=parent.company,
+            branch=parent.branch,
             product=item.product,
             quantity=item.quantity,
             movement_type=StockMovement.MovementType.SALE,
-            sales_order=item.sales_order,
-            sales_invoice=item.sales_invoice,
+            sales_order=sales_order,
+            sales_invoice=sales_invoice,
             reason='SALES'
         )
 
@@ -242,7 +266,7 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def increase_stock_for_purchase_item(item) -> None:
+    def increase_stock_for_purchase_item(item: PurchaseInvoiceItem) -> None:
         """
         Increase stock for a single PurchaseInvoice item.
         """
@@ -272,7 +296,7 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def decrease_stock_for_purchase_return_item(item) -> None:
+    def decrease_stock_for_purchase_return_item(item: PurchaseReturnItem) -> None:
         """
         Decrease stock for a single PurchaseReturn item.
         """
@@ -300,7 +324,7 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def increase_stock_for_sales_return_item(item) -> None:
+    def increase_stock_for_sales_return_item(item: SalesReturnItem) -> None:
         """
         Increase stock for a single SalesReturn item.
         """
@@ -330,7 +354,7 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def decrease_stock_for_sales_return_item(item) -> None:
+    def decrease_stock_for_sales_return_item(item: SalesReturnItem) -> None:
         """
         Decrease stock for a single SalesReturn item (e.g., reversing or deleting the item).
         """
@@ -360,7 +384,7 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
-    def increase_stock_for_voided_sale_item(item, reason: str = None, performed_by=None) -> None:
+    def increase_stock_for_voided_sale_item(item: SalesReceiptItem, reason: str = None, performed_by=None) -> None:
         """
         Restore stock for a single SalesReceipt item from a voided receipt.
         """
@@ -401,7 +425,11 @@ class ProductStockService:
     # ==========================================================
     @staticmethod
     @db_transaction.atomic
+<<<<<<< HEAD
     def increase_stock_for_voided_sale(receipt, reason: str = None, performed_by=None) -> None:
+=======
+    def increase_stock_for_voided_sale(receipt: SalesReceipt, reason: str=None, performed_by=None) -> None:
+>>>>>>> 39ccb71 (transaction services)
         """
         Restore stock for a voided sales receipt.
         """
@@ -426,7 +454,7 @@ class ProductStockService:
                 product = item.product,
                 quantity = item.quantity,
                 movement_type= StockMovement.MovementType.VOIDED_SALE,
-                sales_receipt=item.sales_receipt,
+                sales_receipt=item.receipt,
                 reason=reason
             )
 

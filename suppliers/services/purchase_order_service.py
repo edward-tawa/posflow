@@ -1,64 +1,119 @@
 from suppliers.models.purchase_order_model import PurchaseOrder
+from suppliers.services.purchase_order_item_service import PurchaseOrderItemService
 from suppliers.models.supplier_model import Supplier
 from loguru import logger
 from django.db import transaction as db_transaction
-
+from typing import List, Dict, Optional
+from datetime import date
 
 
 class PurchaseOrderService:
     """
     Service class for managing purchase orders.
-    Provides methods for creating, updating, deleting orders,
-    attaching/detaching them to/from suppliers,
-    and status management with business rules enforced.
     """
 
     ALLOWED_STATUSES = {"DRAFT", "APPROVED", "RECEIVED", "CANCELLED"}
-    ALLOWED_UPDATE_FIELDS = {"order_date", "delivery_date", "status", "notes"}
 
     # -------------------------
     # CREATE
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def create_order(**kwargs) -> PurchaseOrder:
-        # Validate initial status
-        status = kwargs.get("status", "DRAFT")
+    def create_order(
+        company,
+        supplier,
+        quantity_ordered: int,
+        total_amount: float,
+        product_list: List[Dict],
+        order_date: date = None,
+        delivery_date: date = None,
+        status: str = "DRAFT",
+        reference_number: str = None,
+        notes: str = None
+    ) -> PurchaseOrder:
         if status not in PurchaseOrderService.ALLOWED_STATUSES:
             raise ValueError(f"Invalid status: {status}")
-        kwargs["status"] = status
 
-        order = PurchaseOrder.objects.create(**kwargs)
+        order = PurchaseOrder.objects.create(
+            company=company,
+            supplier=supplier,
+            quantity_ordered=quantity_ordered,
+            total_amount=total_amount,
+            order_date=order_date or date.today(),
+            delivery_date=delivery_date,
+            status=status,
+            reference_number=reference_number,
+            notes=notes
+        )
+
         logger.info(
             f"Purchase Order '{order.id}' created for supplier "
-            f"'{order.supplier.name if order.supplier else 'None'}' with status '{order.status}'."
+            f"'{order.supplier.name}' with status '{order.status}'."
         )
+        for product in product_list:
+            item = PurchaseOrderItemService.create_item(
+                purchase_order=order,
+                product=product['product'],  # Product instance
+                quantity=product['quantity'],
+                unit_price=product['unit_price'],
+                product_category=product['category']
+            )
+            PurchaseOrderItemService.add_to_order(
+                item=item,
+                order=order
+            )
+        
+        order.update_total_amount()
         return order
-    
 
     # -------------------------
     # UPDATE
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def update_order(order: PurchaseOrder, **kwargs) -> PurchaseOrder:
-        for key, value in kwargs.items():
-            if key not in PurchaseOrderService.ALLOWED_UPDATE_FIELDS:
-                logger.warning(f"Ignored invalid update field '{key}' for order '{order.id}'")
-                continue
+    def update_order(
+        order: PurchaseOrder,
+        quantity_ordered: int = None,
+        total_amount: float = None,
+        delivery_date: date = None,
+        status: str = None,
+        notes: str = None
+    ) -> PurchaseOrder:
+        updated = False
 
-            if key == "status" and value not in PurchaseOrderService.ALLOWED_STATUSES:
-                raise ValueError(f"Invalid status: {value}")
+        if quantity_ordered is not None and order.quantity_ordered != quantity_ordered:
+            order.quantity_ordered = quantity_ordered
+            updated = True
+        if total_amount is not None and order.total_amount != total_amount:
+            order.total_amount = total_amount
+            updated = True
+        if delivery_date is not None and order.delivery_date != delivery_date:
+            order.delivery_date = delivery_date
+            updated = True
+        if status is not None:
+            if status not in PurchaseOrderService.ALLOWED_STATUSES:
+                raise ValueError(f"Invalid status: {status}")
+            if order.status != status:
+                order.status = status
+                updated = True
+        if notes is not None and order.notes != notes:
+            order.notes = notes
+            updated = True
 
-            setattr(order, key, value)
+        if updated:
+            order.save(update_fields=[f for f, v in [
+                ('quantity_ordered', quantity_ordered),
+                ('total_amount', total_amount),
+                ('delivery_date', delivery_date),
+                ('status', status),
+                ('notes', notes)
+            ] if v is not None])
+            order.update_total_amount()
+            logger.info(f"Purchase Order '{order.id}' updated.")
+        else:
+            logger.info(f"No changes applied to Purchase Order '{order.id}'.")
 
-        order.save()
-        logger.info(
-            f"Purchase Order '{order.id}' updated for supplier "
-            f"'{order.supplier.name if order.supplier else 'None'}'."
-        )
         return order
-    
 
     # -------------------------
     # DELETE
@@ -73,7 +128,6 @@ class PurchaseOrderService:
         except Exception as e:
             logger.error(f"Error deleting purchase order '{order.id}': {str(e)}")
             raise
-    
 
     # -------------------------
     # RELATION MANAGEMENT
@@ -83,12 +137,8 @@ class PurchaseOrderService:
     def attach_to_supplier(order: PurchaseOrder, supplier: Supplier) -> PurchaseOrder:
         order.supplier = supplier
         order.save(update_fields=['supplier'])
-        logger.info(
-            f"Purchase Order '{order.id}' attached to supplier '{supplier.id}'."
-        )
+        logger.info(f"Purchase Order '{order.id}' attached to supplier '{supplier.id}'.")
         return order
-    
-
 
     @staticmethod
     @db_transaction.atomic
@@ -97,7 +147,6 @@ class PurchaseOrderService:
         order.save(update_fields=['supplier'])
         logger.info(f"Purchase Order '{order.id}' detached from supplier.")
         return order
-    
 
     # -------------------------
     # STATUS MANAGEMENT
@@ -106,29 +155,17 @@ class PurchaseOrderService:
     @db_transaction.atomic
     def update_order_status(order: PurchaseOrder, new_status: str) -> PurchaseOrder:
         if new_status not in PurchaseOrderService.ALLOWED_STATUSES:
-            logger.error(
-                f"Attempted to set invalid status '{new_status}' for order '{order.id}'"
-            )
             raise ValueError(f"Invalid status: {new_status}")
-
         order.status = new_status
         order.save(update_fields=['status'])
-        logger.info(
-            f"Purchase Order '{order.id}' status updated to '{new_status}'."
-        )
+        logger.info(f"Purchase Order '{order.id}' status updated to '{new_status}'.")
         return order
-    
-
 
     @staticmethod
     @db_transaction.atomic
     def approve_order(order: PurchaseOrder) -> PurchaseOrder:
         if order.status != "DRAFT":
-            logger.error(
-                f"Cannot approve order '{order.id}' with status '{order.status}'."
-            )
             raise ValueError("Only DRAFT orders can be approved.")
-
         order.status = "APPROVED"
         order.save(update_fields=['status'])
         logger.info(f"Purchase Order '{order.id}' approved.")

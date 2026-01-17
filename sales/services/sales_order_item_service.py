@@ -1,6 +1,7 @@
 from sales.models.sales_order_item_model import SalesOrderItem
 from sales.models.sales_order_model import SalesOrder
 from django.db import transaction as db_transaction
+from inventory.models import Product
 from decimal import Decimal, ROUND_HALF_UP
 from django.utils import timezone
 from loguru import logger
@@ -12,12 +13,6 @@ class SalesOrderItemService:
     Provides methods for creating, updating, and deleting sales order items.
     Includes detailed logging for key operations.
     """
-
-    from sales.models.sales_order_item_model import SalesOrderItem
-from sales.models.sales_order_model import SalesOrder
-from inventory.models import Product
-from django.db import transaction as db_transaction
-from loguru import logger
 
 
 class SalesOrderItemService:
@@ -36,6 +31,14 @@ class SalesOrderItemService:
         unit_price: float,
         tax_rate: float
     ) -> SalesOrderItem:
+        """
+        Docstring for create_sales_order_item
+        
+        Create a sales order item.
+        1. Create SalesOrderItem
+        2. Log the creation
+        3. Return the created item
+        """
         try:
             item = SalesOrderItem.objects.create(
                 sales_order=sales_order,
@@ -52,6 +55,7 @@ class SalesOrderItemService:
         except Exception as e:
             logger.error(f"Error creating sales order item: {str(e)}")
             raise
+        
 
     @staticmethod
     @db_transaction.atomic
@@ -61,6 +65,14 @@ class SalesOrderItemService:
         unit_price: float = None,
         tax_rate: float = None
     ) -> SalesOrderItem:
+        """
+        Docstring for update_sales_order_item
+        Update a SalesOrderItem with provided fields.
+        Only non-None arguments will be applied.
+        1. Update fields on SalesOrderItem
+        2. Log the update
+        3. Return the updated item
+        """
         try:
             if quantity is not None:
                 item.quantity = quantity
@@ -69,7 +81,7 @@ class SalesOrderItemService:
             if tax_rate is not None:
                 item.tax_rate = tax_rate
 
-            item.save(update_fields=[k for k in ['quantity', 'unit_price', 'tax_rate'] if k])
+            item.save(update_fields=[k for k in ['quantity', 'unit_price', 'tax_rate'] if getattr(item, k) is not None])
             logger.info(f"Sales Order Item '{item.id}' updated.")
             return item
         except Exception as e:
@@ -79,6 +91,13 @@ class SalesOrderItemService:
     @staticmethod
     @db_transaction.atomic
     def delete_sales_order_item(item: SalesOrderItem) -> None:
+        """
+        Docstring for delete_sales_order_item
+        Delete a SalesOrderItem.
+        1. Delete the item
+        2. Log the deletion
+        3. Return None
+        """
         try:
             item_id = item.id
             item.delete()
@@ -92,6 +111,14 @@ class SalesOrderItemService:
     @staticmethod
     @db_transaction.atomic
     def update_sales_order_item_status(item: SalesOrderItem, new_status: str) ->SalesOrderItem:
+        """
+        Docstring for update_sales_order_item_status
+        
+        Update the status of a SalesOrderItem.
+        1. Update status field
+        2. Log the update
+        3. Return the updated item
+        """
         try:
             item.status = new_status
             item.save(update_fields=["status"])
@@ -105,7 +132,14 @@ class SalesOrderItemService:
 
     @staticmethod
     @db_transaction.atomic
-    def attach_to_sales_order(item: SalesOrderItem, sales_order: SalesOrder) -> SalesOrderItem:
+    def add_sales_order_item_to_sales_order(item: SalesOrderItem, sales_order: SalesOrder) -> SalesOrderItem:
+        """
+        Docstring for add_sales_order_item_to_sales_order
+        Attach a SalesOrderItem to a SalesOrder.
+        1. Update SalesOrderItem's sales_order field
+        2. Log the attachment
+        3. Return the updated item
+        """
         try:
             previous_order = item.sales_order
 

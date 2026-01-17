@@ -26,13 +26,17 @@ class Transaction(CreateUpdateBaseModel):
         ('OTHER', 'Other'),
     ]
 
-    TRANSACTION_TYPES = [
-        ('INCOMING', 'Incoming'),
-        ('OUTGOING', 'Outgoing'),
-        ('TRANSFER', 'Transfer'),
+    TRANSACTION_TYPE = [
+        ('CASH', 'Cash'),
+        ('CREDIT', 'Credit')
     ]
 
-    TRANSACTION_PAYMENT_METHODS = [
+    TRANSACTION_DIRECTION = [
+        ('INCOMING', 'Incoming'),
+        ('OUTGOING', 'Outgoing'),
+    ]
+
+    TRANSACTION_PAYMENT_METHOD = [
         ('CASH', 'Cash'),
         ('BANK', 'Bank'),
         ('ECOCASH', 'Ecocash'),
@@ -90,10 +94,11 @@ class Transaction(CreateUpdateBaseModel):
         related_name='credit_transactions'
     )
     
-    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE)
+    transaction_direction = models.CharField(max_length=20, choices=TRANSACTION_DIRECTION)
     transaction_category = models.CharField(max_length=20, choices=TRANSACTION_CATEGORIES)
     transaction_number = models.CharField(max_length=20, unique=True, editable=False)
-    payment_method = models.CharField(max_length=20, choices=TRANSACTION_PAYMENT_METHODS, default='CASH')
+    payment_method = models.CharField(max_length=20, choices=TRANSACTION_PAYMENT_METHOD, default='CASH')
     reversal_applied = models.BooleanField(default=False, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
     reference_model = models.CharField(max_length=50, null=True, blank=True)
@@ -107,7 +112,7 @@ class Transaction(CreateUpdateBaseModel):
         return number
 
     def update_total_amount(self):
-        total = self.items.aggregate(total=Sum('total_price'))['total'] or 0 #Error total_price
+        total = self.items.aggregate(total=Sum('total_price'))['total'] or 0
         if self.total_amount != total:
             self.total_amount = total
             super().save(update_fields=['total_amount'])

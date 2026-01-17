@@ -9,9 +9,27 @@ class SaleService:
 
     @staticmethod
     @db_transaction.atomic
-    def create_sale(**kwargs) -> Sale:
+    def create_sale(
+        company,
+        branch,
+        customer,
+        sale_type='CASH',
+        sales_invoice=None,
+        sale_receipt=None,
+        issued_by=None,
+        notes=None
+    ) -> Sale:
         try:
-            sale = Sale.objects.create(**kwargs)
+            sale = Sale.objects.create(
+                company=company,
+                branch=branch,
+                customer=customer,
+                sale_type=sale_type,
+                sales_invoice=sales_invoice,
+                sale_receipt=sale_receipt,
+                issued_by=issued_by,
+                notes=notes
+            )
             logger.info(f"Sale '{sale.sale_number}' created for company '{sale.company.name}'.")
             return sale
         except Exception as e:

@@ -50,6 +50,12 @@ class PurchaseService:
         tax_amount: float = 0,
         supplier_receipt: Optional[SupplierReceipt] = None,
     ) -> Purchase:
+        """
+        Docstring for create_purchase
+        
+        Creates a purchase for a product bought on credit
+
+        """
         if purchase_type not in PurchaseService.PURCHASE_TYPES:
             raise ValueError(f"Invalid purchase type: {purchase_type}")
 
@@ -75,12 +81,12 @@ class PurchaseService:
                 branch=branch
             )
 
-            debit_account = PurchasesAccountService.get_or_create_purchase_account(
+            debit_account = PurchasesAccountService.get_or_create_purchases_account(
                 company=company,
                 branch=branch
             )
         else:  # CASH purchase
-            debit_account = PurchasesAccountService.get_or_create_purchase_account(
+            debit_account = PurchasesAccountService.get_or_create_purchases_account(
                 company=company,
                 branch=branch
             )
@@ -125,6 +131,9 @@ class PurchaseService:
         supplier_receipt: Optional[SupplierReceipt] = None,
         payment_status: Optional[str] = None
     ) -> Purchase:
+        """
+        Updates a purchase object
+        """
         updated = False
 
         if total_amount is not None and purchase.total_amount != total_amount:
@@ -177,11 +186,12 @@ class PurchaseService:
     # -------------------------
     @staticmethod
     @transaction.atomic
-    def attach_invoice(purchase: Purchase, invoice: PurchaseInvoice) -> Purchase:
+    def attach_purchase_to_invoice(purchase: Purchase, invoice: PurchaseInvoice) -> Purchase:
         purchase.purchase_invoice = invoice
         purchase.save(update_fields=['purchase_invoice'])
         logger.info(f"Purchase invoice attached | purchase_id={purchase.id} | invoice_id={invoice.id}")
         return purchase
+
 
     @staticmethod
     @transaction.atomic

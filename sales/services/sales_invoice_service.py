@@ -3,6 +3,7 @@ from sales.models.sales_receipt_model import SalesReceipt
 from accounts.models.sales_account_model import SalesAccount
 from accounts.services.sales_account_service import SalesAccountService
 from sales.services.sales_invoice_item_service import SalesInvoiceItemService
+from inventory.services.product_stock_service import ProductStockService
 from django.db import transaction as db_transaction
 from transactions.services.transaction_service import TransactionService
 from decimal import Decimal, ROUND_HALF_UP
@@ -10,8 +11,10 @@ from django.utils import timezone
 from loguru import logger
 
 
-class SalesInvoiceService:
+
     
+class SalesInvoiceService:
+
     @staticmethod
     @db_transaction.atomic
     def create_sales_invoice(
@@ -20,17 +23,18 @@ class SalesInvoiceService:
         customer,
         sale=None,
         sales_order=None,
+        product_list=None,
         receipt=None,
         discount_amount=Decimal('0.00'),
         notes=None,
         issued_by=None
     ) -> SalesInvoice:
         """
-        Creates a new SalesInvoice, deducts stock, and records necessary transactions.
+        Creates a new SalesInvoice, deducts stock for all items, and records necessary transactions.
         """
         try:
-            # Create the invoice
-            invoice = SalesInvoice.objects.create(
+            # Create the SalesInvoice
+            sales_invoice = SalesInvoice.objects.create(
                 company=company,
                 branch=branch,
                 customer=customer,
@@ -44,41 +48,157 @@ class SalesInvoiceService:
 
             # Get or create sales account
             sales_account = SalesAccountService.get_or_create_sales_account(
-                company=invoice.company,
-                branch=invoice.branch
+                company=sales_invoice.company,
+                branch=sales_invoice.branch
             )
-            logger.info(f"Sales Invoice '{invoice.invoice_number}' created for company '{invoice.company.name}'.")
-            # Add items from the sales order to the invoice
-            SalesInvoiceItemService.add_order_items_to_invoice(sales_order, invoice)
-            # Deduct stock for the items in the invoice
-            SalesInvoiceService.deduct_stock_from_invoice(invoice)
+
+            logger.info(f"Sales Invoice '{sales_invoice.invoice_number}' created for company '{sales_invoice.company.name}'.")
+
+            # Create invoice items and deduct stock
+            for product in product_list or []:
+                item = SalesInvoiceItemService.create_sales_invoice_item(
+                    sales_invoice=sales_invoice,
+                    product_name=product.get("product_name"),
+                    quantity=product.get("quantity"),
+                    unit_price=product.get("unit_price"),
+                    tax_rate=product.get("tax_rate"),
+                )
+
+                SalesInvoiceItemService.add_sales_invoice_item_to_invoice(
+                    item=item,
+                    invoice=sales_invoice
+                )
+
+                # Deduct stock for this item immediately
+                ProductStockService.decrease_stock_for_sale_item(item)
+
+            # Update total amount
+            sales_invoice.update_total_amount()
 
             # Create the transaction
             transaction = TransactionService.create_transaction(
-                company=invoice.company,
-                branch=invoice.branch,
-                debit_account=invoice.customer.customer_account.account,
+                company=sales_invoice.company,
+                branch=sales_invoice.branch,
+                debit_account=sales_invoice.customer.customer_account.account,
                 credit_account=sales_account.account,
                 transaction_type='SALES_INVOICE',
                 transaction_category='SALES',
-                total_amount=Decimal(invoice.total_amount),
-                customer=invoice.customer,
+                total_amount=Decimal(sales_invoice.total_amount),
+                customer=sales_invoice.customer,
                 supplier=None,
             )
 
             # Apply transaction
             TransactionService.apply_transaction_to_accounts(transaction)
-            logger.info(f"Transaction '{transaction.transaction_number}' created for Sales Invoice '{invoice.invoice_number}'.")
+            logger.info(f"Transaction '{transaction.transaction_number}' created for Sales Invoice '{sales_invoice.invoice_number}'.")
 
-            return invoice
+            return sales_invoice
 
         except Exception as e:
             logger.error(f"Error creating sales invoice: {str(e)}")
             raise
-    
+
+
     @staticmethod
     @db_transaction.atomic
-    def get_sales_invoice_by_number(invoice_number: str) -> SalesInvoice:
+    def update_sales_invoice(
+        invoice: SalesInvoice,
+        customer=None,
+        sales_order=None,
+        sale=None,
+        receipt=None,
+        discount_amount=None,
+        notes=None,
+        status=None,
+        issued_by=None,
+        updated_products: list = None  # List of dicts with item_id and new quantity/unit_price/tax_rate
+    ) -> SalesInvoice:
+        """
+        Updates fields of a SalesInvoice and optionally adjusts invoice items.
+        - Updates invoice fields explicitly.
+        - Updates invoice item quantities and recalculates totals.
+        """
+        try:
+            update_fields = []
+
+            if customer is not None:
+                invoice.customer = customer
+                update_fields.append("customer")
+
+            if sales_order is not None:
+                invoice.sales_order = sales_order
+                update_fields.append("sales_order")
+
+            if sale is not None:
+                invoice.sale = sale
+                update_fields.append("sale")
+
+            if receipt is not None:
+                invoice.receipt = receipt
+                update_fields.append("receipt")
+
+            if discount_amount is not None:
+                invoice.discount_amount = discount_amount
+                update_fields.append("discount_amount")
+
+            if notes is not None:
+                invoice.notes = notes
+                update_fields.append("notes")
+
+            if status is not None:
+                invoice.status = status
+                update_fields.append("status")
+
+            if issued_by is not None:
+                invoice.issued_by = issued_by
+                update_fields.append("issued_by")
+
+            # Save invoice updates
+            if update_fields:
+                invoice.save(update_fields=update_fields)
+                logger.info(f"Sales Invoice '{invoice.invoice_number}' updated: {update_fields}")
+
+            # Update invoice items if provided
+            for product in updated_products or []:
+                item_id = product.get("item_id")
+                new_quantity = product.get("quantity")
+                new_unit_price = product.get("unit_price")
+                new_tax_rate = product.get("tax_rate")
+
+                item = invoice.items.get(id=item_id)
+
+                # Calculate quantity difference for stock adjustment
+                if new_quantity is not None and new_quantity != item.quantity:
+                    diff = new_quantity - item.quantity
+                    item.quantity = new_quantity
+                    # Adjust stock by the difference
+                    ProductStockService.adjust_stock_manually(
+                        product=item.product,
+                        company=invoice.company,
+                        branch=invoice.branch,
+                        quantity_change=diff,
+                        reason=f"Sales Invoice '{invoice.invoice_number}' item quantity update"
+                    )
+
+                # Update other fields
+                SalesInvoiceItemService.update_sales_invoice_item(
+                    item=item,
+                    quantity=item.quantity,
+                    unit_price=new_unit_price,
+                    tax_rate=new_tax_rate
+                )
+
+            # Recalculate total after all item updates
+            invoice.update_total_amount()
+
+            return invoice
+
+        except Exception as e:
+            logger.error(f"Error updating sales invoice '{invoice.invoice_number}': {str(e)}")
+            raise
+
+    @staticmethod
+    def get_sales_invoice_by_invoice_number(invoice_number: str) -> SalesInvoice:
         try:
             invoice = SalesInvoice.objects.get(invoice_number=invoice_number)
             return invoice
@@ -88,7 +208,9 @@ class SalesInvoiceService:
         except Exception as e:
             logger.error(f"Error retrieving sales invoice '{invoice_number}': {str(e)}")
             return None
-    
+
+
+
     @staticmethod
     def get_sales_invoices_by_customer(customer):
         try:
@@ -100,21 +222,14 @@ class SalesInvoiceService:
 
     @staticmethod
     @db_transaction.atomic
-    def update_sales_invoice(invoice: SalesInvoice, **kwargs) -> SalesInvoice:
-        try:
-            for key, value in kwargs.items():
-                setattr(invoice, key, value)
-            invoice.save(update_fields=kwargs.keys())
-            logger.info(f"Sales Invoice '{invoice.invoice_number}' updated.")
-            return invoice
-        except Exception as e:
-            logger.error(f"Error updating sales invoice '{invoice.invoice_number}': {str(e)}")
-            raise
-    
-
-    @staticmethod
-    @db_transaction.atomic
     def delete_sales_invoice(invoice: SalesInvoice) -> None:
+        """
+        Docstring for delete_sales_invoice
+        Delete a sales invoice.
+        1. Delete the SalesInvoice.
+        2. Log the deletion.
+        3. Handle exceptions.
+        """
         try:
             invoice_number = invoice.invoice_number
             invoice.delete()
@@ -122,36 +237,8 @@ class SalesInvoiceService:
         except Exception as e:
             logger.error(f"Error deleting sales invoice '{invoice.invoice_number}': {str(e)}")
             raise
-    
 
-    @staticmethod
-    @db_transaction.atomic
-    def deduct_stock_from_invoice(invoice: SalesInvoice) -> None:
-        """
-        Deducts stock for all products in a given sales invoice.
-        
-        :param invoice: SalesInvoice instance
-        """
-        try:
-            for item in invoice.items.all():
-                product = item.product
-                if product.stock < item.quantity:
-                    raise ValueError(
-                        f"Not enough stock for product '{product.name}'. "
-                        f"Available: {product.stock}, Required: {item.quantity}"
-                    )
-                product.stock -= item.quantity
-                product.save(update_fields=['stock'])
-                logger.info(
-                    f"Deducted {item.quantity} from stock of '{product.name}'. "
-                    f"New stock: {product.stock}"
-                )
-            logger.info(f"Stock updated for all items in invoice '{invoice.invoice_number}'")
-        except Exception as e:
-            logger.error(f"Error deducting stock for invoice '{invoice.invoice_number}': {str(e)}")
-            raise
 
-    
     @staticmethod
     @db_transaction.atomic
     def update_sales_invoice_status(invoice: SalesInvoice, new_status: str) -> SalesInvoice:
@@ -163,7 +250,7 @@ class SalesInvoiceService:
         except Exception as e:
             logger.error(f"Error updating status for sales invoice '{invoice.invoice_number}': {str(e)}")
             raise
-    
+
     @staticmethod
     @db_transaction.atomic
     def apply_discount(invoice: SalesInvoice, discount_amount: float) -> SalesInvoice:
@@ -180,36 +267,7 @@ class SalesInvoiceService:
         except Exception as e:
             logger.error(f"Error applying discount to sales invoice '{invoice.invoice_number}': {str(e)}")
             raise
-    
-    @staticmethod
-    @db_transaction.atomic
-    def attach_to_sale(invoice: SalesInvoice, sale) -> SalesInvoice:
-        try:
-            invoice.sale = sale
-            invoice.save(update_fields=["sale"])
-            logger.info(
-                f"Sales Invoice '{invoice.invoice_number}' attached to sale '{sale.sale_number}'."
-            )
-            return invoice
-        except Exception as e:
-            logger.error(
-                f"Error attaching sales invoice '{invoice.invoice_number}' to sale '{sale.sale_number}': {str(e)}"
-            )
-            raise
 
-    
-    @staticmethod
-    @db_transaction.atomic
-    def update_total_amount(invoice: SalesInvoice) -> SalesInvoice:
-        total = sum(
-            (item.subtotal + item.tax_amount).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            for item in invoice.items.all()
-        )
-        invoice.total_amount = total - (invoice.discount_amount or 0)
-        invoice.save(update_fields=['total_amount'])
-        logger.info(f"Updated total amount for Sales Invoice '{invoice.invoice_number}' to {invoice.total_amount}")
-        return invoice
-    
 
     @staticmethod
     @db_transaction.atomic
@@ -226,7 +284,7 @@ class SalesInvoiceService:
         invoice.save(update_fields=["is_voided", "void_reason", "voided_at", "status"])
         logger.warning(f"Sales Invoice '{invoice.invoice_number}' voided. Reason: {reason}")
         return invoice
-    
+
 
 
     @staticmethod
@@ -237,30 +295,6 @@ class SalesInvoiceService:
         invoice.save(update_fields=['status', 'issued_at'])
         logger.info(f"Sales Invoice '{invoice.invoice_number}' marked as ISSUED")
         return invoice
-    
 
-    @staticmethod
-    @db_transaction.atomic
-    def restore_stock_for_invoice(invoice: SalesInvoice) -> None:
-        """
-        Restores stock for all products in a given sales invoice.
-        Useful if an invoice is voided or deleted.
-        
-        :param invoice: SalesInvoice instance
-        """
-        try:
-            for item in invoice.items.all():
-                product = item.product
-                product.stock += item.quantity
-                product.save(update_fields=['stock'])
-                logger.info(
-                    f"Restored {item.quantity} to stock of '{product.name}'. "
-                    f"New stock: {product.stock}"
-                )
-            logger.info(f"Stock restored for all items in invoice '{invoice.invoice_number}'")
-        except Exception as e:
-            logger.error(f"Error restoring stock for invoice '{invoice.invoice_number}': {str(e)}")
-            raise
 
-    
 
