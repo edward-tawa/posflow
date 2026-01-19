@@ -27,6 +27,7 @@ class TransactionItemService:
         unit_price: Decimal = Decimal("0.00"),
         tax_rate: Decimal = Decimal("0.00")
     ) -> TransactionItem:
+        """Create a new Transaction Item and associate it with the given Transaction."""
 
         if transaction.transaction_type == Transaction.CASH_TRANSFER and product is not None:
             raise ValidationError("Cannot add a product item to a cash transfer transaction.")
@@ -40,7 +41,8 @@ class TransactionItemService:
             tax_rate=tax_rate
         )
         logger.info(f"Transaction item created | id={item.id}")
-        TransactionService.recalculate_totals(transaction)
+        TransactionItemService.add_to_transaction(item, transaction)
+        transaction.update_total_amount()
         return item
 
 
@@ -57,6 +59,7 @@ class TransactionItemService:
         unit_price: Decimal = None,
         tax_rate: Decimal = None
     ) -> TransactionItem:
+        """Update fields of the Transaction Item."""
 
         if product is not None:
             item.product = product
@@ -71,6 +74,7 @@ class TransactionItemService:
 
         item.save()
         logger.info(f"Transaction item updated | id={item.id}")
+        item.transaction.update_total_amount()
         return item
 
 
@@ -80,11 +84,12 @@ class TransactionItemService:
     @staticmethod
     @transaction.atomic
     def delete_transaction_item(item: TransactionItem) -> None:
+        """Delete the specified Transaction Item."""
         transaction_ref = item.transaction
         item_id = item.id
         item.delete()
         logger.info(f"Transaction item deleted | id={item_id}")
-        TransactionService.recalculate_totals(transaction_ref)
+        transaction_ref.update_total_amount()
 
 
     # -------------------------
@@ -96,6 +101,7 @@ class TransactionItemService:
         item: TransactionItem,
         transaction: Transaction
     ) -> TransactionItem:
+        """Adds the TransactionItem to the specified Transaction."""
 
         old_transaction = item.transaction
 
@@ -128,6 +134,7 @@ class TransactionItemService:
         item: TransactionItem,
         new_status: str
     ) -> TransactionItem:
+        """Update the status of the Transaction Item."""
 
         ALLOWED_STATUSES = {"pending", "completed", "canceled"}
 

@@ -1,14 +1,13 @@
 from branch.services.branch_service import BranchService
 from accounts.services.branch_account_service import BranchAccountService
 from transactions.services.transaction_service import TransactionService
+from inventory.services.product_stock_service import ProductStockService
 from transfers.models.transfer_model import Transfer
 from django.db import transaction as db_transaction
-from loguru import logger
 from users.models import User
 from company.models import Company
 from branch.models import Branch
 from django.db.models import F, Sum, FloatField
-# from inventory.services.product_stock_service import ProductStockService
 from loguru import logger
 from datetime import date
 
@@ -127,38 +126,6 @@ class TransferService:
         transfer_number = transfer.reference_number
         transfer.delete()
         logger.info(f"Transfer '{transfer_number}' deleted.")
-
-
-    # -------------------------
-    # RECALCULATE TOTAL
-    # -------------------------
-
-    
-
-    @staticmethod
-    @db_transaction.atomic
-    def recalculate_total(transfer: Transfer):
-        """
-        Recalculate the total_amount for a transfer based on its type:
-        - For product transfers: sum(quantity * unit_price) of all items.
-        - For cash transfers: use the cash_transfer.amount.
-        """
-        if transfer.type == "product":
-            # Ensure a ProductTransfer exists
-            if hasattr(transfer, "product_transfer") and transfer.product_transfer:
-                total = transfer.product_transfer.items.aggregate(
-                    total_amount=Sum(F('quantity') * F('unit_price'), output_field=FloatField())
-                ).get('total_amount') or 0
-                transfer.total_amount = total
-                transfer.save(update_fields=['total_amount'])
-                logger.info(f"Product Transfer '{transfer.reference_number}' total recalculated: {total}")
-
-        elif transfer.type == "cash":
-            # Ensure a CashTransfer exists
-            if hasattr(transfer, "cash_transfer") and transfer.cash_transfer:
-                transfer.total_amount = transfer.cash_transfer.total_amount
-                transfer.save(update_fields=['total_amount'])
-                logger.info(f"Cash Transfer '{transfer.reference_number}' total updated: {transfer.total_amount}")
     
 
     # -------------------------
@@ -201,23 +168,23 @@ class TransferService:
             raise ValueError("Only pending transfers can be performed")
 
 
-        if transfer.type == 'product':
+        if transfer.type.lower() == 'product':
             if not transfer.items.exists():
                 raise ValueError("Cannot perform product transfer without attached product items")
 
             # Recalculate totals
-            TransferService.recalculate_total(transfer)
+            transfer.update_total_amount()
 
             if transfer.total_amount <= 0:
                 raise ValueError("Transfer amount must be greater than zero")
-
+            
             # Move Stock
             ProductStockService.decrease_stock_for_transfer(transfer)
             ProductStockService.increase_stock_for_transfer(transfer)
         
-        elif transfer.type == 'cash':
+        elif transfer.type.lower() == 'cash':
 
-            TransferService.recalculate_total(transfer)
+            transfer.update_total_amount()
 
             if transfer.total_amount <= 0:
                 raise ValueError("Transfer amount must be greater than zero")
@@ -240,7 +207,7 @@ class TransferService:
         # Record Transaction
         transaction = TransactionService.create_transaction(
             company=transfer.company,
-            branch=transfer.branch,
+            branch=transfer.source_branch,  # assigned to source branch because that's where it originates
             debit_account=dest_branch_account,
             credit_account=source_branch_account,
             transaction_type=f'{transfer.type.upper()}_TRANSFER',
@@ -260,8 +227,56 @@ class TransferService:
             f"{transfer.type.capitalize()} Transfer '{transfer.reference_number}' performed successfully."
         )
 
-
         return transfer
 
 
     
+    @staticmethod
+    @db_transaction.atomic
+    def reverse_transfer(transfer: Transfer) -> Transfer:
+        """
+        Reverses a transfer by swapping source and destination branches.
+        """
+        original_source = transfer.source_branch
+        original_destination = transfer.destination_branch
+
+        transfer.source_branch = original_destination
+        transfer.destination_branch = original_source
+
+        transfer.save(update_fields=['source_branch', 'destination_branch'])
+
+        if transfer.type.lower() == 'product':
+            ProductStockService.decrease_stock_for_transfer(transfer)
+            ProductStockService.increase_stock_for_transfer(transfer)
+
+        source_branch_account = BranchAccountService.create_or_get_branch_account(
+            branch=original_destination,
+            company=transfer.company
+        )
+        dest_branch_account = BranchAccountService.create_or_get_branch_account(
+            branch=original_source,
+            company=transfer.company
+        )
+
+         # Record Transaction
+        transaction = TransactionService.create_transaction(
+            company=transfer.company,
+            branch=transfer.source_branch,  # assigned to source branch because that's where it originates
+            debit_account=dest_branch_account,
+            credit_account=source_branch_account,
+            transaction_type='PRODUCT_TRANSFER',
+            transaction_category='PRODUCT_TRANSFER',
+            total_amount=transfer.total_amount,
+            supplier=None,
+            customer=None,
+        )
+        TransactionService.apply_transaction_to_accounts(transaction)
+
+        logger.info(
+            f"Transfer '{transfer.id}' reversed: "
+            f"{original_source} <-> {original_destination}"
+        )
+
+        if transfer:
+            transfer.update_total_amount()
+        return transfer

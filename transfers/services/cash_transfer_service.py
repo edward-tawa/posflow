@@ -36,7 +36,8 @@ class CashTransferService:
         notes: str | None = None
 
     ) -> CashTransfer:
-        cash_transfer = CashTransfer.objects.create(
+        """Creates a new CashTransfer instance."""
+        cash_transfer: CashTransfer = CashTransfer.objects.create(
             transfer=transfer,
             company=company,
             branch=branch,
@@ -48,9 +49,9 @@ class CashTransferService:
             notes=notes
         )
         logger.info(
-            f"Cash Transfer '{cash_transfer.id}' created for Transfer '{transfer.transfer_number}'."
+            f"Cash Transfer '{cash_transfer.pk}' created for Transfer '{transfer.reference_number}'."
         )
-        TransferService.recalculate_total(transfer)
+        CashTransferService.add_to_transfer(cash_transfer, transfer)
         return cash_transfer
 
     # -------------------------
@@ -64,6 +65,7 @@ class CashTransferService:
         amount: Decimal | None = None,
         notes: str | None = None
     ) -> CashTransfer:
+        """Updates the specified fields of the CashTransfer."""
         updated_fields = []
         if amount is not None:
             cash_transfer.amount = amount
@@ -74,9 +76,10 @@ class CashTransferService:
 
         if updated_fields:
             cash_transfer.save(update_fields=updated_fields)
-            logger.info(f"Cash Transfer '{cash_transfer.id}' updated: {', '.join(updated_fields)}")
-            if cash_transfer.transfer:
-                TransferService.recalculate_total(cash_transfer.transfer)
+            logger.info(f"Cash Transfer '{cash_transfer.pk}' updated: {', '.join(updated_fields)}")
+            transfer: Transfer = cash_transfer.transfer
+            if transfer:
+                transfer.update_total_amount()
 
         return cash_transfer
 
@@ -86,14 +89,14 @@ class CashTransferService:
     @staticmethod
     @db_transaction.atomic
     def delete_cash_transfer(cash_transfer: CashTransfer) -> None:
-        transfer = cash_transfer.transfer
-        transfer_number = cash_transfer.transfer.transfer_number if cash_transfer.transfer else 'None'
-        cash_transfer_id = cash_transfer.id
+        transfer: Transfer = cash_transfer.transfer
+        transfer_number = cash_transfer.transfer.reference_number if cash_transfer.transfer else 'None'
+        cash_transfer_id = cash_transfer.pk
         cash_transfer.delete()
         logger.info(f"Cash Transfer '{cash_transfer_id}' deleted from Transfer '{transfer_number}'.")
 
         if transfer:
-            TransferService.recalculate_total(transfer)
+            transfer.update_total_amount()
 
 
     # -------------------------
@@ -101,59 +104,32 @@ class CashTransferService:
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def attach_to_transfer(cash_transfer: CashTransfer, transfer: Transfer) -> CashTransfer:
-        previous_transfer = cash_transfer.transfer
+    def add_to_transfer(cash_transfer: CashTransfer, transfer: Transfer) -> CashTransfer:
+        """Adds the CashTransfer to the specified Transfer."""
         cash_transfer.transfer = transfer
         cash_transfer.save(update_fields=['transfer'])
         logger.info(
-            f"Cash Transfer '{cash_transfer.id}' attached to Transfer '{transfer.transfer_number}' "
-            f"(previous transfer: '{previous_transfer.transfer_number if previous_transfer else 'None'}')."
+            f"Cash Transfer '{cash_transfer.pk}' added to Transfer '{transfer.reference_number}' "
         )
 
-        if previous_transfer:
-            TransferService.recalculate_total(previous_transfer)
-        TransferService.recalculate_total(transfer)
-
+        transfer.update_total_amount()
         return cash_transfer
 
 
     @staticmethod
     @db_transaction.atomic
-    def detach_from_transfer(cash_transfer: CashTransfer) -> CashTransfer:
-        previous_transfer = cash_transfer.transfer
+    def remove_from_transfer(cash_transfer: CashTransfer) -> CashTransfer:
+        """
+        Removes the CashTransfer from its associated Transfer.
+        """
+        previous_transfer: Transfer = cash_transfer.transfer
         cash_transfer.transfer = None
         cash_transfer.save(update_fields=['transfer'])
         logger.info(
-            f"Cash Transfer '{cash_transfer.id}' detached from Transfer "
-            f"'{previous_transfer.transfer_number if previous_transfer else 'None'}'."
+            f"Cash Transfer '{cash_transfer.pk}' removed from Transfer "
+            f"'{previous_transfer.reference_number if previous_transfer else 'None'}'."
         )
-
-        if previous_transfer:
-            TransferService.recalculate_total(previous_transfer)
-        return cash_transfer
-
-
-    # -------------------------
-    # HOLD / RELEASE
-    # -------------------------
-    @staticmethod
-    @db_transaction.atomic
-    def hold_cash_transfer(cash_transfer: CashTransfer) -> CashTransfer:
-        cash_transfer.status = CashTransfer.STATUS_HOLD
-        cash_transfer.save(update_fields=['status'])
-        logger.info(f"Cash Transfer '{cash_transfer.id}' is now on hold.")
-
-        if cash_transfer.transfer:
-            TransferService.recalculate_total(cash_transfer.transfer)
-        return cash_transfer
-
-    @staticmethod
-    @db_transaction.atomic
-    def release_cash_transfer(cash_transfer: CashTransfer) -> CashTransfer:
-        cash_transfer.status = CashTransfer.STATUS_RELEASED
-        cash_transfer.save(update_fields=['status'])
-        logger.info(f"Cash Transfer '{cash_transfer.id}' has been released from hold.")
-
-        if cash_transfer.transfer:
-            TransferService.recalculate_total(cash_transfer.transfer)
+        transfer: Transfer = previous_transfer
+        if transfer:
+            transfer.update_total_amount()
         return cash_transfer
