@@ -1,3 +1,4 @@
+from .puchase_item_model import PurchaseItem
 from .purchase_invoice_item_model import PurchaseInvoiceItem
 from .purchase_invoice_model import PurchaseInvoice
 from .purchase_model import Purchase

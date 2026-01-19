@@ -1,3 +1,7 @@
 from django.contrib import admin
+from transfers.models import *
 
-# Register your models here.
+admin.site.register(CashTransfer)
+admin.site.register(ProductTransferItem)
+admin.site.register(ProductTransfer)
+admin.site.register(Transfer)
