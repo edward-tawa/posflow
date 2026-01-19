@@ -46,7 +46,7 @@ class Account(CreateUpdateBaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Account {self.name} ({self.account_number})"
+        return f"Account Name:{self.name} | Account Number:{self.account_number}"
     
 
     class Meta:
