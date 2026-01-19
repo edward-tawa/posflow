@@ -1,0 +1,1 @@
+from loans.admin import loan_register
