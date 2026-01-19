@@ -7,7 +7,7 @@ from django.db import transaction as db_transaction
 from users.models import User
 from company.models import Company
 from branch.models import Branch
-from django.db.models import F, Sum, FloatField
+# from django.db.models import F, Sum, FloatField
 from loguru import logger
 from datetime import date
 

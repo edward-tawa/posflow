@@ -10,7 +10,7 @@ class ProductAdmin(admin.ModelAdmin):
         'name',
         'product_category',
         'description',
-        'price',
+        'unit_price',
         'stock',
         'sku'
     ]

@@ -1,9 +1,9 @@
 from transactions.models.transaction_item_model import TransactionItem
-from transactions.services.transaction_service import TransactionService
+# from transactions.services.transaction_service import TransactionService
 from transactions.models.transaction_model import Transaction
 from inventory.models.product_model import Product
 from django.db import transaction
-from django.db import QuerySet
+# from django.db import QuerySet
 from django.core.exceptions import ValidationError
 from loguru import logger
 from decimal import Decimal

@@ -15,7 +15,7 @@ from suppliers.models.purchase_invoice_model import PurchaseInvoice
 from suppliers.models.purchase_return_item_model import PurchaseReturnItem
 from suppliers.models.purchase_return_model import PurchaseReturn
 from transfers.models.transfer_model import Transfer
-from transfers.services.transfer_service import TransferService
+# from transfers.services.transfer_service import TransferService
 from django.db.models import Sum, F, FloatField
 from inventory.models.stock_movement_model import StockMovement
 
