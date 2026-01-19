@@ -1,0 +1,7 @@
+from payments.admin import expense_register
+from payments.admin import payment_allocation_register
+from payments.admin import payment_method_register
+from payments.admin import payment_receipt_item_register
+from payments.admin import payment_receipt_register
+from payments.admin import payment_register
+from payments.admin import refund_register

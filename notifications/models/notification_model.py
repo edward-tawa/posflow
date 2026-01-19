@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from config.models.create_update_base_model import CreateUpdateBaseModel
 from django.utils import timezone
 from loguru import logger
@@ -32,7 +33,7 @@ class Notification(CreateUpdateBaseModel):
     message = models.TextField()
     notification_from_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, related_name='notification_contenttype')
     notification_from_object_id = models.PositiveIntegerField(null=True, blank=True)
-    notification_from = models.GenericForeignKey('notification_from_content_type', 'notification_from_object_id')
+    notification_from = GenericForeignKey('notification_from_content_type', 'notification_from_object_id')
     notification_to = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='notifications')
     is_read = models.BooleanField(default=False)
     status = models.CharField(max_length=50, choices=NOTIFICATION_STATUS, default='PENDING')

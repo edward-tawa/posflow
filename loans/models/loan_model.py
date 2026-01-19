@@ -24,7 +24,7 @@ class Loan(CreateUpdateBaseModel):
     notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"Loan {self.id} for {self.borrower.name} - Amount: {self.loan_amount}"
+        return f"Loan {self.id} for {self.borrower.first_name} - Amount: {self.loan_amount}"
 
     class Meta:
         ordering = ['-start_date']

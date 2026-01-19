@@ -50,6 +50,9 @@ urlpatterns = [
     # Payments app endpoints
     path('posflow/', include('payments.urls')),
 
+    # Notifications app endpoints
+    #path('posflow/', include('notifications.urls')),
+
     # Promotions app endpoints
     # path('posflow/', include('promotions.urls')), # 'PROMOTIONS DOES NOT HAVE ANYTHING'
 
