@@ -1,0 +1,1 @@
+from currency.admin import currency_register
