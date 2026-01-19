@@ -1,0 +1,1 @@
+from activity_log.admin import activity_log_register

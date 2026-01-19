@@ -57,4 +57,4 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
     objects = UserManager()
 
     def __str__(self):
-        return f"{self.username} ({self.role})"
+        return f"{self.username} ({self.role}) Company ({self.company})"
