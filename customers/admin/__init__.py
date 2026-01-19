@@ -1,0 +1,2 @@
+from customers.admin import customer_register
+from customers.admin import customer_branch_history_register
