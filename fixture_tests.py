@@ -6,7 +6,7 @@ from config.models import *
 from customers.models import *
 from inventory.models import *
 from loans.models import *
-from notifications.models import *
+# from notifications.models import *
 from payments.models import *
 from promotions.models import *
 from reports.models import *
