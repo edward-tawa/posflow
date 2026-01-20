@@ -1,6 +1,6 @@
 # suppliers/signals/purchase_item_activity_logs_signal.py
 from config.activity_log.crud_registry import register_crud_signals
-from suppliers.models.puchase_item_model import PurchaseItem
+from suppliers.models.purchase_item_model import PurchaseItem
 
 
 register_crud_signals(
