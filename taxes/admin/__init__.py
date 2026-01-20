@@ -1,0 +1,5 @@
+from taxes.admin import fiscal_device_register
+from taxes.admin import fiscal_document_register
+from taxes.admin import fiscal_invoice_item_register
+from taxes.admin import fiscal_invoice_register
+from taxes.admin import fiscalisation_response_register
