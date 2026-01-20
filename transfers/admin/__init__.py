@@ -1,0 +1,4 @@
+from transfers.admin import cash_transfer_register
+from transfers.admin import product_transfer_item_register
+from transfers.admin import product_transfer_register
+from transfers.admin import transfer_register
