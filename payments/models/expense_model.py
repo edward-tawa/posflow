@@ -59,3 +59,6 @@ class Expense(CreateUpdateBaseModel):
         if not self.expense_number:
             self.expense_number = self.generate_expense_number()
         super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.company}({self.expense_number})"
