@@ -11,6 +11,7 @@ class CustomerBranchHistory(CreateUpdateBaseModel):
 
     class Meta:
         unique_together = ('branch', 'customer')
+        verbose_name_plural = 'customer branch history'
     
     def __str__(self):
         return f"BranchHistory: {self.customer} at {self.branch} on {self.last_visited}"

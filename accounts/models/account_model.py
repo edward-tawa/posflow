@@ -46,8 +46,7 @@ class Account(CreateUpdateBaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Account Name:{self.name} | Account Number:{self.account_number}"
+        return f"Account Name:{self.name} | Account Number:{self.account_number} | Tpye:{self.account_type}"
     
-
     class Meta:
         unique_together = ('company', 'name')

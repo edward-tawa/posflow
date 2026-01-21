@@ -16,6 +16,9 @@ class Branch(CreateUpdateBaseModel):
     opening_date = models.DateField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
 
+    class Meta:
+        verbose_name_plural = 'branches'
+
     def __str__(self):
         return f"{self.name} - {self.company.name}"
 
