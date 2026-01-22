@@ -48,20 +48,22 @@ class TransferService:
         logger.info(f"Transfer '{transfer.reference_number}' created.")
         return transfer
     
+    
     @staticmethod
     @db_transaction.atomic
     def get_transfer(
         *,
         company: Company,
-        branch: Branch,
+        source_branch: Branch,
         reference_number: str
     ) -> Transfer:
         transfer = Transfer.objects.get(
             company=company,
-            branch=branch,
+            source_branch=source_branch,
             reference_number=reference_number,
         )
         return transfer
+    
 
     # -------------------------
     # UPDATE
@@ -117,6 +119,7 @@ class TransferService:
 
         return transfer
 
+
     # -------------------------
     # DELETE
     # -------------------------
@@ -128,6 +131,7 @@ class TransferService:
         logger.info(f"Transfer '{transfer_number}' deleted.")
     
 
+
     # -------------------------
     # HOLD / RELEASE
     # -------------------------
@@ -136,11 +140,12 @@ class TransferService:
     def hold_transfer(transfer: Transfer) -> Transfer:
         if transfer.status in ["completed", "cancelled"]:
             raise ValueError("Cannot put a completed or cancelled transfer on hold.")
-
         transfer.status = "on_hold"
         transfer.save(update_fields=['status'])
         logger.info(f"Transfer '{transfer.reference_number}' is now on hold.")
         return transfer
+
+
 
     @staticmethod
     @db_transaction.atomic

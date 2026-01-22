@@ -21,7 +21,7 @@ class SalesReturnSerializer(CompanyValidationMixin, serializers.ModelSerializer)
             'company_summary',
             'branch_summary',
             'customer',
-            'sale_order',
+            'sales_order',
             'return_number',
             'return_date',
             'total_amount',

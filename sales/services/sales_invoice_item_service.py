@@ -1,3 +1,4 @@
+from inventory.services.product_stock_service import ProductStockService
 from sales.models.sales_invoice_item_model import SalesInvoiceItem
 from sales.models.sales_invoice_model import SalesInvoice
 from django.db import transaction as db_transaction
@@ -32,11 +33,25 @@ class SalesInvoiceItemService:
                 unit_price=unit_price,
                 tax_rate=tax_rate
             )
+
             logger.info(
                 f"Sales Invoice Item '{item.id}' created for invoice '{item.sales_invoice.invoice_number}'."
             )
-            SalesInvoiceItemService.update_invoice_totals(sales_invoice)
+
+            # add/attach to sales invoice
+            SalesInvoiceItemService.add_sales_invoice_item_to_invoice(
+                item=item,
+                invoice=sales_invoice
+            )
+
+            # Decrease stock for the sold item
+            ProductStockService.decrease_stock_for_sale_item(item)
+
+            # Update invoice totals
+            sales_invoice.update_total_amount()
+
             return item
+        
         except Exception as e:
             logger.error(f"Error creating sales invoice item: {str(e)}")
             raise
@@ -138,24 +153,7 @@ class SalesInvoiceItemService:
                 f"Error adding items to sales invoice '{invoice.invoice_number}': {str(e)}"
             )
             raise
-
-
-    @staticmethod
-    @db_transaction.atomic
-    def calculate_totals(item: SalesInvoiceItem) -> dict:
-        subtotal = item.subtotal
-        tax = item.tax_amount
-        total = item.total_price
-        return {"subtotal": subtotal, "tax": tax, "total": total}
-
-    @staticmethod
-    @db_transaction.atomic
-    def update_invoice_totals(invoice: SalesInvoice) -> SalesInvoice:
-        total_amount = sum(item.subtotal + item.tax_amount for item in invoice.items.all())
-        invoice.total_amount = total_amount
-        invoice.save(update_fields=['total_amount'])
-        logger.info(f"Updated totals for Sales Invoice '{invoice.invoice_number}' to {total_amount}")
-        return invoice
+    
 
     @staticmethod
     @db_transaction.atomic
@@ -165,6 +163,7 @@ class SalesInvoiceItemService:
         invoice.save(update_fields=['status', 'paid_at'])
         logger.info(f"Marked Sales Invoice '{invoice.invoice_number}' as PAID.")
         return invoice
+
 
     @staticmethod
     @db_transaction.atomic
@@ -182,6 +181,7 @@ class SalesInvoiceItemService:
         except Exception as e:
             logger.error(f"Error bulk creating sales invoice items for invoice '{invoice.invoice_number}': {str(e)}")
             raise
+
 
     
     @staticmethod

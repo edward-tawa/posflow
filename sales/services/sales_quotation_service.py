@@ -17,7 +17,7 @@ class SalesQuotationService:
         created_by,
         notes: str = None,
         status: str = "draft",
-        products: list = None
+
     ) -> SalesQuotation:
         """
         Docstring for create_sales_quotation
@@ -40,19 +40,7 @@ class SalesQuotationService:
             logger.info(
                 f"Sales Quotation '{sales_quotation.quotation_number}' (ID {sales_quotation.id}) created for company '{sales_quotation.company.name}'."
             )
-            for product in products or []:
-                item = SalesQuotationItemService.create_sales_quotation_item(
-                    sales_quotation=sales_quotation,
-                    product_name=product.get("product_name"),
-                    quantity=product.get("quantity"),
-                    unit_price=product.get("unit_price"),
-                    tax_rate=product.get("tax_rate"),
-                    sales_invoice=product.get("sales_invoice"),
-                )
-                SalesQuotationItemService.add_quotation_item_to_quotation(
-                    sales_quotation=sales_quotation,
-                    item=item
-                )
+    
             return sales_quotation
 
         except Exception as e:

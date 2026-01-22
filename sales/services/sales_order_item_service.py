@@ -48,10 +48,21 @@ class SalesOrderItemService:
                 unit_price=unit_price,
                 tax_rate=tax_rate
             )
+
             logger.info(
                 f"Sales Order Item '{item.id}' created for order '{sales_order.order_number}'."
             )
+
+            # Add/attach to sales order
+            SalesOrderItemService.add_sales_order_item_to_sales_order(
+                item=item,
+                sales_order=sales_order
+            )
+
+            # Update total amount on the order
+            sales_order.update_total_amount()
             return item
+        
         except Exception as e:
             logger.error(f"Error creating sales order item: {str(e)}")
             raise
@@ -83,6 +94,10 @@ class SalesOrderItemService:
 
             item.save(update_fields=[k for k in ['quantity', 'unit_price', 'tax_rate'] if getattr(item, k) is not None])
             logger.info(f"Sales Order Item '{item.id}' updated.")
+
+            # Update total amount on the order
+            item.sales_order.update_total_amount()
+
             return item
         except Exception as e:
             logger.error(f"Error updating sales order item '{item.id}': {str(e)}")
@@ -102,6 +117,9 @@ class SalesOrderItemService:
             item_id = item.id
             item.delete()
             logger.info(f"Sales Order Item '{item_id}' deleted.")
+
+            # Update total amount on the order
+            item.sales_order.update_total_amount()
         except Exception as e:
             logger.error(f"Error deleting sales order item '{item.id}': {str(e)}")
             raise

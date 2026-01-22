@@ -12,7 +12,14 @@ class SalesOrderService:
 
     @staticmethod
     @db_transaction.atomic
-    def create_sales_order(*, company, branch, customer, sales_person, notes: str | None = None, product_list: list[dict]) -> SalesOrder:
+    def create_sales_order(
+        *,
+        company,
+        branch,
+        customer,
+        sales_person,
+        notes: str | None = None,
+        ) -> SalesOrder:
         """
         Create a sales order with optional order items.
 
@@ -33,22 +40,7 @@ class SalesOrderService:
             )
 
             logger.info(f"Sales Order '{sales_order.order_number}' created for company '{sales_order.company.name}'.")
-
-            # Create order items
-            for item_data in product_list or []:
-                product = item_data.get("product")
-                SalesOrderItemService.create_sales_order_item(
-                    sales_order=sales_order,
-                    product=product,
-                    product_name=product.name if product else item_data.get("product_name", "Unknown"),
-                    quantity=item_data.get("quantity", 1),
-                    unit_price=item_data.get("unit_price", 0.0),
-                    tax_rate=item_data.get("tax_rate", 0.0)
-                )
-
-            # Update total amount
-            sales_order.update_total_amount()
-
+            
             return sales_order
 
         except Exception as e:

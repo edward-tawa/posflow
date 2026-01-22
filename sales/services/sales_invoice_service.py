@@ -10,8 +10,6 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.utils import timezone
 from loguru import logger
 
-
-
     
 class SalesInvoiceService:
 
@@ -23,8 +21,6 @@ class SalesInvoiceService:
         customer,
         sale=None,
         sales_order=None,
-        product_list=None,
-        receipt=None,
         discount_amount=Decimal('0.00'),
         notes=None,
         issued_by=None
@@ -33,6 +29,7 @@ class SalesInvoiceService:
         Creates a new SalesInvoice, deducts stock for all items, and records necessary transactions.
         """
         try:
+
             # Create the SalesInvoice
             sales_invoice = SalesInvoice.objects.create(
                 company=company,
@@ -40,11 +37,11 @@ class SalesInvoiceService:
                 customer=customer,
                 sale=sale,
                 sales_order=sales_order,
-                receipt=receipt,
                 discount_amount=discount_amount,
                 notes=notes,
                 issued_by=issued_by
             )
+
 
             # Get or create sales account
             sales_account = SalesAccountService.get_or_create_sales_account(
@@ -54,26 +51,6 @@ class SalesInvoiceService:
 
             logger.info(f"Sales Invoice '{sales_invoice.invoice_number}' created for company '{sales_invoice.company.name}'.")
 
-            # Create invoice items and deduct stock
-            for product in product_list or []:
-                item = SalesInvoiceItemService.create_sales_invoice_item(
-                    sales_invoice=sales_invoice,
-                    product_name=product.get("product_name"),
-                    quantity=product.get("quantity"),
-                    unit_price=product.get("unit_price"),
-                    tax_rate=product.get("tax_rate"),
-                )
-
-                SalesInvoiceItemService.add_sales_invoice_item_to_invoice(
-                    item=item,
-                    invoice=sales_invoice
-                )
-
-                # Deduct stock for this item immediately
-                ProductStockService.decrease_stock_for_sale_item(item)
-
-            # Update total amount
-            sales_invoice.update_total_amount()
 
             # Create the transaction
             transaction = TransactionService.create_transaction(
@@ -269,6 +246,7 @@ class SalesInvoiceService:
             raise
 
 
+
     @staticmethod
     @db_transaction.atomic
     def void_invoice(invoice: SalesInvoice, reason: str = "") -> SalesInvoice:
@@ -284,7 +262,6 @@ class SalesInvoiceService:
         invoice.save(update_fields=["is_voided", "void_reason", "voided_at", "status"])
         logger.warning(f"Sales Invoice '{invoice.invoice_number}' voided. Reason: {reason}")
         return invoice
-
 
 
     @staticmethod

@@ -4,7 +4,7 @@ from loguru import logger
 
 class SalesOrderItem(CreateUpdateBaseModel):
     sales_order = models.ForeignKey('sales.SalesOrder', on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='sales_order_items')
+    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='items')
     product_name = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)

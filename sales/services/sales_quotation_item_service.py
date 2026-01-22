@@ -16,7 +16,6 @@ class SalesQuotationItemService:
         quantity: int,
         unit_price: float,
         tax_rate: float,
-        sales_invoice: SalesInvoice = None
     ) -> SalesQuotationItem:
         """
         Docstring for create_sales_quotation_item
@@ -32,11 +31,19 @@ class SalesQuotationItemService:
                 quantity=quantity,
                 unit_price=unit_price,
                 tax_rate=tax_rate,
-                sales_invoice=sales_invoice
             )
+            
             logger.info(
                 f"Sales Quotation Item '{item.id}' created for quotation '{sales_quotation.quotation_number}'."
             )
+
+            # Add/attach to sales quotation
+            SalesQuotationItemService.add_quotation_item_to_quotation(
+                sales_quotation=sales_quotation,
+                item=item
+            )
+
+            # Update total amount on the quotation
             sales_quotation.update_total_amount()
             return item
         except Exception as e:
@@ -120,6 +127,7 @@ class SalesQuotationItemService:
             raise
     
 
+
     @staticmethod
     @db_transaction.atomic
     def add_quotation_items_to_quotation(sales_quotation: SalesQuotation, items: list[SalesQuotationItem]) -> None:
@@ -136,4 +144,55 @@ class SalesQuotationItemService:
             logger.info(f"Added {len(items)} items to Sales Quotation '{sales_quotation.quotation_number}'.")
         except Exception as e:
             logger.error(f"Error adding items to sales quotation '{sales_quotation.quotation_number}': {str(e)}")
+            raise
+
+    
+
+
+    @staticmethod
+    @db_transaction.atomic
+    def add_quotation_item_to_quotation(sales_quotation: SalesQuotation, item: SalesQuotationItem) -> None:
+        """
+        Docstring for add_quotation_item_to_quotation
+        
+        Add a single existing quotation item to the sales quotation.
+        """
+        try:
+            item.sales_quotation = sales_quotation
+            item.save(update_fields=["sales_quotation"])
+            sales_quotation.update_total_amount()
+            logger.info(f"Added item '{item.id}' to Sales Quotation '{sales_quotation.quotation_number}'.")
+        except Exception as e:
+            logger.error(f"Error adding item '{item.id}' to sales quotation '{sales_quotation.quotation_number}': {str(e)}")
+            raise
+
+
+
+    @staticmethod
+    @db_transaction.atomic
+    def remove_quotation_item_from_quotation(sales_quotation: SalesQuotation, item: SalesQuotationItem) -> None:
+        """
+        Remove a single existing quotation item from the sales quotation.
+        Updates the quotation total after removal.
+        """
+        try:
+            if item.sales_quotation != sales_quotation:
+                logger.warning(
+                    f"Quotation Item '{item.id}' is not attached to Sales Quotation '{sales_quotation.quotation_number}'."
+                )
+                return
+
+            # Detach the item
+            item.sales_quotation = None
+            item.save(update_fields=["sales_quotation"])
+
+            # Update quotation total
+            sales_quotation.update_total_amount()
+
+            logger.info(f"Removed item '{item.id}' from Sales Quotation '{sales_quotation.quotation_number}'.")
+
+        except Exception as e:
+            logger.error(
+                f"Error removing item '{item.id}' from Sales Quotation '{sales_quotation.quotation_number}': {str(e)}"
+            )
             raise

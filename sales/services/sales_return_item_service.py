@@ -42,6 +42,12 @@ class SalesReturnItemService:
                 f"Sales Return Item '{item.id}' created for return '{item.sales_return.return_number}'."
             )
 
+            # add/attach to sales return
+            SalesReturnItemService.add_sales_return_item_to_sales_return(
+                sales_return=sales_return,
+                item=item
+            )
+
             # Increase stock for the returned item
             ProductStockService.increase_stock_for_sales_return_item(item)
 
@@ -129,7 +135,7 @@ class SalesReturnItemService:
         3. Update parent return total
         """
         try:
-            item_id = item.id
+            item_id = item.pk
             sales_return = item.sales_return
 
             # Decrease stock for the returned item before deletion
@@ -143,5 +149,74 @@ class SalesReturnItemService:
             logger.error(f"Error deleting sales return item '{item.id}': {str(e)}")
             raise
 
+    # =====================
+    # ATTACH / DETACH
+    # =====================
+    @staticmethod
+    @db_transaction.atomic
+    def add_sales_return_item_to_sales_return(
+        sales_return: SalesReturn,
+        item: SalesReturnItem
+    ) -> SalesReturnItem:
+        """
+        Attach an existing sales return item to a sales return.
+        Updates the sales return total if attachment is successful.
+        """
+        try:
+            if item.sales_return == sales_return:
+                logger.warning(
+                    f"Sales Return Item '{item.id}' is already attached to Sales Return '{sales_return.return_number}'."
+                )
+                return item
 
-    
+            item.sales_return = sales_return
+            item.save(update_fields=["sales_return"])
+
+            # Update parent return total
+            sales_return.update_total_amount()
+
+            logger.info(
+                f"Sales Return Item '{item.id}' attached to Sales Return '{sales_return.return_number}'."
+            )
+            return item
+
+        except Exception as e:
+            logger.error(
+                f"Error attaching item '{item.id}' to Sales Return '{sales_return.return_number}': {str(e)}"
+            )
+            raise
+
+
+    @staticmethod
+    @db_transaction.atomic
+    def remove_sales_return_item_from_sales_return(
+        sales_return: SalesReturn,
+        item: SalesReturnItem
+    ) -> SalesReturnItem:
+        """
+        Detach a sales return item from a sales return.
+        Updates the parent sales return total if detachment is successful.
+        """
+        try:
+            if item.sales_return != sales_return:
+                logger.warning(
+                    f"Sales Return Item '{item.id}' is not attached to Sales Return '{sales_return.return_number}'."
+                )
+                return item
+
+            item.sales_return = None
+            item.save(update_fields=["sales_return"])
+
+            # Update parent return total
+            sales_return.update_total_amount()
+
+            logger.info(
+                f"Sales Return Item '{item.id}' detached from Sales Return '{sales_return.return_number}'."
+            )
+            return item
+
+        except Exception as e:
+            logger.error(
+                f"Error detaching item '{item.id}' from Sales Return '{sales_return.return_number}': {str(e)}"
+            )
+            raise

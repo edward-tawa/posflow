@@ -27,7 +27,6 @@ class ProductTransferItemService:
         transfer: Transfer,
         product_transfer: ProductTransfer,
         company: Company,
-        branch: Branch,
         product: Product,
         quantity: int,
         unit_price: float,
@@ -36,7 +35,6 @@ class ProductTransferItemService:
             transfer=transfer,
             product_transfer=product_transfer,
             company=company,
-            branch=branch,
             product=product,
             quantity=quantity,
             unit_price=unit_price

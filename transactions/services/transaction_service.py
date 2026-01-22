@@ -1,5 +1,4 @@
-# from django.db import models
-# from django.db.models import Q
+from django.db.models import Q
 from inventory.models.product_model import Product
 from transactions.models.transaction_model import Transaction
 from company.models.company_model import Company
@@ -8,11 +7,9 @@ from accounts.models.account_model import Account
 from customers.models.customer_model import Customer
 from suppliers.models.supplier_model import Supplier
 from accounts.services.account_service import AccountsService
-# from rest_framework.response import Response
 from loguru import logger
 from decimal import Decimal
 from django.db import transaction as db_transaction
-# from config.pagination.pagination import StandardResultsSetPagination
 from transactions.services.transaction_item_service import TransactionItemService
 
 
@@ -76,6 +73,8 @@ class TransactionService:
         except Exception as e:
             logger.exception(f"Error creating transaction: {str(e)}")
             raise
+
+    
         
     @staticmethod
     @db_transaction.atomic
@@ -119,6 +118,7 @@ class TransactionService:
             logger.exception(f"Transaction {transaction.transaction_number} failed: {e}, transaction status {transaction.status}")
             raise
     
+
     @staticmethod
     @db_transaction.atomic
     def reverse_transaction(transaction):
@@ -137,7 +137,9 @@ class TransactionService:
             credit_account.balance = credit_balance + amount
             credit_account.save(update_fields=['balance'])
             logger.info(f"Reversed Credit Account {credit_account.id}: {credit_balance} → {credit_account.balance}")
-
+            
+            # return the reversed transaction
+            return transaction
         except Exception as e:
             logger.error(f"Transaction reversal {transaction.transaction_number} failed: {e}")
             raise
@@ -164,6 +166,7 @@ class TransactionService:
         logger.debug(f"Transaction summary generated for {transaction.transaction_number}")
         return summary
     
+
     @staticmethod
     @db_transaction.atomic
     def delete_transaction(transaction):
@@ -174,7 +177,6 @@ class TransactionService:
         except Exception as e:
             logger.error(f"Failed to delete transaction {transaction.transaction_number}: {e}")
             raise
-    
     
 
 

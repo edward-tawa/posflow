@@ -1,4 +1,5 @@
 from inventory.services.product_stock_service import ProductStockService
+from sales.models.sales_return_item_model import SalesReturnItem
 from sales.models.sales_return_model import SalesReturn
 from accounts.models.sales_returns_account_model import SalesReturnsAccount
 from sales.services.sales_return_item_service import SalesReturnItemService
@@ -27,12 +28,7 @@ class SalesReturnService:
         company,
         branch,
         customer,
-        sale_order,
-        product,
-        product_name: str,
-        quantity: int,
-        unit_price: Decimal,
-        tax_rate: Decimal = Decimal("0.00"),
+        sales_order,
         sale=None,
         return_date=None,
         processed_by=None,
@@ -52,22 +48,12 @@ class SalesReturnService:
                 company=company,
                 branch=branch,
                 customer=customer,
-                sale_order=sale_order,
+                sales_order=sales_order,
                 sale=sale,
                 return_date=return_date,
                 total_amount=Decimal("0.00"),  # will calculate after creating item
                 processed_by=processed_by,
                 notes=notes
-            )
-
-            # Create SalesReturnItem and adjust stock
-            item = SalesReturnItemService.create_sales_return_item(
-                sales_return=sales_return,
-                product=product,
-                product_name=product_name,
-                quantity=quantity,
-                unit_price=unit_price,
-                tax_rate=tax_rate
             )
 
 
@@ -81,7 +67,7 @@ class SalesReturnService:
                 transaction_type="SALES_RETURN",
                 transaction_category="SALES_RETURN",
                 total_amount=sales_return.total_amount,
-                customer=customer
+                customer=customer,
             )
             TransactionService.apply_transaction_to_accounts(transaction)
 
@@ -121,55 +107,6 @@ class SalesReturnService:
     
 
 
-    # -------------------------
-    # ADD ITEMS
-    # -------------------------
-    @staticmethod
-    @db_transaction.atomic
-    def add_items_to_sales_return(
-        sales_return: SalesReturn,
-        items: list[dict]
-    ):
-        """
-        Add multiple items to an existing sales return.
-        Each item dict should have:
-            - product
-            - product_name
-            - quantity
-            - unit_price
-            - tax_rate (optional)
-        """
-        if items is None or not isinstance(items, list) or len(items) == 0:
-            raise ValueError("Items must be a non-empty list of item data dictionaries.")
-        
-        required_keys = {"product", "product_name", "quantity", "unit_price"}
-        for idx, item_data in enumerate(items, start=1):
-            if not all(k in item_data for k in required_keys):
-                raise ValueError(f"Item at index {idx} is missing required keys: {required_keys - item_data.keys()}")
-
-        try:
-            created_items = []
-
-            for item_data in items:
-                created_item = SalesReturnItemService.create_sales_return_item(
-                    sales_return=sales_return,
-                    product=item_data["product"],
-                    product_name=item_data["product_name"],
-                    quantity=item_data["quantity"],
-                    unit_price=item_data["unit_price"],
-                    tax_rate=item_data.get("tax_rate", Decimal("0.00"))
-                )
-                created_items.append(created_item)
-
-            logger.info(
-                f"{len(created_items)} items added to Sales Return '{sales_return.return_number}'."
-            )
-
-            return created_items
-        except Exception as e:
-            logger.error(f"Error adding items to Sales Return '{sales_return.return_number}': {str(e)}")
-            raise
-
 
     # -------------------------
     # REVERSE
@@ -206,3 +143,7 @@ class SalesReturnService:
 
         logger.info(f"Sales Return '{sales_return.return_number}' reversed successfully.")
         return sales_return
+
+
+
+    

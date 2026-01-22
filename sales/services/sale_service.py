@@ -3,9 +3,9 @@ from sales.models.sale_model import Sale
 from django.db import transaction as db_transaction
 
 
+# To be revisited to see where ochestration will be conducted from.
 
 class SaleService:
-
 
     @staticmethod
     @db_transaction.atomic
@@ -37,18 +37,38 @@ class SaleService:
             raise
 
     
+
+    # To be edited below as needed for total amounts
     @staticmethod
     @db_transaction.atomic
-    def update_totals(sale: Sale) -> None:
-        if sale.sales_invoice:
-            invoice_items = sale.sales_invoice.items.all()  # Adjust if different related_name
-            sale.total_amount = sum([item.total for item in invoice_items])
-            sale.tax_amount = sum([item.tax for item in invoice_items])
-        else:
-            sale.total_amount = 0
-            sale.tax_amount = 0
-        sale.save()
-        logger.info(f"Updated totals for Sale '{sale.sale_number}' - Total: {sale.total_amount}, Tax: {sale.tax_amount}")
+    def update_sale(
+        sale: Sale,
+        customer=None,
+        sale_type: str | None = None,
+        sales_invoice=None,
+        sale_receipt=None,
+        issued_by=None,
+        notes: str | None = None
+    ) -> Sale:
+        try:
+            if customer is not None:
+                sale.customer = customer
+            if sale_type is not None:
+                sale.sale_type = sale_type
+            if sales_invoice is not None:
+                sale.sales_invoice = sales_invoice
+            if sale_receipt is not None:
+                sale.sale_receipt = sale_receipt
+            if issued_by is not None:
+                sale.issued_by = issued_by
+            if notes is not None:
+                sale.notes = notes
+            sale.save()
+            logger.info(f"Sale '{sale.sale_number}' updated.")
+            return sale
+        except Exception as e:
+            logger.error(f"Error updating sale '{sale.sale_number}': {str(e)}")
+            raise
 
 
     

@@ -17,7 +17,6 @@ class DeliveryNoteService:
         branch,
         customer,
         sales_order,
-        product_list=None,
         issued_by=None,
         notes=None,
         status='pending'
@@ -33,26 +32,14 @@ class DeliveryNoteService:
                 status=status
             )
             logger.info(f"Delivery Note '{note.delivery_number}' created for company '{note.company.name}'.")
-            for product in product_list:
-                delivery_note_item = DeliveryNoteItemService.create_delivery_note_item(
-                    delivery_note=note,
-                    product=None,
-                    product_name="Sample Item",
-                    quantity=1,
-                    unit_price=0.0,
-                    tax_rate=0.0
-                )
-                DeliveryNoteItemService.add_to_note(
-                    item=delivery_note_item,
-                    note=note
-                )
-
-
             
             return note
+        
         except Exception as e:
             logger.error(f"Error creating delivery note: {str(e)}")
             raise
+
+        
     @staticmethod
     @db_transaction.atomic
     def update_delivery_note(

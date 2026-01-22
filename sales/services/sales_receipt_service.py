@@ -50,11 +50,9 @@ class SalesReceiptService:
 
             logger.info(f"Sales Receipt '{receipt.receipt_number}' created for company '{receipt.company.name}'.")
 
-            # Add items from the sales order to the receipt
-            SalesReceiptItemService.add_order_items_to_receipt(sales_order, receipt)
-
             # Prepare accounts and transaction
             debit_account = CashAccountService.get_or_create_cash_account(company=company, branch=branch)
+            
             transaction = TransactionService.create_transaction(
                 company=company,
                 branch=branch,
@@ -71,7 +69,7 @@ class SalesReceiptService:
             TransactionService.apply_transaction_to_accounts(transaction)
             logger.info(f"Transaction '{transaction.transaction_number}' created for Sales Receipt '{receipt.receipt_number}'.")
 
-            return receipt
+            return receipt, sales_order
 
         except Exception as e:
             logger.error(f"Error creating sales receipt: {str(e)}")
