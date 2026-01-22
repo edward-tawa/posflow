@@ -12,6 +12,7 @@ class PurchaseOrder(CreateUpdateBaseModel):
     quantity_ordered = models.PositiveIntegerField()
     order_date = models.DateField(auto_now_add=True)
     delivery_date = models.DateField(blank=True, null=True)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='purchase_orders')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=50, choices=[
         ('pending', 'Pending'),

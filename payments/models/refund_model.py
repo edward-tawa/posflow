@@ -30,7 +30,8 @@ class Refund(CreateUpdateBaseModel):
     )
     refund_number = models.CharField(max_length=20, unique=True, editable=False)
     refund_date = models.DateTimeField(auto_now_add=True)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='refunds')
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     reason = models.CharField(max_length=50, choices=REASON_CHOICES, default='customer_request')
     processed_by = models.ForeignKey(
         'users.User',

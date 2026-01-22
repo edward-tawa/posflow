@@ -23,6 +23,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
             'quantity_ordered',
             'order_date',
             'delivery_date',
+            'currency',
             'total_amount',
             'status',
             'notes',

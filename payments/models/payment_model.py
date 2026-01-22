@@ -37,7 +37,8 @@ class Payment(CreateUpdateBaseModel):
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE, default='incoming')
     payment_number = models.CharField(max_length=20, unique=True, editable=False)
     payment_date = models.DateTimeField(auto_now_add=True)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='payments')
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     method = models.CharField(max_length=50)
     reference_model = models.CharField(max_length=50, null=True, blank=True) # reference the model that triggered the payment

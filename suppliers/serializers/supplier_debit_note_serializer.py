@@ -22,6 +22,7 @@ class SupplierDebitNoteSerializer(CompanyValidationMixin, serializers.ModelSeria
             'debit_note_number',
             'debit_date',
             'issued_by',
+            'currency',
             'total_amount',
             'created_at',
             'updated_at',

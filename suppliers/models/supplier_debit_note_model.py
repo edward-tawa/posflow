@@ -25,6 +25,7 @@ class SupplierDebitNote(CreateUpdateBaseModel):
         null=True,
         related_name='issued_supplier_debit_notes'
     )
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='supplier_debit_notes')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     def generate_debit_note_number(self):

@@ -23,6 +23,7 @@ class SalesReceiptSerializer(serializers.ModelSerializer):
             'customer',
             'receipt_number',
             'receipt_date',
+            'currency',
             'total_amount',
             'issued_by',
             'notes',

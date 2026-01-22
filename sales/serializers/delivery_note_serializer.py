@@ -24,6 +24,7 @@ class DeliveryNoteSerializer(CompanyValidationMixin, serializers.ModelSerializer
             'sales_order',
             'delivery_number',
             'delivery_date',
+            'currency',
             'total_amount',
             'issued_by',
             # 'tax_rate',

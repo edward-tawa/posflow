@@ -18,6 +18,7 @@ class SalesQuotationSerializer(serializers.ModelSerializer):
             'customer',
             'quotation_number',
             'quotation_date',
+            'currency',
             'valid_until',
             'total_amount',
             'status',

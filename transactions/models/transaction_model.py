@@ -104,6 +104,7 @@ class Transaction(CreateUpdateBaseModel):
     reference_model = models.CharField(max_length=50, null=True, blank=True)
     reference_id = models.PositiveIntegerField(null=True, blank=True)
     transaction_date = models.DateTimeField(auto_now_add=True)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='transactions')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     def generate_transaction_number(self):

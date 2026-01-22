@@ -32,6 +32,7 @@ class PurchaseInvoice(CreateUpdateBaseModel):
         on_delete=models.CASCADE,
         related_name='purchase_invoices'
     )
+
     purchase_order = models.ForeignKey(
         'suppliers.PurchaseOrder',
         on_delete=models.CASCADE,
@@ -42,6 +43,7 @@ class PurchaseInvoice(CreateUpdateBaseModel):
     invoice_number = models.CharField(max_length=20, unique=True, editable=False)
     invoice_date = models.DateTimeField(auto_now_add=True)
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='purchase_invoices')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     issued_by = models.ForeignKey(
         'users.User',

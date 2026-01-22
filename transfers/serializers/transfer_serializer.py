@@ -27,6 +27,8 @@ class TransferSerializer(serializers.ModelSerializer):
             'received_by',
             'sent_by',
             'transfer_date',
+            'currency',
+            'total_amount',
             'notes',
             'type',
             'status',

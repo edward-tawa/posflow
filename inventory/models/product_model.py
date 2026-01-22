@@ -12,9 +12,11 @@ class Product(CreateUpdateBaseModel):
     name = models.CharField(max_length=255)
     description = models.TextField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='products')
     product_category = models.ForeignKey('inventory.ProductCategory', on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     stock = models.IntegerField(default=0)
     sku = models.CharField(max_length=100, unique=False, blank=True)  # SKU will be unique per company
+
 
     class Meta:
         unique_together = ('company', 'branch', 'sku')  # SKU unique per company

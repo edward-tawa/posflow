@@ -39,7 +39,8 @@ class Expense(CreateUpdateBaseModel):
     )
     status = models.CharField(max_length=20, choices=[('PENDING', 'Pending'), ('PAID', 'Paid'), ('UPAID', 'Unpaid')], default='PENDING')
     category = models.CharField(max_length=20, choices=EXPENSE_CATEGORY)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='expenses')
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     description = models.TextField(blank=True, null=True)
     incurred_by = models.ForeignKey(
         'users.User',

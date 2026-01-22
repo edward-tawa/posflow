@@ -24,6 +24,8 @@ class SalesPayment(CreateUpdateBaseModel):
         'payments.Payment', on_delete=models.CASCADE, related_name='sales_payments'
     )
 
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='sales_payments')
+
     amount_applied = models.DecimalField(max_digits=12, decimal_places=2)
 
 

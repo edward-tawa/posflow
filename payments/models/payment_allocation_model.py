@@ -30,7 +30,8 @@ class PaymentAllocation(CreateUpdateBaseModel):
     allocated_to = GenericForeignKey('allocated_to_content_type', 'allocated_to_object_id')
     allocation_number = models.CharField(max_length=20, unique=True, editable=False)
     allocation_date = models.DateTimeField(auto_now_add=True)
-    amount_allocated = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='payment_allocations')
+    total_amount_allocated = models.DecimalField(max_digits=12, decimal_places=2)
 
     def generate_allocation_number(self):
         number = f"{self.PREFIX}-{uuid.uuid4().hex[:8].upper()}"

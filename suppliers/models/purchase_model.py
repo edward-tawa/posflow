@@ -40,6 +40,7 @@ class Purchase(CreateUpdateBaseModel):
     payment_status = models.CharField(
         max_length=15, choices=PAYMENT_STATUS, default='UNPAID'
     )
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='purchases')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     tax_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     purchase_type = models.CharField(max_length=10, choices=PURCHASE_TYPE, default='CASH')

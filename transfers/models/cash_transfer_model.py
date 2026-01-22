@@ -34,6 +34,7 @@ class CashTransfer(CreateUpdateBaseModel):
         related_name='cash_transfers_in'
     )
 
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='cash_transfers')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     notes = models.TextField(blank=True, null=True)
 
@@ -42,6 +43,13 @@ class CashTransfer(CreateUpdateBaseModel):
             models.Index(fields=['company', 'source_branch_account']),
             models.Index(fields=['company', 'destination_branch_account']),
         ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['source_branch_account', 'destination_branch_account', 'transfer'],
+                name='unique_cash_transfer_per_source_dest_transfer'
+            )
+        ]
+
 
     def clean(self):
         """Validate CashTransfer before saving."""

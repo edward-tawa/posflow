@@ -5,7 +5,7 @@ import uuid
 class SupplierReceipt(CreateUpdateBaseModel):
     PREFIX = 'SUPP-RECEIPT'
     STATUS_CHOICES = [('DRAFT', 'Draft'), ('RECEIVED', 'Received'), ('VOIDED', 'Voided')]
-
+    
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='supplier_receipts')
     supplier_payment = models.ForeignKey('suppliers.PurchasePayment', on_delete=models.SET_NULL, null=True, blank=True, related_name='supplier_receipts')
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='supplier_receipts')
@@ -14,6 +14,7 @@ class SupplierReceipt(CreateUpdateBaseModel):
     purchase_invoice = models.ForeignKey('suppliers.PurchaseInvoice', on_delete=models.SET_NULL, null=True, blank=True, related_name='supplier_receipts')
     receipt_number = models.CharField(max_length=20, unique=True)
     receipt_date = models.DateTimeField(auto_now_add=True)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='supplier_receipts')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     is_voided = models.BooleanField(default=False)
     void_reason = models.TextField(blank=True, null=True)

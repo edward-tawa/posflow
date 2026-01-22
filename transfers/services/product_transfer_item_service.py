@@ -71,6 +71,37 @@ class ProductTransferItemService:
                 transfer.update_total_amount()
 
         return item
+    
+
+    @staticmethod
+    def get_product_transfer_items(
+        transfer: Transfer,
+        product: Product,
+    ):
+        try:
+            item = ProductTransferItem.objects.get(
+                transfer=transfer,
+                product=product,
+            )
+            return item
+        except ProductTransferItem.DoesNotExist:
+            logger.error(
+                f"Product Transfer Item for product '{product.name}' in transfer '{transfer.id}' does not exist."
+            )
+            return None
+        
+    @staticmethod
+    def get_product_transfer_item_by_id(
+        item_id: int,
+    ) -> ProductTransferItem | None:
+        try:
+            item = ProductTransferItem.objects.get(id=item_id)
+            return item
+        except ProductTransferItem.DoesNotExist:
+            logger.error(
+                f"Product Transfer Item with ID '{item_id}' does not exist."
+            )
+            return None
 
     # -------------------------
     # DELETE

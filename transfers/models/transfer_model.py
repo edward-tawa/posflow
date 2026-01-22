@@ -34,6 +34,7 @@ class Transfer(CreateUpdateBaseModel):
     received_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_received')
     sent_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_sent')
     transfer_date = models.DateField(auto_now_add=True)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='transfers')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     notes = models.TextField(blank=True, null=True)
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
@@ -90,6 +91,7 @@ class Transfer(CreateUpdateBaseModel):
         indexes = [
             models.Index(fields=['company', 'source_branch',]),
             models.Index(fields=['company', 'destination_branch',]),
+            models.Index(fields=['company', 'currency']),
         ]
 
     def __str__(self):

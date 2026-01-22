@@ -23,6 +23,7 @@ class TransactionSerializer(CompanyValidationMixin, serializers.ModelSerializer)
             'payment_method',
             'transaction_number',
             'transaction_date',
+            'currency',
             'total_amount',
             'created_at',
             'updated_at',

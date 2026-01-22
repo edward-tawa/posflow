@@ -9,6 +9,7 @@ from users.models import User
 
 
 class ExpenseSerializer(CompanyValidationMixin, serializers.ModelSerializer):
+    # Expense Serializer with company validation and summary fields
     company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
     incurred_by_summary = serializers.SerializerMethodField(read_only=True)
@@ -21,7 +22,8 @@ class ExpenseSerializer(CompanyValidationMixin, serializers.ModelSerializer):
             'branch_summary',
             'expense_number',
             'expense_date',
-            'amount',
+            'currency',
+            'total_amount',
             'description',
             'incurred_by',
             'incurred_by_summary',

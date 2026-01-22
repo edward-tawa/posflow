@@ -21,6 +21,7 @@ class SalesPaymentSerializer(CompanyValidationMixin, serializers.ModelSerializer
             'branch_summary',
             'sales_order',
             'payment',
+            'currency',
             'amount_applied',
             'sales_receipt',
             'created_at',

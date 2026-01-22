@@ -24,6 +24,7 @@ class SalesReturnSerializer(CompanyValidationMixin, serializers.ModelSerializer)
             'sales_order',
             'return_number',
             'return_date',
+            'currency',
             'total_amount',
             'processed_by',
             'notes',

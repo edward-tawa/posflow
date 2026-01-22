@@ -30,6 +30,7 @@ class SalesOrder(CreateUpdateBaseModel):
         choices=Status.choices,
         default=Status.DRAFT
     )
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='sales_orders')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     sales_person = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, related_name='processed_sales_orders')
     notes = models.TextField(blank=True, null=True)

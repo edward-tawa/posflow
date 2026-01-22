@@ -22,6 +22,7 @@ class SupplierCreditNoteSerializer(CompanyValidationMixin, serializers.ModelSeri
             'credit_note_number',
             'credit_date',
             'issued_by',
+            'currency',
             'total_amount',
             'created_at',
             'updated_at',

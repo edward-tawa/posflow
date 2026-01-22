@@ -22,6 +22,7 @@ class SalesInvoiceSerializer(CompanyValidationMixin, serializers.ModelSerializer
             'customer',
             'invoice_number',
             'invoice_date',
+            'currency',
             'total_amount',
             'issued_by',
             'notes',

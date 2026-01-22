@@ -24,6 +24,7 @@ class SalesInvoice(CreateUpdateBaseModel):
     
     invoice_number = models.CharField(max_length=20, unique=True)
     invoice_date = models.DateTimeField(auto_now_add=True)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='sales_invoices')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')

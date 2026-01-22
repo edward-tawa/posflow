@@ -27,12 +27,9 @@ class CashTransferService:
         *,
         transfer: Transfer,
         company: Company,
-        branch: Branch,
-        source_branch: Branch,
-        destination_branch: Branch,
         source_branch_account: BranchAccount,
         destination_branch_account: BranchAccount,
-        amount: Decimal,
+        total_amount: Decimal,
         notes: str | None = None
 
     ) -> CashTransfer:
@@ -40,12 +37,9 @@ class CashTransferService:
         cash_transfer: CashTransfer = CashTransfer.objects.create(
             transfer=transfer,
             company=company,
-            branch=branch,
-            source_branch=source_branch,
-            destination_branch=destination_branch,
             source_branch_account=source_branch_account,
             destination_branch_account=destination_branch_account,
-            amount=amount,
+            total_amount=total_amount,
             notes=notes
         )
         logger.info(
@@ -62,14 +56,14 @@ class CashTransferService:
     def update_cash_transfer(
         cash_transfer: CashTransfer,
         *,
-        amount: Decimal | None = None,
+        total_amount: Decimal | None = None,
         notes: str | None = None
     ) -> CashTransfer:
         """Updates the specified fields of the CashTransfer."""
         updated_fields = []
-        if amount is not None:
-            cash_transfer.amount = amount
-            updated_fields.append("amount")
+        if total_amount is not None:
+            cash_transfer.total_amount = total_amount
+            updated_fields.append("total_amount")
         if notes is not None:
             cash_transfer.notes = notes
             updated_fields.append("notes")
@@ -82,6 +76,24 @@ class CashTransferService:
                 transfer.update_total_amount()
 
         return cash_transfer
+    
+
+    @staticmethod
+    def get_cash_transfer(source_account, destination_account, transfer) -> CashTransfer:
+        """Retrieve a CashTransfer by source, destination accounts and transfer."""
+        try:
+            cash_transfer = CashTransfer.objects.get(
+                source_branch_account=source_account,
+                destination_branch_account=destination_account,
+                transfer=transfer
+            )
+            return cash_transfer
+        except CashTransfer.DoesNotExist:
+            logger.error(
+                f"Cash Transfer not found for source '{source_account.pk}', "
+                f"destination '{destination_account.pk}', transfer '{transfer.reference_number}'."
+            )
+            raise
 
     # -------------------------
     # DELETE

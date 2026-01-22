@@ -31,7 +31,8 @@ class PaymentAllocationSerializer(CompanyValidationMixin, serializers.ModelSeria
             'allocated_to_summary',
             'allocation_number',
             'allocation_date',
-            'amount_allocated',
+            'currency',
+            'total_amount_allocated',
             'created_at',
             'updated_at',
         ]

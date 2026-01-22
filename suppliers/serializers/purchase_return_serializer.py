@@ -25,6 +25,7 @@ class PurchaseReturnSerializer(serializers.ModelSerializer):
             'branch_summary',
             'return_date',
             'issued_by',
+            'currency',
             'total_amount',
             'items',
             'created_at',

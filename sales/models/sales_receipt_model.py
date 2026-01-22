@@ -15,6 +15,7 @@ class SalesReceipt(CreateUpdateBaseModel):
     sales_order = models.ForeignKey('sales.SalesOrder', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_receipts')
     receipt_number = models.CharField(max_length=20, unique=True)
     receipt_date = models.DateTimeField(auto_now_add=True)
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='sales_receipts')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_voided = models.BooleanField(default=False)
     void_reason = models.TextField(blank=True, null=True)

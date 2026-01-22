@@ -24,6 +24,7 @@ class PurchaseInvoiceSerializer(CompanyValidationMixin, serializers.ModelSeriali
             'purchase_order',
             'invoice_number',
             'invoice_date',
+            'currency',
             'total_amount',
             'balance',
             'issued_by',
