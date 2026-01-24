@@ -11,7 +11,7 @@ class PaymentAdmin(admin.ModelAdmin):
         'payment_type',
         'payment_number',
         'payment_date',
-        'amount',
+        'total_amount',
         'status',
         'method'
     ]

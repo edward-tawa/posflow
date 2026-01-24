@@ -12,7 +12,7 @@ class PurchasePaymentAllocationAdmin(admin.ModelAdmin):
         'purchase_invoice',
         'allocation_number',
         'allocation_date',
-        'allocated_amount',
+        'total_allocated_amount',
         'allocated_by'
     ]
 

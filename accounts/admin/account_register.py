@@ -10,6 +10,7 @@ class AccountAdmin(admin.ModelAdmin):
         'branch',
         'account_number',
         'account_type',
+        'currency',
         'balance',
         'is_active',
         'is_frozen'

@@ -8,7 +8,7 @@ class PurchasePaymentAdmin(admin.ModelAdmin):
         'supplier',
         'payment',
         'purchase_invoice',
-        'amount_paid',
+        'total_amount_paid',
         'payment_date'
     ]
 

@@ -46,6 +46,14 @@ class UserSerializer(serializers.ModelSerializer):
         }
     
     def create(self, validated_data):
+        request = self.context.get('request')
+        company_data = None
+        try:
+            company_data = Company.objects.get(name = request.user.name)
+        except Exception as e:
+            logger.error(e)
+            return f'Error: {e}'
+        validated_data['company'] = company_data
         password = validated_data.pop('password')
         # Pop is_staff if provided, default to False
         is_staff = validated_data.pop('is_staff', False)

@@ -8,7 +8,6 @@ class SalesQuotationAdmin(admin.ModelAdmin):
         'company',
         'branch',
         'customer',
-        'product_name',
         'quotation_number',
         'quotation_date',
         'total_amount',

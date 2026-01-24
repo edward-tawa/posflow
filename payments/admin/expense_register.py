@@ -12,7 +12,7 @@ class ExpenseAdmin(admin.ModelAdmin):
         'payment',
         'status',
         'category',
-        'amount',
+        'total_amount',
         'incurred_by'
     ]
 

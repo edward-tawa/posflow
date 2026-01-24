@@ -10,7 +10,7 @@ class PaymentReceiptAdmin(admin.ModelAdmin):
         'payment',
         'receipt_number',
         'receipt_date',
-        'amount',
+        'total_amount',
         'issued_by'
     ]
 

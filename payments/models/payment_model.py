@@ -56,7 +56,7 @@ class Payment(CreateUpdateBaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.payment_number} - {self.amount}"
+        return f"{self.payment_number} - {self.total_amount}"
 
     class Meta:
         ordering = ['-payment_date']

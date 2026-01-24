@@ -10,7 +10,7 @@ class RefundAdmin(admin.ModelAdmin):
         'payment',
         'refund_number',
         'refund_date',
-        'amount',
+        'total_amount',
         'reason',
         'processed_by',
         'notes'

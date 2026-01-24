@@ -10,7 +10,7 @@ class PaymentAllocationAdmin(admin.ModelAdmin):
         'payment',
         'allocation_number',
         'allocation_date',
-        'amount_allocated'
+        'total_amount_allocated'
     ]
 
     list_filter = [
