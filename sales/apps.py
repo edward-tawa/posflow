@@ -8,7 +8,6 @@ class SalesConfig(AppConfig):
 
     def ready(self):
         import sales.signals.sales_order_activity_logs_signal
-        import sales.signals.sales_payment_activity_logs_signal
         import sales.signals.sales_return_activity_logs_signal
         import sales.signals.sales_return_item_activity_logs_signal
         import sales.signals.sales_quotation_item_activity_logs_signal

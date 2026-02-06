@@ -4,15 +4,7 @@ from config.models.create_update_base_model import CreateUpdateBaseModel
 
 
 class ProductTransfer(CreateUpdateBaseModel):
-
-    STATUS_HOLD = "HOLD"
-    STATUS_RELEASED = "RELEASED"
-    STATUS_CHOICES = [
-        (STATUS_HOLD, "On Hold"),
-        (STATUS_RELEASED, "Released"),
-    ]
-
-
+    # Product Transfer model to handle product-specific details
     transfer = models.OneToOneField(
         'transfers.Transfer',
         on_delete=models.CASCADE,
@@ -20,36 +12,27 @@ class ProductTransfer(CreateUpdateBaseModel):
     )
 
     company = models.ForeignKey(
-        Company,
+        'company.Company',
         on_delete=models.CASCADE,
         related_name='product_transfers'
     )
+
+    
+    notes = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.company != self.transfer.company:
+            self.company = self.transfer.company
+        super().save(*args, **kwargs)
     
 
-    branch = models.ForeignKey(
-        'branch.Branch',
-        on_delete=models.CASCADE,
-        related_name='product_transfers'
-    )
-
-    source_branch = models.ForeignKey(
-        'branch.Branch',
-        on_delete=models.CASCADE,
-        related_name='outgoing_product_transfers',null=True
-    )
-
-    destination_branch = models.ForeignKey(
-        'branch.Branch',
-        on_delete=models.CASCADE,
-        related_name='incoming_product_transfers', null=True
-    )
-    status = models.CharField(
-        max_length=10,
-        choices=STATUS_CHOICES,
-        default=STATUS_RELEASED
-    )
-    notes = models.TextField(blank=True, null=True)
+    class Meta:
+        ordering = ['-created_at', 'id']
+        indexes = [
+            models.Index(fields=['company', 'transfer',]),
+        ]
 
     def __str__(self):
         ref = self.transfer.reference_number if self.transfer else "NO-TRANSFER"
-        return f"ProductTransfer {ref}: {self.source_branch} -> {self.destination_branch}"
+        return f"ProductTransfer {ref}: {self.transfer.source_branch} -> {self.transfer.destination_branch}"
+

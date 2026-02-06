@@ -1,6 +1,6 @@
 from django.db import models
 from config.models.create_update_base_model import CreateUpdateBaseModel
-from inventory.models.stock_take_model import StockTake
+
 
 class StockAdjustment(CreateUpdateBaseModel):
     ADJUSTMENT_REASON = (
@@ -12,7 +12,7 @@ class StockAdjustment(CreateUpdateBaseModel):
 
     stock_take = models.ForeignKey('inventory.StockTake', on_delete=models.CASCADE, related_name='adjustments')
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='stock_adjustments')
-
+    
     quantity_before = models.IntegerField()
     quantity_after = models.IntegerField()
     adjustment_quantity = models.IntegerField()

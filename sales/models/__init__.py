@@ -5,7 +5,6 @@ from .sales_invoice_item_model import SalesInvoiceItem
 from .sales_invoice_model import SalesInvoice
 from .sales_order_item_model import SalesOrderItem
 from .sales_order_model import SalesOrder
-from .sales_payment_model import SalesPayment
 from .sales_quotation_item_model import SalesQuotationItem
 from .sales_quotation_model import SalesQuotation
 from .sales_receipt_item_model import SalesReceiptItem

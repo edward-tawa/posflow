@@ -8,7 +8,7 @@ from config.pagination.pagination import StandardResultsSetPagination
 from payments.models import Expense
 from payments.serializers.expense_serializer import ExpenseSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
-from payments.services.expense_service import ExpenseService
+from payments.services.expense.expense_service import ExpenseService
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status

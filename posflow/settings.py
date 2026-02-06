@@ -77,7 +77,6 @@ LOCAL_APPS = [
     "taxes",
     "transactions",
     "transfers",
-    "currency",
     "posflow",    # core project app (if you have one)
     "config",     # if your project config is treated as an app
 ]

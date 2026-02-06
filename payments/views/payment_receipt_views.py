@@ -5,10 +5,10 @@ from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication,
 from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
-from payments.models import PaymentReceipt
+from payments.models.payment_receipt_model import PaymentReceipt
 from payments.serializers.payment_receipt_serializer import PaymentReceiptSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
-from payments.services.payment_receipt_service import PaymentReceiptService
+from payments.services.payment_receipt.payment_receipt_service import PaymentReceiptService
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status

@@ -1,4 +1,4 @@
-from transfers.services.product_transfer_item_service import ProductTransferItemService
+from transfers.services.product_service.product_transfer_item_service import ProductTransferItemService
 from transfers.models.product_transfer_item_model import ProductTransferItem
 from transfers.models.product_transfer_model import ProductTransfer
 

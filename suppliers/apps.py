@@ -21,6 +21,5 @@ class SuppliersConfig(AppConfig):
         import suppliers.signals.purchase_return_activity_logs_signal
         import suppliers.signals.purchase_return_item_activity_logs_signal
         import suppliers.signals.purchase_item_activity_logs_signal
-        import suppliers.signals.purchase_payment_activity_logs_signal
         import suppliers.signals.purchase_invoice_activity_logs_signal
         import suppliers.signals.purchase_invoice_item_activity_logs_signal

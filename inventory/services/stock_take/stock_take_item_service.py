@@ -2,9 +2,9 @@ from inventory.models.stock_take_item_model import StockTakeItem
 from django.db import transaction as db_transaction
 from loguru import logger
 from inventory.models.stock_take_model import StockTake
-from inventory.services.stock_take_service import StockTakeService
+from inventory.services.stock_take.stock_take_service import StockTakeService
 from inventory.models.product_model import Product
-from inventory.models import StockMovement
+from inventory.models.stock_movement_model import StockMovement
 
 
 class StockTakeItemService:

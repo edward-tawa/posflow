@@ -1,4 +1,4 @@
-from payments.services.sales_payment_service import SalesPaymentService
+from payments.services.sales.sales_payment_service import SalesPaymentService
 from payments.models.payment_model import Payment
 from payments.models.sales_payment_model import SalesPayment
 from typing import Union

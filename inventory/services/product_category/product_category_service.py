@@ -90,22 +90,6 @@ class ProductCategoryService:
             logger.error(f"Failed to delete product category: ID='{category.id}', Error={str(e)}")
             raise
 
-    
-    @staticmethod
-    @db_transaction.atomic
-    def add_product_to_category(product: Product, category: ProductCategory):
-        """
-        Assigns a product to a category safely.
-        """
-        if product.company != category.company:
-            raise ValueError("Product and category must belong to the same company")
-        if category.branch and product.branch != category.branch:
-            raise ValueError("Product and category branch mismatch")
-
-        product.product_category = category
-        product.save(update_fields=["product_category"])
-        logger.info(f"Product '{product.name}' added to category '{category.name}'")
-        return product
 
 
     @staticmethod

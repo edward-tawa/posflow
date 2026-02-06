@@ -8,7 +8,7 @@ from config.pagination.pagination import StandardResultsSetPagination
 from payments.models import PaymentAllocation
 from payments.serializers.payment_allocation_serializer import PaymentAllocationSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
-from payments.services.payment_allocation_service import PaymentAllocationService
+from payments.services.payment_allocation.payment_allocation_service import PaymentAllocationService
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status

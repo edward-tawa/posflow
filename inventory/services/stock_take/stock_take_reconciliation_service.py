@@ -6,11 +6,12 @@ from inventory.models import StockMovement
 from django.utils import timezone
 
 
+
 class StockTakeReconcialiationService:
 
     @staticmethod
     @db_transaction.atomic
-    def adjust_stocktake_item_quantity_for_movements(counted_quantity: int, movements):
+    def adjust_stocktake_item_quantity_for_movements(counted_quantity: int, movements: list[StockMovement]) -> dict:
         """
         Adjust a counted stocktake quantity based on stock movements that occurred after counting.
         Returns adjusted quantity and breakdown.

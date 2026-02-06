@@ -11,7 +11,7 @@ from transfers.serializers.product_transfer_item_serializer import ProductTransf
 from config.permissions.company_role_base_permission import CompanyRolePermission
 from company.models.company_model import Company
 from rest_framework.decorators import action
-from transfers.services.product_transfer_item_service import ProductTransferItemService, ProductTransferItemError
+from transfers.services.product_service.product_transfer_item_service import ProductTransferItemService, ProductTransferItemError
 from loguru import logger
 
 class ProductTransferItemViewSet(ModelViewSet):

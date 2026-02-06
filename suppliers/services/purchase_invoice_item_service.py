@@ -1,6 +1,6 @@
 from suppliers.models.purchase_invoice_item_model import PurchaseInvoiceItem
 from suppliers.models.purchase_invoice_model import PurchaseInvoice
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from inventory.models.product_model import Product
 from loguru import logger
 from django.db import transaction as db_transaction

@@ -1,4 +1,4 @@
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from sales.models.sales_invoice_item_model import SalesInvoiceItem
 from sales.models.sales_invoice_model import SalesInvoice
 from django.db import transaction as db_transaction

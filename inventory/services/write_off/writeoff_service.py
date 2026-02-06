@@ -1,6 +1,6 @@
 from inventory.models.stock_writeoff_model import StockWriteOff
 from inventory.models.stock_writeoff_item_model import StockWriteOffItem
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from django.db import transaction as db_transaction
 from loguru import logger
 from transactions.services.transaction_service import TransactionService

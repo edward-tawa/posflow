@@ -10,7 +10,7 @@ from transfers.serializers.cash_transfer_serializer import CashTransferSerialize
 from config.permissions.company_role_base_permission import CompanyRolePermission
 from company.models.company_model import Company
 from rest_framework.decorators import action
-from transfers.services.cash_transfer_service import CashTransferService, CashTransferError
+from transfers.services.cash_service.cash_transfer_service import CashTransferService, CashTransferError
 from loguru import logger
 
 

@@ -4,7 +4,7 @@ from sales.models.sales_receipt_item_model import SalesReceiptItem
 from sales.models.sales_receipt_model import SalesReceipt
 from django.db import transaction as db_transaction
 from sales.models.sales_invoice_model import SalesInvoice
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from django.db.models import QuerySet
 from loguru import logger
 

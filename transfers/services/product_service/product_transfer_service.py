@@ -2,7 +2,7 @@ from accounts.services.branch_account_service import BranchAccountService
 from transfers.models.product_transfer_model import ProductTransfer
 from transfers.models.transfer_model import Transfer
 from django.db import transaction as db_transaction
-from transfers.exceptions.product_transfer.product_exception import (ProductTransferStatusError,
+from transfers.exceptions.product_transfer.product_transfer_exception import (ProductTransferStatusError,
     ProductTransferNotAssigned,
     ProductTransferAlreadyAssigned) 
 from loguru import logger

@@ -1,3 +1,4 @@
+
 def attach_user_to_model(request, instance):
     """
     Attach the currently logged-in user to a model instance

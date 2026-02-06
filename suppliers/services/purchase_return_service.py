@@ -1,5 +1,5 @@
 from suppliers.models.purchase_return_model import PurchaseReturn
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from suppliers.services.purchase_return_item_service import PurchaseReturnItemService
 from transactions.services.transaction_service import TransactionService
 from suppliers.models.supplier_model import Supplier

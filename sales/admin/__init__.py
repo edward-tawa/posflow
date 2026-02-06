@@ -6,7 +6,6 @@ from sales.admin import sales_invoice_item_register
 from sales.admin import sales_invoice_register
 from sales.admin import sales_order_item_register
 from sales.admin import sales_order_register
-from sales.admin import sales_payment_register
 from sales.admin import sales_quotation_item_register
 from sales.admin import sales_quotation_register
 from sales.admin import sales_receipt_item_register

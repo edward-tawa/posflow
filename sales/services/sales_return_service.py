@@ -1,4 +1,4 @@
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from sales.models.sales_return_item_model import SalesReturnItem
 from sales.models.sales_return_model import SalesReturn
 from accounts.models.sales_returns_account_model import SalesReturnsAccount

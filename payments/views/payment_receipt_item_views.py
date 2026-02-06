@@ -8,7 +8,7 @@ from config.pagination.pagination import StandardResultsSetPagination
 from payments.models.payment_receipt_item_model import PaymentReceiptItem
 from payments.serializers.payment_receipt_item_serializer import PaymentReceiptItemSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
-from payments.services.payment_receipt_item_service import PaymentReceiptItemService
+from payments.services.payment_receipt.payment_receipt_item_service import PaymentReceiptItemService
 from payments.models.payment_receipt_model import PaymentReceipt
 from rest_framework.decorators import action
 from rest_framework.response import Response

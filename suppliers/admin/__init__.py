@@ -4,7 +4,6 @@ from suppliers.admin import purchase_item_register
 from suppliers.admin import purchase_order_item_register
 from suppliers.admin import purchase_order_register
 from suppliers.admin import purchase_payment_allocation_register
-from suppliers.admin import purchase_payment_register
 from suppliers.admin import purchase_register
 from suppliers.admin import purchase_return_item_register
 from suppliers.admin import purchase_return_register

@@ -1,8 +1,8 @@
 from inventory.models.product_model import Product
 from inventory.models.stock_take_item_model import StockTakeItem
 from inventory.models.stock_take_model import StockTake
-from inventory.services.stock_take_service import StockTakeService
-from inventory.services.stock_take_item_service import StockTakeItemService
+from inventory.services.stock_take.stock_take_service import StockTakeService
+from inventory.services.stock_take.stock_take_item_service import StockTakeItemService
 
 
 class ProcessStockTakeItemService:

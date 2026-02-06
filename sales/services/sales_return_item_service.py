@@ -1,5 +1,5 @@
 from sales.models.sales_return_item_model import SalesReturnItem
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from django.db import transaction as db_transaction
 from decimal import Decimal
 from loguru import logger

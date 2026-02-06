@@ -12,10 +12,11 @@ class SalesReturn(CreateUpdateBaseModel):
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='sales_returns')
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='sales_returns')
     customer = models.ForeignKey('customers.Customer', on_delete=models.CASCADE, related_name='sales_returns')
-    sale_order = models.ForeignKey('sales.SalesOrder', on_delete=models.CASCADE, related_name='sales_returns')  
+    sales_order = models.ForeignKey('sales.SalesOrder', on_delete=models.CASCADE, related_name='sales_returns')  
     sale = models.ForeignKey('sales.Sale', on_delete=models.CASCADE, related_name='sales_returns', null=True, blank=True)
     return_number = models.CharField(max_length=20, unique=True)
     return_date = models.DateField()
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='sales_returns')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     processed_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, related_name='processed_sales_returns')
     notes = models.TextField(blank=True, null=True)
@@ -43,7 +44,7 @@ class SalesReturn(CreateUpdateBaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Return {self.return_number} - {self.customer.first_name}"
+        return f"Return {self.return_number} - {self.customer.name}"
     
 
     class Meta:

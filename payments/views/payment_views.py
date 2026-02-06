@@ -7,7 +7,7 @@ from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from payments.models import Payment
 from payments.serializers.payment_serializer import PaymentSerializer
-from payments.services.payment_service import PaymentService
+from payments.services.payment.payment_service import PaymentService
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status

@@ -15,7 +15,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.filters import SearchFilter, OrderingFilter
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_account_company_queryset
-from accounts.permissions.account_permission import AccountPermissionAccess
+from accounts.permissions.account_permissions import AccountPermission
 from accounts.services.account_service import AccountsService
 from company.models.company_model import Company
 from django.core.exceptions import ObjectDoesNotExist
@@ -29,7 +29,7 @@ class BranchAccountViewSet(ModelViewSet):
     queryset = BranchAccount.objects.all()
     serializer_class = BranchAccountSerializer
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermissionAccess]
+    permission_classes = [AccountPermission]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['branch__name', 'account__name', 'account__number']
     ordering_fields = ['created_at', 'updated_at', 'branch__name']
@@ -42,12 +42,12 @@ class BranchAccountViewSet(ModelViewSet):
             return get_account_company_queryset(self.request, BranchAccount).select_related('branch', 'account')
         except Exception as e:
             logger.error(f"Error: {e}")
-            return self.queryset.none()
+            return f"Error: {e}"
 
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        branch_account = serializer.save()
+        branch_account = serializer.save(company=company) #Add branch = self.request.user.branch
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
         logger.bind(branch=branch_account.branch.name, account_number=branch_account.account.account_number).success(
             f"BranchAccount for branch '{branch_account.branch.name}' and account '{branch_account.account.name}' (Number: {branch_account.account.account_number}) created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
@@ -77,7 +77,7 @@ class GetBranchAccountTransactions(APIView):
     API View to retrieve transactions for a specific account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermissionAccess, IsAuthenticated]
+    permission_classes = [AccountPermission, IsAuthenticated]
 
     def get(self, request, account_id):
         try:
@@ -86,8 +86,8 @@ class GetBranchAccountTransactions(APIView):
             logger.warning(f"Account with ID {account_id} does not exist.")
             return Response({"detail": "Account not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        # Check permissions
-        if not AccountPermissionAccess().has_object_permission(request, self, account):
+         # Check permissions
+        if not AccountPermission().has_object_permission(request, self, account):
             logger.warning(f"Unauthorized access attempt to Account ID {account_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
         
@@ -115,12 +115,14 @@ class GetBranchAccountTransactions(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     
+
+
 class GetBranchAccountBalance(APIView):
     """
     API View to retrieve the balance of a specific branch account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermissionAccess, IsAuthenticated]
+    permission_classes = [AccountPermission, IsAuthenticated]
 
     def get(self, request, account_id):
         try:
@@ -129,7 +131,7 @@ class GetBranchAccountBalance(APIView):
             logger.warning(f"Account with ID {account_id} does not exist.")
             return Response({"detail": "Account not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        if not AccountPermissionAccess().has_object_permission(request, self, account):
+        if not AccountPermission().has_object_permission(request, self, account):
             logger.warning(f"Unauthorized access attempt to Account ID {account_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
         
@@ -154,7 +156,7 @@ class FreezeBranchAccount(APIView):
     API View to freeze a specific account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermissionAccess, IsAuthenticated]
+    permission_classes = [AccountPermission, IsAuthenticated]
 
     def post(self, request, account_id):
         try:
@@ -163,7 +165,7 @@ class FreezeBranchAccount(APIView):
             logger.warning(f"Account with ID {account_id} does not exist.")
             return Response({"detail": "Account not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if not AccountPermissionAccess().has_object_permission(request, self, account):
+        if not AccountPermission().has_object_permission(request, self, account):
             logger.warning(f"Unauthorized freeze attempt on Account ID {account_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -195,7 +197,7 @@ class UnfreezeBranchAccount(APIView):
     API View to unfreeze a specific account.
     """
     authentication_classes = [UserCookieJWTAuthentication, CompanyCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [AccountPermissionAccess, IsAuthenticated]
+    permission_classes = [AccountPermission, IsAuthenticated]
 
     def post(self, request, account_id):
         try:
@@ -204,7 +206,7 @@ class UnfreezeBranchAccount(APIView):
             logger.warning(f"Account with ID {account_id} does not exist.")
             return Response({"detail": "Account not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if not AccountPermissionAccess().has_object_permission(request, self, account):
+        if not AccountPermission().has_object_permission(request, self, account):
             logger.warning(f"Unauthorized unfreeze attempt on Account ID {account_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
         

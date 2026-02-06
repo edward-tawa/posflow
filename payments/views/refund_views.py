@@ -8,7 +8,7 @@ from config.pagination.pagination import StandardResultsSetPagination
 from payments.models.refund_model import Refund
 from payments.serializers.refund_serializer import RefundSerializer
 from payments.permissions.payment_permissions import PaymentsPermissions
-from payments.services.refund_service import RefundService
+from payments.services.refund.refund_service import RefundService
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status

@@ -47,6 +47,7 @@ class PurchaseReturn(CreateUpdateBaseModel):
         null=True,
         related_name='issued_purchase_returns'
     )
+    currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='purchase_returns')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     def generate_purchase_return_number(self):
@@ -60,8 +61,8 @@ class PurchaseReturn(CreateUpdateBaseModel):
             self.purchase_return_number = self.generate_purchase_return_number()
 
         # Update total amount before saving
-        # total = sum(item.total_price for item in self.items.all())
-        # self.total_amount = total
+        total = sum(item.total_price for item in self.items.all())
+        self.total_amount = total
 
         super().save(*args, **kwargs)
 

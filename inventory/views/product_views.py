@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Q
-from inventory.services.product_service import ProductService
+from inventory.services.product.product_service import ProductService
 from inventory.models.product_category_model import ProductCategory
 from inventory.serializers.adjust_stock_serializer import AdjustStockSerializer
 from io import BytesIO

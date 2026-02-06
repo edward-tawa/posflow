@@ -3,7 +3,7 @@ from sales.models.sales_receipt_model import SalesReceipt
 from sales.services.sales_receipt_item_service import SalesReceiptItemService
 from transactions.services.transaction_service import TransactionService
 from accounts.services.cash_account_service import CashAccountService
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from customers.models.customer_model import Customer
 from sales.models.sale_model import Sale
 from django.db import transaction as db_transaction

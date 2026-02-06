@@ -1,4 +1,4 @@
-from transfers.services.cash_transfer_service import CashTransferService
+from transfers.services.cash_service.cash_transfer_service import CashTransferService
 from transfers.models.cash_transfer_model import CashTransfer
 
 

@@ -3,7 +3,7 @@ from sales.models.sales_receipt_model import SalesReceipt
 from accounts.models.sales_account_model import SalesAccount
 from accounts.services.sales_account_service import SalesAccountService
 from sales.services.sales_invoice_item_service import SalesInvoiceItemService
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from django.db import transaction as db_transaction
 from transactions.services.transaction_service import TransactionService
 from decimal import Decimal, ROUND_HALF_UP
