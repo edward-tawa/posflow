@@ -6,6 +6,7 @@ from config.utilities.get_queryset import get_company_queryset
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from transactions.permissions.transaction_permissions import TransactionPermissions
+from config.pagination.pagination import StandardResultsSetPagination
 from transactions.models import Transaction
 from transactions.serializers.transaction_serializer import TransactionSerializer
 from accounts.models.account_model import Account

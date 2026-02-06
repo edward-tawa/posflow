@@ -92,7 +92,7 @@ class GetSupplierAccountTransactions(APIView):
             logger.warning(f"Supplier with ID {supplier_id} does not exist.")
             return Response({"detail": "Supplier not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        # Check permissions
+         # Check permissions
         if not SupplierPermissions().has_object_permission(request, self, supplier):
             logger.warning(f"Unauthorized access attempt to Account ID {supplier_id} by user {request.user.username}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)

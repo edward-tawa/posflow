@@ -2,7 +2,6 @@ from django.db import transaction as db_transaction
 from django.db import models
 from decimal import Decimal
 from loguru import logger
-from accounts.models import Account
 from customers.models.customer_model import Customer
 from accounts.models.sales_account_model import SalesAccount
 from accounts.models.customer_account_model import CustomerAccount
@@ -17,39 +16,16 @@ class CustomerCashService:
 
     @staticmethod
     @db_transaction.atomic
-    def create_cash_sale(customer, amount, request):
+    def create_cash_sale(customer, amount):
         """
         Record a cash sale for a customer.
         Debit: Cash account
         Credit: Sales account
         """
         try:
-            customer_account = None
-            sales_account = None
-
-            try:
-                # Get customer and sales accounts
-                customer_account = CustomerAccount.objects.get(customer=customer)
-            except CustomerAccount.DoesNotExist:
-                account_data = Account.objects.get(account_type = 'CUSTOMER')
-                customer_account = CustomerAccount.objects.create(
-                    customer = customer,
-                    account = account_data,
-                    branch = customer.branch,
-                )
-            logger.info(customer_account)
-
-            try:
-                sales_account = SalesAccount.objects.get(sales_person = request)
-            except SalesAccount.DoesNotExist:
-                account_data = Account.objects.get(account_type = 'SALE')
-                sales_account = SalesAccount.objects.create(
-                    account = account_data,
-                    company = customer_account.account.company,
-                    branch = customer_account.branch,
-                    sales_person = request
-                )
-            logger.info(sales_account)
+            # Get customer and sales accounts
+            customer_account = CustomerAccount.objects.get(customer=customer)
+            sales_account = SalesAccount.objects.get(customer=customer)
 
             # Get company's cash account for the branch
             cash_account = CashAccount.objects.get(

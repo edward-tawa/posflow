@@ -32,12 +32,8 @@ class ProductCategoryViewSet(ModelViewSet):
     pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
-        try:
-            # reusable helper function
-            return get_company_queryset(self.request, ProductCategory)
-        except Exception as e:
-            logger.error(e)
-            return self.queryset.none()
+        # reusable helper function
+        return get_company_queryset(self.request, ProductCategory)
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -106,56 +102,56 @@ class ProductCategoryViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ProductCategoryListView(APIView):
-    """
-    API view to list all product categories for a company/branch.
-    Includes company-wide categories if branch is specified.
-    """
-    authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [InventoryPermission]
+# class ProductCategoryListView(APIView):
+#     """
+#     API view to list all product categories for a company/branch.
+#     Includes company-wide categories if branch is specified.
+#     """
+#     authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication, JWTAuthentication]
+#     permission_classes = [InventoryPermission]
 
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        branch_param = request.query_params.get('branch', None)
-        company_or_user = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
+#     def get(self, request, *args, **kwargs):
+#         user = request.user
+#         branch_param = request.query_params.get('branch', None)
+#         company_or_user = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
 
-        if not company_or_user:
-            return Response({"error": "Company information is missing."}, status=status.HTTP_400_BAD_REQUEST)
+#         if not company_or_user:
+#             return Response({"error": "Company information is missing."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Filter by branch if provided, include company-wide categories
-        filters = Q(company=company_or_user)
-        if branch_param:
-            filters &= Q(branch=branch_param) | Q(branch__isnull=True)
+#         # Filter by branch if provided, include company-wide categories
+#         filters = Q(company=company_or_user)
+#         if branch_param:
+#             filters &= Q(branch=branch_param) | Q(branch__isnull=True)
 
-        categories = ProductCategory.objects.filter(filters).order_by('name')
-        serializer = ProductCategorySerializer(categories, many=True)
-        logger.info(f"Listed {len(categories)} categories for company '{getattr(company_or_user, 'name', 'Unknown')}' with branch='{branch_param}'.")
-        return Response(serializer.data, status=status.HTTP_200_OK)
+#         categories = ProductCategory.objects.filter(filters).order_by('name')
+#         serializer = ProductCategorySerializer(categories, many=True)
+#         logger.info(f"Listed {len(categories)} categories for company '{getattr(company_or_user, 'name', 'Unknown')}' with branch='{branch_param}'.")
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ProductCategorySearchView(APIView):
-    """
-    API view to search product categories by name within a company/branch.
-    Includes company-wide categories if branch is specified.
-    """
-    authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication, JWTAuthentication]
-    permission_classes = [InventoryPermission]
+# class ProductCategorySearchView(APIView):
+#     """
+#     API view to search product categories by name within a company/branch.
+#     Includes company-wide categories if branch is specified.
+#     """
+#     authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication, JWTAuthentication]
+#     permission_classes = [InventoryPermission]
 
-    def get(self, request, *args, **kwargs):
-        search_term = request.query_params.get('q', '')
-        branch_param = request.query_params.get('branch', None)
-        user = request.user
-        company_or_user = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
+#     def get(self, request, *args, **kwargs):
+#         search_term = request.query_params.get('q', '')
+#         branch_param = request.query_params.get('branch', None)
+#         user = request.user
+#         company_or_user = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
 
-        if not company_or_user:
-            return Response({"error": "Company information is missing."}, status=status.HTTP_400_BAD_REQUEST)
+#         if not company_or_user:
+#             return Response({"error": "Company information is missing."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Filter by branch if provided, include company-wide categories
-        filters = Q(company=company_or_user) & Q(name__icontains=search_term)
-        if branch_param:
-            filters &= Q(branch=branch_param) | Q(branch__isnull=True)
+#         # Filter by branch if provided, include company-wide categories
+#         filters = Q(company=company_or_user) & Q(name__icontains=search_term)
+#         if branch_param:
+#             filters &= Q(branch=branch_param) | Q(branch__isnull=True)
 
-        categories = ProductCategory.objects.filter(filters).order_by('name')
-        serializer = ProductCategorySerializer(categories, many=True)
-        logger.info(f"Searched categories with term '{search_term}' for company '{getattr(company_or_user, 'name', 'Unknown')}', branch='{branch_param}'. Found {len(categories)} results.")
-        return Response(serializer.data, status=status.HTTP_200_OK)
+#         categories = ProductCategory.objects.filter(filters).order_by('name')
+#         serializer = ProductCategorySerializer(categories, many=True)
+#         logger.info(f"Searched categories with term '{search_term}' for company '{getattr(company_or_user, 'name', 'Unknown')}', branch='{branch_param}'. Found {len(categories)} results.")
+#         return Response(serializer.data, status=status.HTTP_200_OK)

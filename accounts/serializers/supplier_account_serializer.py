@@ -95,8 +95,6 @@ class SupplierAccountSerializer(serializers.ModelSerializer):
 
         try:
             validated_data.pop('company', None)
-            validated_data['company'] = request.user.company
-            validated_data['branch'] = request.user.branch
             supplier_account = SupplierAccount.objects.create(**validated_data)
             logger.info(
                 f"{actor} created SupplierAccount '{supplier_account.supplier.name}' (ID: {supplier_account.id})."

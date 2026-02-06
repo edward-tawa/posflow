@@ -7,7 +7,7 @@ from config.utilities.get_company_or_user_company import get_expected_company
 from config.utilities.get_logged_in_company import get_logged_in_company
 from config.pagination.pagination import StandardResultsSetPagination
 from config.utilities.get_queryset import get_company_queryset
-from suppliers.services.purchase_invoice_service import PurchaseInvoiceService
+
 from suppliers.models.purchase_invoice_model import PurchaseInvoice
 from suppliers.serializers.purchase_invoice_serializer import PurchaseInvoiceSerializer
 from suppliers.permissions.supplier_permissions import SupplierPermissions
