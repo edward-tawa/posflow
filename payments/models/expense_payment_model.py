@@ -24,7 +24,7 @@ class ExpensePayment(CreateUpdateBaseModel):
         related_name='expense_payments'
     )
     expense = models.ForeignKey(
-        'expenses.Expense',
+        'payments.Expense',
         on_delete=models.CASCADE,
         related_name='expense_payments'
     )

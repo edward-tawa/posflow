@@ -5,15 +5,15 @@ class PaymentAdmin(admin.ModelAdmin):
     model = Payment
 
     list_display = [
-        'company',
-        'branch',
-        'paid_by',
-        'payment_type',
-        'payment_number',
-        'payment_date',
-        'total_amount',
-        'status',
-        'method'
+            'company',
+            'branch',
+            'paid_by',
+            'payment_direction',
+            'payment_number',
+            'payment_date',
+            'total_amount',
+            'status',
+            'payment_method',
     ]
 
     list_filter = [

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from config.serializers.company_validation_mixin import CompanyValidationMixin
 from config.utilities.get_company_or_user_company import get_expected_company
 from loguru import logger
-from payments.models import SalesPayment
+from payments.models.sales_payment_model import SalesPayment
 from company.models.company_model import Company
 from branch.models.branch_model import Branch
 from users.models import User

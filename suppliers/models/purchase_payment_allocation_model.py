@@ -25,7 +25,7 @@ class PurchasePaymentAllocation(CreateUpdateBaseModel):
         related_name='purchase_payment_allocations'
     )
     purchase_payment = models.ForeignKey(
-        'suppliers.PurchasePayment',
+        'payments.PurchasePayment',
         on_delete=models.CASCADE,
         related_name='allocations'
     )

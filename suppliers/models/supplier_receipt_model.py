@@ -7,7 +7,7 @@ class SupplierReceipt(CreateUpdateBaseModel):
     STATUS_CHOICES = [('DRAFT', 'Draft'), ('RECEIVED', 'Received'), ('VOIDED', 'Voided')]
     
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='supplier_receipts')
-    supplier_payment = models.ForeignKey('suppliers.PurchasePayment', on_delete=models.SET_NULL, null=True, blank=True, related_name='supplier_receipts')
+    supplier_payment = models.ForeignKey('payments.PurchasePayment', on_delete=models.SET_NULL, null=True, blank=True, related_name='supplier_receipts')
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='supplier_receipts')
     supplier = models.ForeignKey('suppliers.Supplier', on_delete=models.CASCADE, related_name='supplier_receipts')
     purchase_order = models.ForeignKey('suppliers.PurchaseOrder', on_delete=models.SET_NULL, null=True, blank=True, related_name='supplier_receipts')

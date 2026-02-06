@@ -5,3 +5,6 @@ from .payment_model import Payment
 from .payment_receipt_item_model import PaymentReceiptItem
 from .payment_receipt_model import PaymentReceipt
 from .refund_model import Refund
+from .sales_payment_model import SalesPayment
+from .expense_payment_model import ExpensePayment
+from .purchase_payment_model import PurchasePayment

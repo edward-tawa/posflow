@@ -9,7 +9,7 @@ class SalesReturnAdmin(admin.ModelAdmin):
         'branch',
         'customer',
         'sale',
-        'sale_order',
+        'sales_order',
         'return_number',
         'return_date',
         'total_amount',

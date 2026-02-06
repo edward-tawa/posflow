@@ -50,7 +50,7 @@ class SalesReturn(CreateUpdateBaseModel):
     class Meta:
         indexes = [
             models.Index(fields=["company", "branch", "return_date"]),
-            models.Index(fields=["sale_order"]),
+            models.Index(fields=["sales_order"]),
             models.Index(fields=["processed_by"]),
         ]
 

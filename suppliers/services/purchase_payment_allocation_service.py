@@ -1,6 +1,5 @@
 from suppliers.models.purchase_payment_allocation_model import PurchasePaymentAllocation
 from suppliers.models.purchase_invoice_model import PurchaseInvoice
-from suppliers.models.purchase_payment_model import PurchasePayment
 from suppliers.models.supplier_model import Supplier
 from loguru import logger
 from django.db import transaction as db_transaction

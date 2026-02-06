@@ -3,7 +3,6 @@ from config.serializers.company_validation_mixin import CompanyValidationMixin
 from config.utilities.get_company_or_user_company import get_expected_company
 from loguru import logger
 from suppliers.models.purchase_payment_allocation_model import PurchasePaymentAllocation
-from suppliers.models.purchase_payment_model import PurchasePayment
 from suppliers.models.purchase_invoice_model import PurchaseInvoice
 from suppliers.models.supplier_model import Supplier
 from company.models.company_model import Company

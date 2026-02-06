@@ -8,7 +8,7 @@ class SalesReceipt(CreateUpdateBaseModel):
     PREFIX = 'RECEIPT'
     STATUS_CHOICES = [('DRAFT', 'Draft'), ('ISSUED', 'Issued'), ('VOIDED', 'Voided')]
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='sales_receipts')
-    sales_payment = models.ForeignKey('sales.SalesPayment', on_delete=models.SET_NULL, null=True, related_name='sales_receipts')
+    sales_payment = models.ForeignKey('payments.SalesPayment', on_delete=models.SET_NULL, null=True, related_name='sales_receipts')
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='sales_receipts')
     customer = models.ForeignKey('customers.Customer', on_delete=models.CASCADE, related_name='sales_receipts')
     sale = models.ForeignKey('sales.Sale', on_delete=models.SET_NULL, null=True, blank=True, related_name='sales_receipts')

@@ -30,7 +30,7 @@ class RefundPayment(CreateUpdateBaseModel):
     )
 
     refund = models.ForeignKey(
-        'sales.Refund',
+        'payments.Refund',
         on_delete=models.CASCADE,
         related_name='refund_payments'
     )

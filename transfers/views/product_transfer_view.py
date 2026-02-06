@@ -13,7 +13,7 @@ from config.auth.jwt_token_authentication import UserCookieJWTAuthentication, Co
 from config.utilities.get_queryset import get_company_queryset
 from rest_framework.decorators import action
 from transfers.models.transfer_model import Transfer
-from transfers.services.product_service.product_transfer_service import ProductTransferService, ProductTransferError
+from transfers.services.product_service.product_transfer_service import ProductTransferService
 from loguru import logger
 
 
