@@ -61,8 +61,8 @@ class CustomerAccountViewSet(ModelViewSet):
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         customer_account = serializer.save()
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
-        logger.bind(customer=customer_account.customer.first_name, account_number=customer_account.account.account_number).info(
-            f"CustomerAccount for customer '{customer_account.customer.first_name}' and account '{customer_account.account.name}' (Number: {customer_account.account.account_number}) updated by {actor}."
+        logger.bind(customer=customer_account.customer.name, account_number=customer_account.account.number).info(
+            f"CustomerAccount for customer '{customer_account.customer.name}' and account '{customer_account.account.name}' (Number: {customer_account.account.number}) updated by {actor}."
         )
         
     def perform_destroy(self, instance):
@@ -93,7 +93,7 @@ class GetCustomerAccountTransactions(APIView):
             logger.warning(f"Customer with ID {customer_id} does not exist.")
             return Response({"detail": "Customer not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        # Check permissions
+         # Check permissions
         if not ManageCustomersPermission().has_object_permission(request, self, customer):
             logger.warning(f"Unauthorized access attempt to Account ID {customer_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)

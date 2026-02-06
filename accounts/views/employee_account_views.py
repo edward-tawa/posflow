@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from accounts.models.customer_account_model import CustomerAccount
+from accounts.models import customer_account_model
 from accounts.models.employee_account_model import EmployeeAccount
 from accounts.serializers.employee_account_serializer import EmployeeAccountSerializer
 from rest_framework.views import APIView
@@ -50,7 +50,7 @@ class EmployeeAccountViewSet(ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        employee_account = serializer.save()
+        employee_account = serializer.save(company=company)#Replace company with branch
         actor = getattr(company, 'name', None) or getattr(user, 'username', 'Unknown')
         logger.bind(employee=employee_account.employee.first_name, account_number=employee_account.account.account_number).success(
             f"EmployeeAccount for employee '{employee_account.employee.first_name}' and account '{employee_account.account.name}' (Number: {employee_account.account.account_number}) created by {actor} in company '{getattr(company, 'name', 'Unknown')}'."
@@ -93,7 +93,7 @@ class GetEmployeeAccountTransactions(APIView):
             logger.warning(f"Employee with ID {user_id} does not exist.")
             return Response({"detail": "Employee not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        # Check permissions
+         # Check permissions
         if not UserPermissions().has_object_permission(request, self, employee):
             logger.warning(f"Unauthorized access attempt to Account ID {user_id} by user {request.user}.")
             return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)

@@ -132,11 +132,11 @@ class CustomerAccountSerializer(serializers.ModelSerializer):
                 setattr(instance, attr, value)
             instance.save()
             logger.info(
-                f"{actor} updated CustomerAccount '{instance.id}' (ID: {instance.id})."
+                f"{actor} updated CustomerAccount '{instance.name}' (ID: {instance.id})."
             )
             return instance
         except Exception as e:
             logger.error(
-                f"{actor} failed to update CustomerAccount '{instance.id}' (ID: {instance.id}): {str(e)}"
+                f"{actor} failed to update CustomerAccount '{instance.name}' (ID: {instance.id}): {str(e)}"
             )
             raise serializers.ValidationError("Failed to update CustomerAccount.") from e
