@@ -17,6 +17,7 @@ class StockTakeItemSerializer(serializers.ModelSerializer):
             'product_name',
             'expected_quantity',
             'counted_quantity',
+            'confirmed',
             'discrepancy',
             'created_at',
             'updated_at',

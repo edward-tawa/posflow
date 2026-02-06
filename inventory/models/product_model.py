@@ -17,6 +17,10 @@ class Product(CreateUpdateBaseModel):
     stock = models.IntegerField(default=0)
     sku = models.CharField(max_length=100, unique=False, blank=True)  # SKU will be unique per company
 
+    is_stock_take_item = models.BooleanField(
+        default=False,
+        help_text="True if this product is currently part of an ongoing stock take"
+    )
 
     class Meta:
         unique_together = ('company', 'branch', 'sku')  # SKU unique per company
@@ -28,6 +32,15 @@ class Product(CreateUpdateBaseModel):
             if not Product.objects.filter(company=self.company, sku=sku_candidate).exists():
                 self.sku = sku_candidate
                 break
+    
+    def update_stock_take_item_status(self):
+        """
+        Update the is_stock_take_item status based on active stock takes.
+        """
+        # check if the product is a stock take item in any open stock takes
+        self.is_stock_take_item = self.stock_take_items.filter(stock_take__is_open=True).exists()
+        self.save(update_fields=['is_stock_take_item'])
+
 
     def save(self, *args, **kwargs):
         if not self.sku:

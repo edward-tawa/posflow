@@ -35,6 +35,7 @@ class CompanyManager(BaseUserManager):
 
 
 class Company(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
+    
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True, max_length=254)
     website = models.URLField(blank=True, max_length=200)

@@ -6,7 +6,6 @@ from .purchase_model import Purchase
 from .purchase_order_item_model import PurchaseOrderItem
 from .purchase_order_model import PurchaseOrder
 from .purchase_payment_allocation_model import PurchasePaymentAllocation
-from .purchase_payment_model import PurchasePayment
 from .purchase_return_item_model import PurchaseReturnItem
 from .purchase_return_model import PurchaseReturn
 from .supplier_credit_note_item_model import SupplierCreditNoteItem

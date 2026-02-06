@@ -22,9 +22,8 @@ class PurchaseOrderService:
     def create_order(
         company,
         supplier,
-        quantity_ordered: int,
+        quantity: int,
         total_amount: float,
-        product_list: List[Dict],
         order_date: date = None,
         delivery_date: date = None,
         status: str = "DRAFT",
@@ -37,7 +36,7 @@ class PurchaseOrderService:
         order = PurchaseOrder.objects.create(
             company=company,
             supplier=supplier,
-            quantity_ordered=quantity_ordered,
+            quantity_ordered=quantity,
             total_amount=total_amount,
             order_date=order_date or date.today(),
             delivery_date=delivery_date,
@@ -50,20 +49,7 @@ class PurchaseOrderService:
             f"Purchase Order '{order.id}' created for supplier "
             f"'{order.supplier.name}' with status '{order.status}'."
         )
-        for product in product_list:
-            item = PurchaseOrderItemService.create_item(
-                purchase_order=order,
-                product=product['product'],  # Product instance
-                quantity=product['quantity'],
-                unit_price=product['unit_price'],
-                product_category=product['category']
-            )
-            PurchaseOrderItemService.add_to_order(
-                item=item,
-                order=order
-            )
-        
-        order.update_total_amount()
+    
         return order
 
     # -------------------------

@@ -58,8 +58,10 @@ THIRD_PARTY_APPS = [
 
 # Local / PosFlow apps
 LOCAL_APPS = [
-    'activity_log',
+    "activity_log",
+    "core",      # if you have a core app for shared utilities
     "company",
+    "currency",
     "accounts",
     "customers",
     "payments",
@@ -69,12 +71,13 @@ LOCAL_APPS = [
     "branch",
     "inventory",
     "promotions",
+    "notifications",
     "sales",
     "loans",
     "taxes",
-    'transactions',
-    'transfers',
-    'currency',
+    "transactions",
+    "transfers",
+    "currency",
     "posflow",    # core project app (if you have one)
     "config",     # if your project config is treated as an app
 ]

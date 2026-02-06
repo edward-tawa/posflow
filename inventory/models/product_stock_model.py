@@ -7,6 +7,7 @@ from inventory.models.product_model import Product
 
 class ProductStock(CreateUpdateBaseModel):
     # Model to track stock levels of products in different branches
+    company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='product_stocks')
     product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='stocks')
     branch = models.ForeignKey('branch.Branch', on_delete=models.CASCADE, related_name='product_stocks')
     quantity = models.PositiveIntegerField()

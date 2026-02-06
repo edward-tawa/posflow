@@ -5,6 +5,7 @@ from sales.models.sales_receipt_model import SalesReceipt
 from django.db import transaction as db_transaction
 from sales.models.sales_invoice_model import SalesInvoice
 from inventory.services.product_stock_service import ProductStockService
+from django.db.models import QuerySet
 from loguru import logger
 
 
@@ -66,9 +67,9 @@ class SalesReceiptItemService:
 
     @staticmethod
     @db_transaction.atomic
-    def create_sales_receipt_items(
+    def create_sales_receipt_items(*,
         sales_receipt: SalesReceipt,
-        items_data: list[dict]
+        items: QuerySet
     ) -> list[SalesReceiptItem]:
         """
         Create multiple sales receipt items at once.
@@ -93,29 +94,29 @@ class SalesReceiptItemService:
         """
         created_items = []
         try:
-            for item_data in items_data:
-                item = SalesReceiptItem.objects.create(
+            for item in items:
+                item_obj = SalesReceiptItem.objects.create(
                     sales_receipt=sales_receipt,
-                    product=item_data["product"],
-                    product_name=item_data["product_name"],
-                    quantity=item_data["quantity"],
-                    unit_price=item_data["unit_price"],
-                    tax_rate=item_data["tax_rate"]
+                    product=item.product,
+                    product_name=item.product_name,
+                    quantity=item.quantity,
+                    unit_price=item.unit_price,
+                    tax_rate=item.tax_rate
                 )
                 logger.info(
-                    f"Sales Receipt Item '{item.id}' created for receipt '{sales_receipt.receipt_number}'."
+                    f"Sales Receipt Item '{item_obj.id}' created for receipt '{sales_receipt.receipt_number}'."
                 )
 
                 # Attach item to receipt
                 SalesReceiptItemService.add_item_to_receipt(
-                    item=item,
+                    item=item_obj,
                     receipt=sales_receipt
                 )
 
                 # Deduct stock for this item
-                ProductStockService.decrease_stock_for_sale(item)
+                ProductStockService.decrease_stock_for_sale(item_obj)
 
-                created_items.append(item)
+                created_items.append(item_obj)
 
             # Update total amount once after all items are added
             sales_receipt.update_total_amount()

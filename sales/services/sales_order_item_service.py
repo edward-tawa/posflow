@@ -11,14 +11,6 @@ class SalesOrderItemService:
     """
     Service class for managing sales order items.
     Provides methods for creating, updating, and deleting sales order items.
-    Includes detailed logging for key operations.
-    """
-
-
-class SalesOrderItemService:
-    """
-    Service class for managing sales order items.
-    Provides methods for creating, updating, and deleting sales order items.
     """
 
     @staticmethod

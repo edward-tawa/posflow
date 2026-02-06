@@ -1,8 +1,11 @@
+from branch.models.branch_model import Branch
+from company.models.company_model import Company
 from users.models.user_model import User
 from django.db import transaction as db_transaction
 from loguru import logger
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.base_user import BaseUserManager
 
 
 
@@ -15,33 +18,73 @@ class UserService:
 
     ALLOWED_UPDATE_FIELDS = {"first_name", "last_name", "email", "is_active"}
     ALLOWED_ROLES = {"admin", "manager", "user"}  # Define allowed roles
-
+  
     # -------------------------
     # CREATE
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def create_user(**kwargs) -> User:
+    def create_user(
+        *,
+        username: str,
+        email: str,
+        password: str,
+        company: Company,
+        role: str,
+        first_name: str = "",
+        last_name: str = "",
+        branch: Branch = None,
+        is_staff: bool = False,
+        **extra_fields
+    ) -> User:
         """
         Create a new user with validation.
         Raises ValueError if required fields are missing or password is invalid.
         """
-        if "username" not in kwargs or "email" not in kwargs:
-            raise ValueError("Both 'username' and 'email' are required.")
+        
+        # -------------------------
+        # Validate required fields
+        # -------------------------
+        if not username:
+            raise ValueError("Username is required.")
+        if not email:
+            raise ValueError("Email is required.")
+        if not password:
+            raise ValueError("Password is required.")
+        if not company:
+            raise ValueError("Company is required.")
+        if not role:
+            raise ValueError("Role is required.")
 
-        password = kwargs.pop("password", None)
+        # -------------------------
+        # Validate password
+        # -------------------------
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            raise ValueError("; ".join(e.messages))
 
-        if password:
-            try:
-                validate_password(password)
-            except ValidationError as e:
-                raise ValueError("; ".join(e.messages))
+        # -------------------------
+        # Create user instance
+        # -------------------------
+        user = User(
+            username=username,
+            email=BaseUserManager.normalize_email(email),
+            company=company,
+            role=role,
+            first_name=first_name,
+            last_name=last_name,
+            branch=branch,
+            is_staff=is_staff,
+            **extra_fields
+        )
 
-        user = User(**kwargs)
-        if password:
-            user.set_password(password)
-        user.save()
-        logger.info(f"User '{user.username}' created.")
+        # Hash password and save
+        user.set_password(password)
+        user.save(using='default')
+
+        logger.info(f"User '{user.username}' created for company '{company.name}' with role '{role}'.")
+
         return user
 
     # -------------------------

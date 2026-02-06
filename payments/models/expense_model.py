@@ -18,11 +18,20 @@ class Expense(CreateUpdateBaseModel):
         ('PETTYCASH', 'Pettycash'),
         ('MISC', 'Miscellaneous'),
     ]
+
+    EXPENSE_STATUS = [
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('UNPAID', 'Unpaid'),
+        ('PARTIAL', 'Partial')
+        ]
+    
     company = models.ForeignKey(
         'company.Company',
         on_delete=models.CASCADE,
         related_name='expenses'
     )
+
     branch = models.ForeignKey(
         'branch.Branch',
         on_delete=models.CASCADE,
@@ -37,10 +46,11 @@ class Expense(CreateUpdateBaseModel):
         blank=True,
         related_name='expenses'
     )
-    status = models.CharField(max_length=20, choices=[('PENDING', 'Pending'), ('PAID', 'Paid'), ('UPAID', 'Unpaid')], default='PENDING')
+    status = models.CharField(max_length=20, choices=EXPENSE_STATUS, default='PENDING')
     category = models.CharField(max_length=20, choices=EXPENSE_CATEGORY)
     currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='expenses')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    total_amount_paid = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     description = models.TextField(blank=True, null=True)
     incurred_by = models.ForeignKey(
         'users.User',

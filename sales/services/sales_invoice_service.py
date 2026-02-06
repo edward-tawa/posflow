@@ -51,24 +51,6 @@ class SalesInvoiceService:
 
             logger.info(f"Sales Invoice '{sales_invoice.invoice_number}' created for company '{sales_invoice.company.name}'.")
 
-
-            # Create the transaction
-            transaction = TransactionService.create_transaction(
-                company=sales_invoice.company,
-                branch=sales_invoice.branch,
-                debit_account=sales_invoice.customer.customer_account.account,
-                credit_account=sales_account.account,
-                transaction_type='SALES_INVOICE',
-                transaction_category='SALES',
-                total_amount=Decimal(sales_invoice.total_amount),
-                customer=sales_invoice.customer,
-                supplier=None,
-            )
-
-            # Apply transaction
-            TransactionService.apply_transaction_to_accounts(transaction)
-            logger.info(f"Transaction '{transaction.transaction_number}' created for Sales Invoice '{sales_invoice.invoice_number}'.")
-
             return sales_invoice
 
         except Exception as e:

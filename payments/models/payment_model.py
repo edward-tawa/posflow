@@ -8,7 +8,7 @@ import uuid
 
 class Payment(CreateUpdateBaseModel):
     PREFIX = 'PAY'
-    PAYMENT_TYPE = [
+    PAYMENT_DIRECTION = [
         ('incoming', 'Incoming'),
         ('outgoing', 'Outgoing'),
     ]
@@ -34,13 +34,13 @@ class Payment(CreateUpdateBaseModel):
         null=True,
         related_name='payments_made'
     )
-    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE, default='incoming')
+    payment_direction = models.CharField(max_length=20, choices=PAYMENT_DIRECTION, default='incoming')
     payment_number = models.CharField(max_length=20, unique=True, editable=False)
     payment_date = models.DateTimeField(auto_now_add=True)
     currency = models.ForeignKey('currency.Currency', on_delete=models.PROTECT, default=1, related_name='payments')
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    method = models.CharField(max_length=50)
+    payment_method = models.CharField(max_length=50)
     reference_model = models.CharField(max_length=50, null=True, blank=True) # reference the model that triggered the payment
     reference_id = models.PositiveIntegerField(null=True, blank=True)
 

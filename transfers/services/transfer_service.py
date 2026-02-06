@@ -1,13 +1,13 @@
 from branch.services.branch_service import BranchService
 from accounts.services.branch_account_service import BranchAccountService
 from transactions.services.transaction_service import TransactionService
-from inventory.services.product_stock_service import ProductStockService
+from inventory.services.product_stock.product_stock_service import ProductStockService
 from transfers.models.transfer_model import Transfer
 from django.db import transaction as db_transaction
 from users.models import User
 from company.models import Company
 from branch.models import Branch
-# from django.db.models import F, Sum, FloatField
+from transfers.exceptions.transfer_exception import TransferNotFound, TransferStatusError
 from loguru import logger
 from datetime import date
 
@@ -57,11 +57,22 @@ class TransferService:
         source_branch: Branch,
         reference_number: str
     ) -> Transfer:
-        transfer = Transfer.objects.get(
-            company=company,
-            source_branch=source_branch,
-            reference_number=reference_number,
-        )
+        try:
+            transfer = Transfer.objects.get(
+                company=company,
+                source_branch=source_branch,
+                reference_number=reference_number,
+            )
+
+        except Transfer.DoesNotExist:
+            logger.error(
+                f"Transfer with reference '{reference_number}' not found for company '{company.name}' "
+                f"and branch '{source_branch.name}'."
+            )
+            raise TransferNotFound(
+                f"Transfer with reference '{reference_number}' not found."
+                )
+
         return transfer
     
 
@@ -139,7 +150,7 @@ class TransferService:
     @db_transaction.atomic
     def hold_transfer(transfer: Transfer) -> Transfer:
         if transfer.status in ["completed", "cancelled"]:
-            raise ValueError("Cannot put a completed or cancelled transfer on hold.")
+            raise TransferStatusError("Cannot put a completed or cancelled transfer on hold.")
         transfer.status = "on_hold"
         transfer.save(update_fields=['status'])
         logger.info(f"Transfer '{transfer.reference_number}' is now on hold.")
@@ -151,7 +162,7 @@ class TransferService:
     @db_transaction.atomic
     def release_transfer(transfer: Transfer) -> Transfer:
         if transfer.status != "on_hold":
-            raise ValueError("Only transfers on hold can be released.")
+            raise TransferStatusError("Only transfers on hold can be released.")
 
         # Decide what status it goes to after release. Here, we revert to 'pending'
         transfer.status = "pending"

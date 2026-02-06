@@ -33,7 +33,7 @@ class BranchAccountService:
         return branch_account
 
     @staticmethod
-    def create_or_get_branch_account(
+    def get_or_create_branch_account(
         *,
         branch: Branch,
         company: Company,
@@ -47,7 +47,7 @@ class BranchAccountService:
 
         if created:
             logger.info(
-                f"Branch Account '{branch_account.id}' created "
+                f"Branch Account '{branch_account.id}' created"
                 f"for Branch '{branch.name}'."
             )
         else:

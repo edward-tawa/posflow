@@ -35,6 +35,11 @@ class PurchaseOrderItemService:
             f"Purchase Order Item '{item.product.name}' created for order "
             f"'{purchase_order.reference_number}'."
         )
+        PurchaseOrderItemService.add_to_order(item, purchase_order)
+        logger.info(
+            f"Purchase Order Item '{item.product.name}' added to order "
+            f"'{purchase_order.reference_number}'."
+        )
         return item
 
     # -------------------------

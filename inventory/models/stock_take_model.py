@@ -30,6 +30,18 @@ class StockTake(CreateUpdateBaseModel):
     rejection_reason = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
 
+    total_counted_value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_variance_value = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    def update_totals(self):
+        totals = self.items.aggregate(
+            total_value=models.Sum(models.F('counted_quantity') * models.F('product__unit_price')),
+            variance_value=models.Sum((models.F('counted_quantity') - models.F('expected_quantity')) * models.F('product__unit_price'))
+        )
+        self.total_counted_value = totals['total_value'] or 0
+        self.total_variance_value = totals['variance_value'] or 0
+        self.save(update_fields=['total_counted_value', 'total_variance_value'])
+
     class Meta:
         ordering = ['-stock_take_date']
 
@@ -37,6 +49,11 @@ class StockTake(CreateUpdateBaseModel):
         return f"StockTake at {self.stock_take_date} for {self.company.name} - {self.branch.name} branch"
     
 
-    @staticmethod
-    def generate_reference_number():
-        return f'{StockTake.PREFIX}-{str(uuid.uuid4()).split("-")[0].upper()}'
+    def generate_reference_number(self):
+        return f'{self.PREFIX}-{str(uuid.uuid4()).split("-")[0].upper()}'
+    
+
+    def save(self, *args, **kwargs):
+        if not self.reference_number:
+            self.reference_number = self.generate_reference_number()
+        super().save(*args, **kwargs)

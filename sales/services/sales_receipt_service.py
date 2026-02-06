@@ -50,25 +50,6 @@ class SalesReceiptService:
 
             logger.info(f"Sales Receipt '{receipt.receipt_number}' created for company '{receipt.company.name}'.")
 
-            # Prepare accounts and transaction
-            debit_account = CashAccountService.get_or_create_cash_account(company=company, branch=branch)
-            
-            transaction = TransactionService.create_transaction(
-                company=company,
-                branch=branch,
-                debit_account=debit_account,
-                credit_account=customer.account,
-                transaction_type='CASH_SALE',
-                transaction_category='SALES',
-                total_amount=receipt.total_amount,
-                customer=customer,
-                supplier=None,
-            )
-
-            # Apply transaction to accounts
-            TransactionService.apply_transaction_to_accounts(transaction)
-            logger.info(f"Transaction '{transaction.transaction_number}' created for Sales Receipt '{receipt.receipt_number}'.")
-
             return receipt, sales_order
 
         except Exception as e:
@@ -192,14 +173,26 @@ class SalesReceiptService:
 
     @staticmethod
     @db_transaction.atomic
-    def attach_sales_receipt_to_sale(receipt: SalesReceipt, sale) -> SalesReceipt:
+    def add_sales_receipt_to_sale(receipt: SalesReceipt, sale) -> SalesReceipt:
         receipt.sale = sale
         receipt.save(update_fields=["sale"])
         logger.info(
-            f"Receipt '{receipt.receipt_number}' attached to sale '{sale.sale_number}'."
+            f"Receipt '{receipt.receipt_number}' added to sale '{sale.sale_number}'."
         )
         return receipt
-    
+
+
+    @staticmethod
+    @db_transaction.atomic
+    def remove_sales_receipt_from_sale(receipt: SalesReceipt) -> SalesReceipt:
+        sale = receipt.sale
+        receipt.sale = None
+        receipt.save(update_fields=["sale"])
+        logger.info(
+            f"Receipt '{receipt.receipt_number}' removed from sale '{sale.sale_number}'."
+        )
+        return receipt    
+
 
     @staticmethod
     @db_transaction.atomic
@@ -224,7 +217,9 @@ class SalesReceiptService:
         except SalesReceipt.DoesNotExist:
             logger.warning(f"Sales Receipt with id '{receipt_id}' not found.")
             return None
+        
     
     @staticmethod
+    @db_transaction.atomic
     def get_sales_receipts_by_customer(customer: Union[Customer, int]):
         return SalesReceipt.objects.filter(customer=customer).order_by('-created_at')

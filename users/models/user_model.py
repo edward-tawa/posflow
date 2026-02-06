@@ -5,14 +5,33 @@ from company.models import Company
 from config.models.create_update_base_model import CreateUpdateBaseModel
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password, company, role, is_staff=False, **extra_fields):
+    def create_user(self, username, email, password, company, role, is_staff=False, **extra_fields):
         if not email:
             raise ValueError("User must have an email")
         email = self.normalize_email(email)
-        user = self.model(email=email, company=company, role=role, is_staff=is_staff, **extra_fields)
+        user = self.model(username=username, email=email, company=company, role=role, is_staff=is_staff, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
+    
+    def create_superuser(self, username, email, password, company, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True')
+
+        return self.create_user(
+            username=username,
+            email=email,
+            password=password,
+            company=company,
+            role='Admin',
+            **extra_fields
+        )
 
 class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
     ROLE_CHOICES = [
@@ -57,4 +76,5 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
     objects = UserManager()
 
     def __str__(self):
+        """Return a string representation of the User, including username, role, and company."""
         return f"{self.username} ({self.role}) Company ({self.company})"

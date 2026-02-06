@@ -6,10 +6,6 @@ from suppliers.models.purchase_model import Purchase
 from suppliers.models.purchase_order_model import PurchaseOrder
 from suppliers.models.supplier_receipt_model import SupplierReceipt
 from suppliers.models.purchase_invoice_model import PurchaseInvoice
-from transactions.services.transaction_service import TransactionService
-from accounts.services.supplier_account_service import SupplierAccountService
-from accounts.services.cash_account_service import CashAccountService
-from accounts.services.purchases_account_service import PurchasesAccountService
 from suppliers.models.supplier_model import Supplier
 from company.models.company_model import Company
 from branch.models.branch_model import Branch
@@ -37,18 +33,16 @@ class PurchaseService:
     # -------------------------
     @staticmethod
     @transaction.atomic
-    def create_purchase(
+    def create_purchase(*,
         company: Company,
         branch: Branch,
         purchase_order: Optional[PurchaseOrder],
-        purchase_invoice: PurchaseInvoice,
         supplier: Supplier,
         purchase_type: str = "CASH",
         issued_by: Optional[User] = None,
         notes: Optional[str] = None,
         total_amount: float = 0,
         tax_amount: float = 0,
-        supplier_receipt: Optional[SupplierReceipt] = None,
     ) -> Purchase:
         """
         Docstring for create_purchase
@@ -68,50 +62,10 @@ class PurchaseService:
             notes=notes,
             total_amount=total_amount,
             tax_amount=tax_amount,
-            purchase_invoice=purchase_invoice,
-            supplier_receipt=supplier_receipt
+            purchase_order=purchase_order,
         )
+
         logger.info(f"Purchase created | id={purchase.id} | purchase_number={purchase.purchase_number}")
-        
-        # Record transaction
-        if purchase_type == "CREDIT":
-            credit_account = SupplierAccountService.get_or_create_supplier_account(
-                supplier=supplier,
-                company=company,
-                branch=branch
-            )
-
-            debit_account = PurchasesAccountService.get_or_create_purchases_account(
-                company=company,
-                branch=branch
-            )
-        else:  # CASH purchase
-            debit_account = PurchasesAccountService.get_or_create_purchases_account(
-                company=company,
-                branch=branch
-            )
-
-            credit_account = CashAccountService.get_or_create_cash_account(
-                company=company,
-                branch=branch
-            )
-
-        transaction = TransactionService.create_transaction(
-            company=company,
-            branch=branch,
-            debit_account=debit_account,
-            credit_account=credit_account,
-            transaction_type='PURCHASE',
-            transaction_category='PURCHASE_ORDER',
-            total_amount=total_amount,
-            supplier=supplier,
-        )
-        # Apply transaction to accounts
-        TransactionService.apply_transaction_to_accounts(transaction)
-
-        # Update stock levels by increasing stock
-        ProductStockService.increase_stock_for_purchase_invoice(purchase_invoice=purchase_invoice)
-
 
         logger.info(f"Purchase transaction recorded | purchase_id={purchase.id} | transaction_id={transaction.id}")
         return purchase

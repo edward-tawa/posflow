@@ -1,8 +1,10 @@
 from suppliers.models.purchase_invoice_item_model import PurchaseInvoiceItem
 from suppliers.models.purchase_invoice_model import PurchaseInvoice
+from inventory.services.product_stock_service import ProductStockService
 from inventory.models.product_model import Product
 from loguru import logger
 from django.db import transaction as db_transaction
+from django.db.models import QuerySet
 
 
 class PurchaseInvoiceItemService:
@@ -33,6 +35,10 @@ class PurchaseInvoiceItemService:
         logger.info(
             f"Purchase Invoice Item '{product.name}' created for invoice '{purchase_invoice.invoice_number}'."
         )
+        # Automatically add to invoice
+        PurchaseInvoiceItemService.add_to_invoice(item, purchase_invoice)
+        # Increase stock levels
+        ProductStockService.increase_stock_for_purchase_item(item)
         return item
 
     # -------------------------
@@ -108,3 +114,36 @@ class PurchaseInvoiceItemService:
         if previous_invoice:
             previous_invoice.update_total_amount()
         return item
+
+
+    @staticmethod
+    @db_transaction.atomic
+    def create_purchase_invoice_items(
+        invoice: PurchaseInvoice,
+        items: QuerySet
+    ) -> None:
+        
+        created_items = []
+        for item in items:
+            item_obj = PurchaseInvoiceItemService.create_item(
+                purchase_invoice=invoice,
+                product=item.product,
+                quantity=item.quantity,
+                unit_price=item.unit_price
+            )
+            
+            # Add item to invoice.
+            PurchaseInvoiceItemService.add_to_invoice(item_obj, invoice)
+            
+            # increase stock levels
+            ProductStockService.increase_stock_for_purchase_item(item_obj)
+
+            created_items.append(item_obj)
+
+        # update invoice totals
+        invoice.update_total_amount()
+
+        logger.info(
+            f"Purchase Invoice Items created and added to invoice '{invoice.invoice_number}'."
+        )
+        return created_items

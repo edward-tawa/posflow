@@ -13,6 +13,7 @@ class ExpenseSerializer(CompanyValidationMixin, serializers.ModelSerializer):
     company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
     incurred_by_summary = serializers.SerializerMethodField(read_only=True)
+    total_amount_paid = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
 
     class Meta:
         model = Expense
@@ -24,6 +25,7 @@ class ExpenseSerializer(CompanyValidationMixin, serializers.ModelSerializer):
             'expense_date',
             'currency',
             'total_amount',
+            'total_amount_paid',
             'description',
             'incurred_by',
             'incurred_by_summary',

@@ -55,16 +55,7 @@ class PurchaseInvoiceService:
             f"Purchase Invoice '{purchase_invoice.invoice_number}' created for supplier "
             f"'{supplier.name}' with status '{status}'."
         )
-        for product in purchase_order.items.all():
-            item = PurchaseInvoiceItemService.create_item(
-                purchase_invoice=purchase_invoice,
-                product=product,
-                quantity=product.quantity,
-                unit_price=product.unit_price
-                )
-            PurchaseInvoiceItemService.add_to_invoice(item, purchase_invoice)
         
-        purchase_invoice.update_total_amount()
         return purchase_invoice
 
     # -------------------------
