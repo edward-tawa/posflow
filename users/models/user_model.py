@@ -39,20 +39,25 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
         ('Marketing', 'Marketing'),
         ('Development', 'Development'),
         ('Manager', 'Manager'),
-        ('Inventory_Mangement', 'Inventory Manager'),
+        ('Inventory_Manager', 'Inventory Manager'),
         ('Admin', 'Administrator'),
         ('Support', 'Support Staff'),
         ('Accountant', 'Accountant'),
         ('HR_Manager', 'Human Resources'),
+        ('Cashier', 'Cashier'),
         ('Staff', 'Staff'),
     ]
+
+    
     username = models.CharField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(unique=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="staff")
+    company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name="staff")
     branch = models.ForeignKey('branch.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name="staff")
     role = models.CharField(max_length=50, choices=ROLE_CHOICES)
+    department = models.CharField(max_length=255, blank=True, null=True)
+    photo = models.ImageField(upload_to='user_photos/', null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)  # staff users are not admins by default
 

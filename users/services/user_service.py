@@ -6,6 +6,7 @@ from loguru import logger
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.base_user import BaseUserManager
+from exceptions.users.user_exceptions import UserCreationError
 
 
 
@@ -67,6 +68,7 @@ class UserService:
         # -------------------------
         # Create user instance
         # -------------------------
+        
         user = User(
             username=username,
             email=BaseUserManager.normalize_email(email),
@@ -113,24 +115,58 @@ class UserService:
     # -------------------------
     @staticmethod
     @db_transaction.atomic
-    def update_user(user: User, **kwargs) -> User:
+    def update_user(
+        user: User,
+        username: str | None = None,
+        email: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+        branch: Branch | None = None,
+        role: str | None = None,
+        is_staff: bool | None = None
+    ) -> User:
         """
         Update allowed fields of a user.
-        Raises ValueError if trying to update disallowed fields.
+        Only non-None values will be updated.
         """
-        if not kwargs:
-            return user
+        updated_fields = []
 
-        for key in kwargs:
-            if key not in UserService.ALLOWED_UPDATE_FIELDS:
-                raise ValueError(f"Field '{key}' cannot be updated")
+        if username is not None:
+            user.username = username
+            updated_fields.append("username")
 
-        for key, value in kwargs.items():
-            setattr(user, key, value)
+        if email is not None:
+            user.email = BaseUserManager.normalize_email(email)
+            updated_fields.append("email")
 
-        user.save(update_fields=list(kwargs.keys()))
-        logger.info(f"User '{user.username}' updated.")
+        if first_name is not None:
+            user.first_name = first_name
+            updated_fields.append("first_name")
+
+        if last_name is not None:
+            user.last_name = last_name
+            updated_fields.append("last_name")
+
+        if branch is not None:
+            user.branch = branch
+            updated_fields.append("branch")
+
+        if role is not None:
+            user.role = role
+            updated_fields.append("role")
+
+        if is_staff is not None:
+            user.is_staff = is_staff
+            updated_fields.append("is_staff")
+
+        if updated_fields:
+            user.save(update_fields=updated_fields)
+            logger.info(f"User '{user.username}' updated fields: {', '.join(updated_fields)}")
+        else:
+            logger.info(f"No fields to update for user '{user.username}'.")
+
         return user
+
 
     # -------------------------
     # DELETE
