@@ -1,40 +1,44 @@
 from rest_framework.viewsets import ModelViewSet
-from employees.models.employee_model import Employee
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
-from employees.services.employee_service import EmployeeService
-from employees.serializers.employee_serializer import EmployeeSerializer
+from rest_framework.filters import SearchFilter, OrderingFilter
+from config.pagination.pagination import StandardResultsSetPagination
+from employees.models.employee_attendance_model import EmployeeAttendance
+from employees.serializers.employee_attendance_serializer import EmployeeAttendanceSerializer
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from employees.permissions.employee_permissions import EmployeePermission
-from rest_framework.filters import SearchFilter, OrderingFilter
-from config.pagination.pagination import StandardResultsSetPagination
-from company.models.company_model import Company
 from loguru import logger
-from django.db.models import Q
+from company.models.company_model import Company
 
 
-class EmployeeViewSet(ModelViewSet):
+class EmployeeAttendanceViewSet(ModelViewSet):
     """
-    ViewSet for viewing and managing employees.
-    Supports listing, retrieving, creating, updating, and deleting employees.
+    ViewSet for viewing and managing employee attendance.
+    Supports listing, retrieving, creating, updating, and deleting attendance records.
     Includes detailed logging for key operations.
     """
-    queryset = Employee.objects.all()
-    serializer_class = EmployeeSerializer
+    queryset = EmployeeAttendance.objects.all()
+    serializer_class = EmployeeAttendanceSerializer
     authentication_classes = [CompanyCookieJWTAuthentication, UserCookieJWTAuthentication, JWTAuthentication]
     permission_classes = [EmployeePermission]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = [
-        'first_name', 'last_name', 'email', 'phone_number',
-        'department', 'position', 'grade', 'status'
+        'employee__first_name',
+        'employee__last_name',
+        'employee__email',
+        'status',
+        'branch__name'
     ]
     ordering_fields = [
-        'first_name', 'last_name', 'email', 'department',
-        'position', 'grade', 'status', 'created_at'
+        'date',
+        'check_in_time',
+        'check_out_time',
+        'status',
+        'created_at'
     ]
-    ordering = ['first_name', 'last_name']
+    ordering = ['-date', 'employee__first_name']
     pagination_class = StandardResultsSetPagination
 
     # -------------------------
@@ -44,19 +48,19 @@ class EmployeeViewSet(ModelViewSet):
         try:
             user = self.request.user
             if not user.is_authenticated:
-                logger.warning("Unauthenticated access attempt to EmployeeViewSet.")
-                return Employee.objects.none()
+                logger.warning("Unauthenticated access attempt to EmployeeAttendanceViewSet.")
+                return EmployeeAttendance.objects.none()
 
-            # Determine the "company context"
             company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
             identifier = getattr(company, 'name', None) or getattr(company, 'username', None) or 'Unknown'
 
             if not company:
                 logger.warning(f"{identifier} has no associated company.")
-                return Employee.objects.none()
+                return EmployeeAttendance.objects.none()
 
-            logger.info(f"{identifier} fetching employees for company '{getattr(company, 'name', 'Unknown')}'.")
-            return Employee.objects.filter(company=company).select_related('branch', 'company', 'user')
+            logger.info(f"{identifier} fetching employee attendances for company '{getattr(company, 'name', 'Unknown')}'.")
+            return EmployeeAttendance.objects.filter(company=company).select_related('employee', 'branch', 'company')
+
         except Exception as e:
             logger.error(e)
             return self.queryset.none()
@@ -67,10 +71,10 @@ class EmployeeViewSet(ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        employee = serializer.save(company=company, branch=user.branch, created_by=user, updated_by=user)
+        attendance = serializer.save(company=company, branch=user.branch, created_by=user, updated_by=user)
         identifier = getattr(user, 'username', None) or getattr(company, 'name', 'Unknown')
         logger.success(
-            f"Employee '{employee.full_name}' ({employee.employee_number}) created "
+            f"Attendance for employee '{attendance.employee}' on {attendance.date} created "
             f"by {identifier} in company '{getattr(company, 'name', 'Unknown')}'."
         )
 
@@ -80,9 +84,9 @@ class EmployeeViewSet(ModelViewSet):
     def perform_update(self, serializer):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
-        employee = serializer.save(updated_by=user)
+        attendance = serializer.save(updated_by=user)
         identifier = getattr(user, 'username', None) or getattr(company, 'name', 'Unknown')
-        logger.info(f"Employee '{employee.full_name}' ({employee.employee_number}) updated by {identifier}.")
+        logger.info(f"Attendance for employee '{attendance.employee}' on {attendance.date} updated by {identifier}.")
 
     # -------------------------
     # DELETE
@@ -91,22 +95,5 @@ class EmployeeViewSet(ModelViewSet):
         user = self.request.user
         company = getattr(user, 'company', None) or (user if isinstance(user, Company) else None)
         identifier = getattr(user, 'username', None) or getattr(company, 'name', 'Unknown')
-        logger.warning(f"Employee '{instance.full_name}' ({instance.employee_number}) deleted by {identifier}.")
+        logger.warning(f"Attendance for employee '{instance.employee}' on {instance.date} deleted by {identifier}.")
         instance.delete()
-
-
-    
-    @action(detail=True, methods=['get'])
-    def system_user_employees(self, request):
-        try:
-            system_user_employees = Employee.objects.filter(is_system_user=True)
-            serializer = self.get_serializer(system_user_employees, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            logger.error(f"Error fetching system user employees: {str(e)}")
-            return Response(
-                {"detail": "Error fetching system user employees."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-

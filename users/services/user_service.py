@@ -7,6 +7,8 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.base_user import BaseUserManager
 from exceptions.users.user_exceptions import UserCreationError
+from django.db.models import QuerySet
+from django.core.exceptions import ObjectDoesNotExist
 
 
 
@@ -18,7 +20,19 @@ class UserService:
     """
 
     ALLOWED_UPDATE_FIELDS = {"first_name", "last_name", "email", "is_active"}
-    ALLOWED_ROLES = {"admin", "manager", "user"}  # Define allowed roles
+    ALLOWED_ROLES = {
+        "Sales",
+        "Marketing",
+        "Development",
+        "Manager",
+        "Inventory_Manager",
+        "Admin",
+        "Support",
+        "Accountant",
+        "HR_Manager",
+        "Cashier",
+        "Staff",
+                } # Define allowed roles
   
     # -------------------------
     # CREATE
@@ -286,23 +300,53 @@ class UserService:
 
 
     @staticmethod
-    def get_active_users() -> list[User]:
+    def get_active_users() -> QuerySet[User]:
         """Return a list of all active users."""
-        return list(User.objects.filter(is_active=True))
-
+        return User.objects.filter(is_active=True)
 
     @staticmethod
-    def get_users_by_role(role: str) -> list[User]:
-        """Return users with a given role."""
-        if role not in UserService.ALLOWED_ROLES:
-            raise ValueError(f"Role '{role}' is not allowed.")
-        return list(User.objects.filter(role=role))
+    def filter_active_users(queryset: QuerySet[User]) -> QuerySet[User]:
+        return queryset.filter(is_active=True)
+    
+
+
+    
+    @staticmethod
+    def get_inactive_users() -> QuerySet[User]:
+        """Return a list of all inactive users."""
+        return User.objects.filter(is_active=False)
     
 
     @staticmethod
-    def search_users_by_name(name: str) -> list[User]:
+    def get_users_by_branch(branch: Branch) -> QuerySet[User]:
+        """Return users belonging to a specific branch."""
+        return User.objects.filter(branch=branch)
+
+
+    @staticmethod
+    def get_users_by_role(*, company: Company, branch: Branch, role: str) -> QuerySet[User]:
+        """Return users with a given role in a specific company and branch."""
+        if role not in UserService.ALLOWED_ROLES:
+            raise ValueError(f"Role '{role}' is not allowed.")
+        return User.objects.filter(company=company, branch=branch, role=role)
+    
+
+    def filter_users_by_role(self, queryset: QuerySet[User], role: str) -> QuerySet[User]:
+        """Filter a queryset of users by role."""
+        if role not in UserService.ALLOWED_ROLES:
+            raise ValueError(f"Role '{role}' is not allowed.")
+        return queryset.filter(role=role)
+
+
+    def filter_users_by_branch(self, queryset: QuerySet[User], branch: Branch) -> QuerySet[User]:
+        """Filter a queryset of users by branch."""
+        return queryset.filter(branch=branch)
+    
+
+    @staticmethod
+    def search_users_by_name(name: str) -> QuerySet[User]:
         """Return users whose first or last name contains the search term."""
-        return list(User.objects.filter(first_name__icontains=name) | User.objects.filter(last_name__icontains=name))
+        return User.objects.filter(first_name__icontains=name) | User.objects.filter(last_name__icontains=name)
     
 
 

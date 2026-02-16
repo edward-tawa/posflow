@@ -49,6 +49,7 @@ class Employee(CreateUpdateBaseModel):
     grade = models.CharField(max_length=50, blank=True, null=True)
     position = models.CharField(max_length=255, blank=True, null=True)
     employee_number = models.CharField(max_length=50, unique=True)
+    is_system_user = models.BooleanField(default=False)  # Flag to identify system users
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="created_employees")
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="updated_employees")
 

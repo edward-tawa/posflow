@@ -8,6 +8,12 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.conf import settings
+from django.shortcuts import get_object_or_404
+# password reset imports
+from notifications.services.whatsapp import send_whatsapp_template
+from django.contrib.auth.tokens import default_token_generator
+
+from company.models.company_model import Company
 from users.models.user_model import User
 from users.serializers.user_serializer import UserSerializer
 from users.serializers.user_auth_serializer import UserLoginSerializer
@@ -19,7 +25,10 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from django.db.models import Q
 from users.services.user_service import UserService
+from company.services.company_service import CompanyService
+from branch.services.branch_service import BranchService
 from activity_log.services.activity_log_service import ActivityLogService
+from django.contrib.contenttypes.models import ContentType
 from loguru import logger
 
 class UserViewSet(ModelViewSet):
@@ -169,6 +178,69 @@ class UserViewSet(ModelViewSet):
 
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=["get"])
+    def active_users(self, request):
+        try:
+            user_queryset = self.get_queryset()
+            active_users = UserService.filter_active_users(user_queryset)
+
+            serializer = self.get_serializer(active_users, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error fetching active users: {str(e)}")
+            return Response(
+                {"detail": "Error fetching active users."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+    @action(detail=False, methods=["get"])
+    def users_by_role(self, request):
+        try:
+            role = request.query_params.get("role")
+            if not role:
+                return Response({"detail": "Role query parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if role not in UserService.ALLOWED_ROLES:
+                return Response({"detail": f"Role '{role}' is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+
+            user_queryset = self.get_queryset()
+            users_with_role = UserService.filter_users_by_role(user_queryset, role)
+
+            serializer = self.get_serializer(users_with_role, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error fetching users by role: {str(e)}")
+            return Response(
+                {"detail": "Error fetching users by role."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+    @action(detail=False, methods=["get"])
+    def users_by_branch(self, request):
+        try:
+            branch_id = request.query_params.get("branch_id")
+            if not branch_id:
+                return Response({"detail": "Branch ID query parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+            user_queryset = self.get_queryset()
+            users_in_branch = UserService.filter_users_by_branch(user_queryset, branch_id)
+
+            serializer = self.get_serializer(users_in_branch, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"Error fetching users by branch: {str(e)}")
+            return Response(
+                {"detail": "Error fetching users by branch."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+
+
 
 # Register a new user (by company admin)
 class UserRegisterView(APIView):
@@ -190,6 +262,8 @@ class UserRegisterView(APIView):
                 print(serializer.errors)  # <- This will show what is failing
             serializer.is_valid(raise_exception=True)
             serializer.save(company = self.request.user.company, branch = request.user.branch)
+
+            # Log the user creation activity
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.info({
@@ -270,11 +344,12 @@ class UserLoginView(APIView):
             },
             status=200
         )
-
-        user_login_activity_log = ActivityLogService.create_activity_log(
-            user_id=user.id,
-            action=f"Log in",
-            description = "User logged in to the system successfully.",
+        company = CompanyService.get_company_by_id(user.company.id) if user.company.id else None
+        branch = BranchService.get_branch_by_id(user.branch.id) if user.branch.id else None    
+        user_login_activity_log = ActivityLogService.log_user_login(
+            user=user,
+            company=company,
+            branch=branch
         )
 
         # Development vs production cookie flags
@@ -310,11 +385,11 @@ class UserLogoutView(APIView):
         user = request.user
         response.delete_cookie("user_access_token")
         response.delete_cookie("user_refresh_token")   
-        user_logout_activity_log = ActivityLogService.create_activity_log(
-            user_id=user.id,
-            action=f"Log out",
-            description = "User logged out of the system successfully.",
-        )     
+        user_logout_activity_log = ActivityLogService.log_user_logout(
+            user=user,
+            company=user.company if user.company.pk else None,
+            branch=user.branch if user.branch.pk else None
+        )    
         return response
 
 class UserTokenRefreshView(APIView):
@@ -361,3 +436,25 @@ class UserTokenRefreshView(APIView):
         except TokenError:
             return Response({"error": "Invalid or expired refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
 
+
+
+
+
+
+class PasswordResetAPIView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        user = get_object_or_404(User, email=email)
+
+        # Generate password reset link
+        token = default_token_generator.make_token(user)
+        uid = user.pk
+        reset_link = f"https://zimployapp.com/reset-password/{uid}/{token}/"
+
+        # Send WhatsApp if opted in
+        if user.whatsapp_opt_in and user.whatsapp_number:
+            template_name = "password_reset"  # approved template name
+            parameters = [user.username, reset_link]
+            send_whatsapp_template(user.whatsapp_number, template_name, parameters)
+
+        return Response({'detail': 'Password reset link sent'}, status=status.HTTP_200_OK)

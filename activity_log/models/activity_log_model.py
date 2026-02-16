@@ -13,6 +13,20 @@ class ActivityLog(CreateUpdateBaseModel):
     POSFlow Activity Log: Immutable audit log for user actions.
     """
 
+    company = models.ForeignKey(
+        'company.Company',
+        on_delete=models.CASCADE,
+        related_name='activity_logs',
+        help_text='The company context of the activity.'
+    )
+
+    branch = models.ForeignKey(
+        'company.Branch',
+        on_delete=models.CASCADE,
+        related_name='activity_logs',
+        help_text='The branch context of the activity.'
+    )
+
     user = models.ForeignKey(
         'users.User',
         on_delete=models.SET_NULL,
@@ -20,6 +34,7 @@ class ActivityLog(CreateUpdateBaseModel):
         related_name='activity_logs',
         help_text='The user who performed the action.'
     )
+
     action = models.CharField(
         max_length=50,
         help_text='Precise action performed (service-layer controlled).'
@@ -35,21 +50,26 @@ class ActivityLog(CreateUpdateBaseModel):
         blank=True,
         help_text='The type of the object the action was performed on.'
     )
+
     object_id = models.PositiveBigIntegerField(
         null=True,
         blank=True,
         help_text='The ID of the object the action was performed on.'
     )
+
     content_object = GenericForeignKey('content_type', 'object_id')
 
     description = models.TextField(
         help_text='Human-readable description of the activity.'
     )
+
+    
     metadata = models.JSONField(
         default=dict,
         blank=True,
         help_text="Extra structured data for auditing (amounts, old/new values, reason)"
     )
+
 
     class Meta:
         verbose_name = 'Activity Log'
@@ -60,6 +80,7 @@ class ActivityLog(CreateUpdateBaseModel):
             models.Index(fields=['content_type', 'object_id']),
         ]
 
+    @staticmethod
     def __str__(self):
         username = self.user.username if self.user else "Deleted User"
         return f"{username} - {self.action} at {self.created_at}"

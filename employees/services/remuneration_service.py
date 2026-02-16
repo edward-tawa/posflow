@@ -1,4 +1,4 @@
-from employees.models.remuneration_model import Remuneration
+from employees.models.employee_remuneration_model import Remuneration
 from django.db import transaction as db_transaction, IntegrityError
 from django.core.exceptions import ValidationError
 from django.db.models import QuerySet

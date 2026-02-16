@@ -9,7 +9,7 @@ class NotificationPermission(BasePermission):
     """
 
     VIEW_ROLES = ['Sales', 'Marketing', 'Manager', 'Staff', 'Superuser', 'Employee']
-    EDIT_ROLES = ['Manager']
+    EDIT_ROLES = ['Manager', 'Superuser']
 
     def has_permission(self, request, view):
         if not request.user.is_authenticated:

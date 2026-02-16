@@ -3,9 +3,6 @@ from config.serializers.company_validation_mixin import CompanyValidationMixin
 from config.utilities.get_company_or_user_company import get_expected_company
 from loguru import logger
 from employees.models.employee_model import Employee
-from company.models.company_model import Company
-from branch.models.branch_model import Branch
-from users.models.user_model import User
 
 
 class EmployeeSerializer(CompanyValidationMixin, serializers.ModelSerializer):
@@ -32,6 +29,7 @@ class EmployeeSerializer(CompanyValidationMixin, serializers.ModelSerializer):
             'start_date',
             'end_date',
             'employee_number',
+            'is_system_user',
             'created_by',
             'updated_by',
             'created_at',

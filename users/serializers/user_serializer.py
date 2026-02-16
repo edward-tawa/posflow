@@ -26,6 +26,9 @@ class UserSerializer(serializers.ModelSerializer):
             'employment_type',
             'department',
             'photo',
+            'whatsapp_number',
+            'whatsapp_opt_in',
+            'whatsapp_opt_in_date',
             'password', 
             'is_active', 
             'is_staff', 
@@ -61,7 +64,9 @@ class UserSerializer(serializers.ModelSerializer):
         # Pop is_staff if provided, default to False
         is_staff = validated_data.pop('is_staff', False)
         
-        user = User.objects.create_user(password=password, is_staff=is_staff, **validated_data)
+        user = User.objects.create_user(
+            password=password,
+            is_staff=is_staff, **validated_data)
         return user
 
     def update(self, instance, validated_data):

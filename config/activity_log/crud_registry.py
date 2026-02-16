@@ -2,7 +2,6 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from config.middleware.get_current_user_middleware import get_current_user
 from config.activity_log.base_activity_log import log_activity
-# from transfers.services.transfer_service import TransferService
 from transfers.models.product_transfer_item_model import ProductTransferItem
 
 
@@ -12,7 +11,11 @@ def register_crud_signals(model, actions, get_description=None, get_metadata=Non
         action = actions['create'] if created else actions['update']
         description = get_description(instance, created) if get_description else None
         metadata = get_metadata(instance, created) if get_metadata else None
+        company = getattr(instance, 'company', None)
+        branch = getattr(instance, 'branch', None)
         log_activity(
+            company=company,
+            branch=branch,
             instance=instance,
             action=action,
             user=get_current_user(),
@@ -24,10 +27,15 @@ def register_crud_signals(model, actions, get_description=None, get_metadata=Non
     def log_delete(sender, instance, **kwargs):
         description = get_description(instance, deleted=True) if get_description else None
         metadata = get_metadata(instance, deleted=True) if get_metadata else None
+        company = getattr(instance, 'company', None)
+        branch = getattr(instance, 'branch', None)
         log_activity(
+            company=company,
+            branch=branch,
             instance=instance,
             action=actions['delete'],
             user=get_current_user(),
             description=description,
             metadata=metadata
         )
+

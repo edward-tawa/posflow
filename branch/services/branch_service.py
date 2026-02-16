@@ -19,6 +19,17 @@ class BranchService:
         branch.save()
         logger.info(f"Created branch {branch.name} ({branch.id}) for company {company.name} ({company.id})")
         return branch
+    
+    @staticmethod
+    def get_branch_by_id(branch_id: int) -> Optional[Branch]:
+        """Retrieve a branch by its ID."""
+        try:
+            branch = Branch.objects.get(id=branch_id)
+            logger.info(f"Retrieved branch {branch.name} ({branch.id})")
+            return branch
+        except Branch.DoesNotExist:
+            logger.warning(f"Branch with id {branch_id} does not exist.")
+            return None
 
     @staticmethod
     def assign_manager(branch: Branch, user: User) -> Branch:

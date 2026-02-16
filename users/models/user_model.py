@@ -4,6 +4,7 @@ from django.db import models
 from company.models import Company
 from config.models.create_update_base_model import CreateUpdateBaseModel
 
+
 class UserManager(BaseUserManager):
     def create_user(self, username, email, password, company, role, is_staff=False, **extra_fields):
         if not email:
@@ -48,6 +49,16 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
         ('Staff', 'Staff'),
     ]
 
+    EMPLOYMENT_TYPE = [
+        ('full_time', 'Full Time'),
+        ('part_time', 'Part Time'),
+        ('contractor', 'Contractor'),
+        ('intern', 'Intern'),
+        ('freelancer', 'Freelancer'),
+        ('temporary', 'Temporary'),
+        ('permanent', 'Permanent'),
+    ]
+
     
     username = models.CharField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
@@ -56,10 +67,16 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name="staff")
     branch = models.ForeignKey('branch.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name="staff")
     role = models.CharField(max_length=50, choices=ROLE_CHOICES)
+    emp_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    employment_type = models.CharField(max_length=50, choices=EMPLOYMENT_TYPE, blank=True, null=True)
     department = models.CharField(max_length=255, blank=True, null=True)
     photo = models.ImageField(upload_to='user_photos/', null=True, blank=True)
+    whatsapp_number = models.CharField(max_length=20, blank=True, null=True)
+    whatsapp_opt_in = models.BooleanField(default=False)
+    whatsapp_opt_in_date = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)  # staff users are not admins by default
+    
 
     # Override groups and user_permissions to avoid clashes
     groups = models.ManyToManyField(
@@ -68,6 +85,7 @@ class User(AbstractBaseUser, PermissionsMixin, CreateUpdateBaseModel):
         related_name='company_set',          # unique
         related_query_name='company'
     )
+    
     user_permissions = models.ManyToManyField(
         'auth.Permission',
         blank=True,

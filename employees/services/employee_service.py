@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError ,transaction as db_transaction
 from django.db import transaction
 from loguru import logger
+from django.db.models import QuerySet
 from employees.exceptions.employee_exceptions import (
                                                     EmployeeCreationError,
                                                     EmployeeAlreadyExistError,
@@ -290,7 +291,7 @@ class EmployeeService:
 
 
 
-
+    @staticmethod
     def get_employee_branch(employee_id: int) -> Branch:
         """
         Retrieve the branch associated with a given employee.
@@ -316,3 +317,30 @@ class EmployeeService:
             raise EmployeeRetrievalError("Unexpected error while retrieving employee branch")
     
     
+    
+    @staticmethod
+    def get_system_users(company, branch):
+        """
+        Retrieve all employees marked as system users for a given company and branch.
+
+        Args:
+            company (Company): The company to filter employees by.
+            branch (Branch): The branch to filter employees by.
+        Returns:
+            QuerySet: A queryset of Employee instances who are system users.
+        """
+        return Employee.objects.filter(company=company, branch=branch, is_system_user=True)
+    
+
+    
+    @staticmethod
+    def filter_system_user_employees(queryset: QuerySet) -> QuerySet[Employee]:
+        """
+        Filters the given queryset of employees to include only those marked as system users.
+
+        Args:
+            queryset (QuerySet): The initial queryset of Employee instances.
+        Returns:
+            QuerySet: A filtered queryset containing only system user employees.
+        """
+        return queryset.filter(is_system_user=True)

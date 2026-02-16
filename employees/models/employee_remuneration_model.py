@@ -11,6 +11,8 @@ class Remuneration(CreateUpdateBaseModel):
         ('bonus', 'Bonus'),
         ('commission', 'Commission'),
         ('other', 'Other'),
+        ('benefits', 'Benefits'),
+        ('bonus', 'Bonus'),
     ]
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='remunerations')
     branch = models.ForeignKey('company.Branch', on_delete=models.CASCADE, related_name='remunerations')

@@ -1,7 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from employees.models.remuneration_model import Remuneration
+from employees.models.employee_remuneration_model import Remuneration
 from employees.serializers.remuneration_serializer import RemunerationSerializer
 from config.auth.jwt_token_authentication import CompanyCookieJWTAuthentication, UserCookieJWTAuthentication
 from employees.permissions.employee_permissions import EmployeePermission

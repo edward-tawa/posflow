@@ -1,6 +1,10 @@
 from activity_log.models.activity_log_model import ActivityLog
 from django.db import transaction
 from django.db.models import QuerySet
+from django.contrib.contenttypes.models import ContentType
+from users.models.user_model import User
+from company.models.company_model import Company
+from branch.models.branch_model import Branch
 from loguru import logger
 
 
@@ -19,6 +23,9 @@ class ActivityLogService:
     @staticmethod
     @transaction.atomic
     def create_activity_log(
+        *,
+        company: Company,
+        branch: Branch,
         user_id: int,
         action: str,
         description: str = "",
@@ -30,6 +37,8 @@ class ActivityLogService:
             metadata = {}
 
         activity_log = ActivityLog.objects.create(
+            company=company,
+            branch=branch,
             user_id=user_id,
             action=action,
             description=description,
@@ -46,6 +55,41 @@ class ActivityLogService:
         )
 
         return activity_log
+    
+
+
+    @staticmethod
+    def log_user_login(user: User, company: Company, branch: Branch):
+        ActivityLogService.create_activity_log(
+            company=company,
+            branch=branch,
+            user_id=user.pk,
+            action="user_login",
+            description=f"User '{user.username}' logged in.",
+            content_type=ContentType.objects.get_for_model(user),
+            object_id=user.pk,
+            metadata={
+                "company_id": company.pk,
+                "branch_id": branch.pk
+            }
+        )
+
+    
+    @staticmethod    
+    def log_user_logout(user: User, company: Company, branch: Branch):
+        ActivityLogService.create_activity_log(
+            company=company,
+            branch=branch,
+            user_id=user.pk,
+            action="user_logout",
+            description=f"User '{user.username}' logged out.",
+            content_type=ContentType.objects.get_for_model(user),
+            object_id=user.pk,
+            metadata={
+                "company_id": company.pk,
+                "branch_id": branch.pk
+            }
+        )
 
     # -------------------------
     # READ
