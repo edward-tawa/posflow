@@ -17,20 +17,26 @@ class ActivityLog(CreateUpdateBaseModel):
         'company.Company',
         on_delete=models.CASCADE,
         related_name='activity_logs',
-        help_text='The company context of the activity.'
+        help_text='The company context of the activity.',
+        null=True,
+        blank=True
     )
 
     branch = models.ForeignKey(
-        'company.Branch',
+        'branch.Branch',
         on_delete=models.CASCADE,
         related_name='activity_logs',
-        help_text='The branch context of the activity.'
+        help_text='The branch context of the activity.',
+        null=True,       # allow nulls in DB
+        blank=True       # allow blank in forms/admin
     )
+
 
     user = models.ForeignKey(
         'users.User',
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name='activity_logs',
         help_text='The user who performed the action.'
     )

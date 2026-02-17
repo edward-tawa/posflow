@@ -6,7 +6,7 @@ from loguru import logger
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.base_user import BaseUserManager
-from exceptions.users.user_exceptions import UserCreationError
+from users.exceptions.users.user_exceptions import UserCreationError
 from django.db.models import QuerySet
 from django.core.exceptions import ObjectDoesNotExist
 

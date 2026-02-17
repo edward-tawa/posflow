@@ -10,7 +10,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 # password reset imports
-from notifications.services.whatsapp import send_whatsapp_template
+from users.services.whatsapp.send_message import send_whatsapp_message_to_user
 from django.contrib.auth.tokens import default_token_generator
 
 from company.models.company_model import Company
@@ -449,12 +449,12 @@ class PasswordResetAPIView(APIView):
         # Generate password reset link
         token = default_token_generator.make_token(user)
         uid = user.pk
-        reset_link = f"https://zimployapp.com/reset-password/{uid}/{token}/"
+        reset_link = f"https://posflow.com/reset-password/{uid}/{token}/"
 
         # Send WhatsApp if opted in
         if user.whatsapp_opt_in and user.whatsapp_number:
             template_name = "password_reset"  # approved template name
             parameters = [user.username, reset_link]
-            send_whatsapp_template(user.whatsapp_number, template_name, parameters)
+            send_whatsapp_message_to_user(user.whatsapp_number, template_name, parameters)
 
         return Response({'detail': 'Password reset link sent'}, status=status.HTTP_200_OK)

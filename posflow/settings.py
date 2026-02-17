@@ -17,11 +17,22 @@ from config.utilities.logger import setup_loguru
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+env_list = ['.env', '.env.local', '.env.whatsapp', '.env.database']
+
+for env_file in env_list:
+    env_path = BASE_DIR / env_file
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+
+required_envs = ["WHATSAPP_ACCESS_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_API_VERSION"]
+for var in required_envs:
+    if not os.getenv(var):
+        print(f"Warning: {var} not set in any loaded .env file")
 
 
 # Quick-start development settings - unsuitable for production
@@ -29,6 +40,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-i$at6o5u-s_fcubiffqq439*%*3a5#)@guo0bugn@5-mynh3fk'
+
+
+WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")
+WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
+WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -121,22 +138,14 @@ WSGI_APPLICATION = 'posflow.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 # settings.py
 
-if not DEBUG:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv('DB_NAME'),      # The database name
-            "USER": os.getenv('DB_USER'),           # The db user you created
-            "PASSWORD": os.getenv('DB_PASSWORD'),       # The user's password
-            "HOST": os.getenv('DB_HOST'),       # Use "127.0.0.1" if needed
-            "PORT": os.getenv('DB_PORT'),            # Default PostgreSQL port
-        }
-    }
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST", "127.0.0.1"),
+        "PORT": os.getenv("DB_PORT", "5432"),
     }
 }
 
@@ -194,7 +203,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "company.Company"
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
