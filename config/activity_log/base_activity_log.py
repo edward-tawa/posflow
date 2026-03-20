@@ -8,11 +8,7 @@ def log_activity(*, company, branch, instance, action: str, user=None, metadata=
     Centralized function to create an activity log entry
     """
 
-    current_user = get_current_user()
-    if isinstance(current_user, User):
-        user_field = current_user
-    else:
-        user_field = None
+    
     ActivityLogService.create_activity_log(
         company=company,
         branch=branch,

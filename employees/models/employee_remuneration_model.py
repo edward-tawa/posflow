@@ -16,11 +16,19 @@ class Remuneration(CreateUpdateBaseModel):
     ]
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='remunerations')
     branch = models.ForeignKey('company.Branch', on_delete=models.CASCADE, related_name='remunerations')
-    employee = models.ForeignKey('employees.Employee', on_delete=models.CASCADE, related_name='remunerations')
+    employee = models.ForeignKey('employees.Employee', on_delete=models.SET_NULL, related_name='remunerations')
     user = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='remunerations')
     type = models.CharField(max_length=20, choices=TYPES, default='salary')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    gross_salary = models.DecimalField(max_digits=10, decimal_places=2)
+    deductions = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     effective_date = models.DateField()
 
+    @property
+    def net_salary(self):
+        return self.gross_salary - self.deductions
+      
+
     def __str__(self):
-        return f"{self.employee} - {self.amount} effective from {self.effective_date}"
+        return f"{self.employee} - {self.gross_salary} effective from {self.effective_date}"
+    
+    

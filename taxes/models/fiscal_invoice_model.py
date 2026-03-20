@@ -18,7 +18,7 @@ class FiscalInvoice(CreateUpdateBaseModel):
     invoice_number = models.CharField(max_length=100)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     total_tax = models.DecimalField(max_digits=12, decimal_places=2)
-
+    
     is_fiscalized = models.BooleanField(default=False)
 
     def __str__(self):

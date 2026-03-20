@@ -2,10 +2,7 @@ from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from config.models.create_update_base_model import CreateUpdateBaseModel
-from django.utils import timezone
 from loguru import logger
-
-
 
 
 class ActivityLog(CreateUpdateBaseModel):
@@ -15,16 +12,15 @@ class ActivityLog(CreateUpdateBaseModel):
 
     company = models.ForeignKey(
         'company.Company',
-        on_delete=models.CASCADE,
-        related_name='activity_logs',
-        help_text='The company context of the activity.',
+        on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name='activity_logs',
     )
 
     branch = models.ForeignKey(
         'branch.Branch',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name='activity_logs',
         help_text='The branch context of the activity.',
         null=True,       # allow nulls in DB
@@ -86,7 +82,6 @@ class ActivityLog(CreateUpdateBaseModel):
             models.Index(fields=['content_type', 'object_id']),
         ]
 
-    @staticmethod
     def __str__(self):
         username = self.user.username if self.user else "Deleted User"
         return f"{username} - {self.action} at {self.created_at}"

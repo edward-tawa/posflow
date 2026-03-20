@@ -22,14 +22,32 @@ import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-env_list = ['.env', '.env.local', '.env.whatsapp', '.env.database']
+env_list = [
+    '.env', 
+    '.env.local', 
+    '.env.whatsapp', 
+    '.env.database', 
+    '.env.smtp',
+    '.env.celery',
+    '.env.zimra',
+    ]
 
 for env_file in env_list:
     env_path = BASE_DIR / env_file
     if env_path.exists():
         load_dotenv(dotenv_path=env_path)
 
-required_envs = ["WHATSAPP_ACCESS_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_API_VERSION"]
+required_envs = [
+        "WHATSAPP_ACCESS_TOKEN",
+        "WHATSAPP_PHONE_NUMBER_ID", 
+        "WHATSAPP_API_VERSION", 
+        "EMAIL_HOST_USER", 
+        "EMAIL_HOST_PASSWORD", 
+        "DEFAULT_FROM_EMAIL",
+        "CELERY_BROKER_URL",
+        "CELERY_RESULT_BACKEND",
+        "CELERY_TIMEZONE"
+        ]
 for var in required_envs:
     if not os.getenv(var):
         print(f"Warning: {var} not set in any loaded .env file")
@@ -41,10 +59,29 @@ for var in required_envs:
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-i$at6o5u-s_fcubiffqq439*%*3a5#)@guo0bugn@5-mynh3fk'
 
-
+# WhatsApp API settings
 WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")
 WHATSAPP_PHONE_NUMBER_ID = os.getenv("WHATSAPP_PHONE_NUMBER_ID")
 WHATSAPP_API_VERSION = os.getenv("WHATSAPP_API_VERSION")
+
+# SMTP settings
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
+# Celery settings
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+CELERY_TIMEZONE = os.getenv("CELERY_TIMEZONE", "UTC")
+
+# Static config
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -75,9 +112,9 @@ THIRD_PARTY_APPS = [
 
 # Local / PosFlow apps
 LOCAL_APPS = [
+    "company",
     "activity_log",
     "core",  
-    "company",
     "currency",
     "accounts",
     "customers",
@@ -100,7 +137,7 @@ LOCAL_APPS = [
 ]
 
 
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = LOCAL_APPS + DJANGO_APPS + THIRD_PARTY_APPS
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -168,6 +205,10 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+
+    'DEFAULT_THROTTLE_RATES': {
+        'password_reset_request': '5/minute',
+    }
 }
 
 

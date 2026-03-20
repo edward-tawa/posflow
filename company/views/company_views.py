@@ -31,7 +31,7 @@ class CompanyViewSet(ReadOnlyModelViewSet):
     pagination_class = StandardResultsSetPagination
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ('name', 'email')
-    ordering_fields = '__all__'
+    ordering_fields = ['name', 'created_at']
     ordering = ['name']
 
     permission_classes = [CompanyCreateOrAdminPermission]

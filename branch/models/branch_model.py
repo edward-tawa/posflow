@@ -1,6 +1,6 @@
 from django.db import models
 from config.models.create_update_base_model import CreateUpdateBaseModel
-from company.models.company_model import Company
+
 
 class Branch(CreateUpdateBaseModel):
     name = models.CharField(max_length=100)

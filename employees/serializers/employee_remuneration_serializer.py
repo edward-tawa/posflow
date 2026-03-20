@@ -13,6 +13,7 @@ class RemunerationSerializer(CompanyValidationMixin, serializers.ModelSerializer
     company_summary = serializers.SerializerMethodField(read_only=True)
     branch_summary = serializers.SerializerMethodField(read_only=True)
     employee_summary = serializers.SerializerMethodField(read_only=True)
+    net_salary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Remuneration
@@ -23,7 +24,9 @@ class RemunerationSerializer(CompanyValidationMixin, serializers.ModelSerializer
             'employee_summary',
             'user',
             'type',
-            'amount',
+            'gross_salary',
+            'deductions',
+            'net_salary',
             'effective_date',
             'created_by',
             'updated_by',
@@ -59,6 +62,9 @@ class RemunerationSerializer(CompanyValidationMixin, serializers.ModelSerializer
             'full_name': f"{obj.employee.first_name} {obj.employee.last_name}",
             'email': obj.employee.email
         }
+    
+    def get_net_salary(self, obj):
+        return obj.net_salary
 
     # -------------------------
     # VALIDATION
@@ -78,10 +84,10 @@ class RemunerationSerializer(CompanyValidationMixin, serializers.ModelSerializer
                 "You cannot create or update remuneration for a company other than your own."
             )
 
-        # Validate amount
-        if attrs.get('amount') is not None and attrs['amount'] <= 0:
+        # Validate gross_salary
+        if attrs.get('gross_salary') is not None and attrs['gross_salary'] <= 0:
             raise serializers.ValidationError(
-                {"amount": "Amount must be greater than zero."}
+                {"gross_salary": "Gross salary must be greater than zero."}
             )
 
         return attrs
@@ -104,7 +110,7 @@ class RemunerationSerializer(CompanyValidationMixin, serializers.ModelSerializer
         try:
             remuneration = Remuneration.objects.create(**validated_data)
             logger.info(
-                f"Remuneration '{remuneration.id}' ({remuneration.type} - {remuneration.amount}) "
+                f"Remuneration '{remuneration.id}' ({remuneration.type} - {remuneration.gross_salary} - {remuneration.net_salary}   ) "
                 f"created for employee '{remuneration.employee.id}' by {actor}."
             )
             return remuneration

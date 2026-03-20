@@ -6,6 +6,7 @@ from config.models.create_update_base_model import CreateUpdateBaseModel
 class FiscalDevice(CreateUpdateBaseModel):
     company = models.ForeignKey('company.Company', on_delete=models.CASCADE, related_name='fiscal_devices')
     device_name = models.CharField(max_length=100)
+    device_id = models.CharField(max_length=100, unique=True)
     device_serial_number = models.CharField(max_length=100, unique=True)
     device_type = models.CharField(max_length=50)
     is_active = models.BooleanField(default=True)
